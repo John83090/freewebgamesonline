@@ -282,7 +282,7 @@ footer a:hover{color:var(--text)}
   #cloak-bar{display:none}
   header{display:none}
   .hero{display:none}
-  .main-area{margin-left:0}
+  .main-area{margin-left:0;overflow-x:hidden}
 
   /* Mobile header */
   .mob-header{
@@ -305,12 +305,13 @@ footer a:hover{color:var(--text)}
 
   /* Horizontal category chips */
   .mob-cats{
-    display:flex;gap:7px;overflow-x:auto;padding:10px 12px;
+    display:flex;gap:7px;overflow-x:auto;padding:8px 10px;
     background:var(--bg2);border-bottom:1px solid var(--border);
     position:sticky;top:52px;z-index:199;scrollbar-width:none;
     flex-shrink:0;-webkit-overflow-scrolling:touch;
   }
   .mob-cats.search-open{top:104px}
+  html{scroll-padding-top:105px}
   .mob-cats::-webkit-scrollbar{display:none}
   .mob-cat-chip{
     flex-shrink:0;display:flex;align-items:center;gap:5px;
@@ -323,9 +324,10 @@ footer a:hover{color:var(--text)}
 
   /* Content */
   .content{padding:10px 10px 80px 10px}
-  .game-grid{grid-template-columns:repeat(3,1fr);gap:8px}
-  .section-title{font-size:.88rem;margin-bottom:10px}
-  .section{margin-bottom:20px}
+  .ad-wrap{min-height:0 !important;margin:0 !important}
+  .game-grid{grid-template-columns:repeat(3,1fr);gap:6px;padding:0}
+  .section-title{font-size:.88rem;margin-bottom:10px;padding-top:4px}
+  .section{margin-bottom:16px}
 
   /* Popup disabled on mobile */
   #game-popup{display:none !important}
@@ -1438,7 +1440,7 @@ function buildCard(g){
          alt="${g.name}"
          loading="lazy"
          decoding="async"
-         onerror="this.onerror=null;this.src='https://image.thum.io/get/width/300/crop/300/'+encodeURIComponent(${JSON.stringify(g.url)})"
+         onerror="this.style.display='none'"
     />
     <!-- Always-visible name bar -->
     <div class="card-name-bar">
@@ -1456,6 +1458,11 @@ function buildCard(g){
 
 /* ── RENDER ── */
 function renderAll(){
+  // Reset section title when showing all games
+  const titleEl = document.querySelector('#sec-all .section-title');
+  if(titleEl) titleEl.innerHTML='🎮 All Games <span class="cnt" id="all-cnt"></span>';
+  document.getElementById('sec-hot').style.display='';
+
   // Hot section — always render all hot games immediately
   const hotGrid = document.getElementById('hot-grid');
   hotGrid.innerHTML='';
@@ -1466,7 +1473,8 @@ function renderAll(){
   allGrid.innerHTML='';
   const INITIAL = 60;
   GAMES.slice(0, INITIAL).forEach(g=>allGrid.appendChild(buildCard(g)));
-  document.getElementById('all-cnt').textContent=`(${GAMES.length})`;
+  const cntEl = document.getElementById('all-cnt') || document.querySelector('#sec-all .section-title .cnt');
+  if(cntEl) cntEl.textContent=`(${GAMES.length})`;
 
   if(GAMES.length > INITIAL){
     const idle = window.requestIdleCallback || (cb=>setTimeout(cb,30));
@@ -1544,8 +1552,7 @@ function filterGames(){
   const allGrid = document.getElementById('all-grid');
 
   if(!q){
-    renderAll();
-    hotSec.style.display='';
+    renderAll(); // renderAll() now resets title + hot section
     document.getElementById('no-results').classList.remove('show');
     return;
   }
