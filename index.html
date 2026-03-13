@@ -174,16 +174,23 @@ nav a:hover{color:var(--text);background:var(--bg3)}
 }
 #game-popup.show{opacity:1;transform:scale(1) translateY(0);pointer-events:auto}
 
-/* Ken Burns preview */
+/* GIF/Video preview */
 .pp-preview{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;background:#0d0d1a}
-.pp-img{width:100%;height:100%;object-fit:cover;display:block;
-  animation:kenBurns 6s ease-in-out infinite alternate}
+.pp-img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .3s}
+/* Ken Burns only fires when GIF fails to load (fallback) */
+.pp-img.kb{animation:kenBurns 6s ease-in-out infinite alternate}
 @keyframes kenBurns{
   0%  {transform:scale(1)    translate(0%,0%)}
   25% {transform:scale(1.08) translate(-2%,-1.5%)}
   50% {transform:scale(1.12) translate(2%,1%)}
   75% {transform:scale(1.07) translate(-1%,2%)}
   100%{transform:scale(1.1)  translate(1.5%,-1%)}
+}
+.pp-gif-label{
+  position:absolute;top:7px;right:7px;
+  background:rgba(0,0,0,.65);color:#fff;
+  font-size:.6rem;font-weight:800;padding:2px 6px;border-radius:4px;
+  letter-spacing:.05em;pointer-events:none;
 }
 .pp-play-overlay{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
@@ -365,7 +372,8 @@ footer a:hover{color:var(--text)}
 <!-- CRAZYGAMES-STYLE HOVER POPUP -->
 <div id="game-popup">
   <div class="pp-preview">
-    <img class="pp-img" id="pp-img" src="" alt="" loading="lazy"/>
+    <img class="pp-img" id="pp-img" src="" alt=""/>
+    <span class="pp-gif-label" id="pp-gif-label">▶ PREVIEW</span>
     <div class="pp-play-overlay">
       <div class="pp-play-btn">▶</div>
     </div>
@@ -879,8 +887,30 @@ function positionPopup(cardEl){
 function openPopup(cardEl, g){
   clearTimeout(hideTimer);
   clearTimeout(popTimer);
-  /* Fill content */
-  ppImg.src = g.thumb;
+
+  /* ── Try real animated GIF from CrazyGames CDN ── */
+  ppImg.classList.remove('kb');
+  const gifLabel = document.getElementById('pp-gif-label');
+
+  if(g.thumb && g.thumb.includes('crazygames.com/auto-covers/')){
+    // CrazyGames stores animated GIFs at _16x9.gif
+    const gifUrl = g.thumb.replace('_1x1.png','_16x9.gif');
+    ppImg.src = '';              // reset so animation restarts
+    ppImg.src = gifUrl;
+    gifLabel.textContent = '▶ PREVIEW';
+    ppImg.onerror = () => {
+      // GIF not found — fall back to static image + Ken Burns
+      ppImg.src = g.thumb;
+      ppImg.classList.add('kb');
+      gifLabel.textContent = '📷 PREVIEW';
+      ppImg.onerror = null;
+    };
+  } else {
+    ppImg.src = g.thumb;
+    ppImg.classList.add('kb');   // non-CrazyGames thumb — use Ken Burns
+    gifLabel.textContent = '📷 PREVIEW';
+  }
+
   ppImg.alt = g.name;
   ppName.textContent = g.name;
   ppRating.textContent = '⭐ ' + getPopRating(g.id);
@@ -888,7 +918,7 @@ function openPopup(cardEl, g){
   ppPlayers.textContent = getPopPlayers(g.id) + ' playing now';
   ppBtn.href = cardEl.href;
   ppBtn.textContent = '▶ Play ' + g.name + ' Free';
-  /* Position & show */
+
   positionPopup(cardEl);
   popTimer = setTimeout(() => popup.classList.add('show'), 80);
 }
