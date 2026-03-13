@@ -163,6 +163,7 @@ nav a:hover{color:var(--text);background:var(--bg3)}
 .badge-new{background:#22c55e;color:#fff}
 .badge-popular{background:var(--accent);color:#fff}
 .badge-trending{background:#f97316;color:#fff}
+.badge-desktop{background:#374151;color:#9ca3af;border:1px solid #4b5563}
 
 /* ── CRAZYGAMES POPUP ── */
 #game-popup{
@@ -565,7 +566,7 @@ const GAMES=[
 {id:'fireboy',     name:'Fireboy & Watergirl',emoji:'🔥', cat:'action',      badge:'popular',
  thumb:'https://imgs.crazygames.com/auto-covers/fireboy-and-watergirl-in-the-forest-temple_1x1.png',
  url:'https://classroomlesson.github.io/basic-ruffle-player/html/fireboy_and_watergirl/index.html',ext:'https://classroomlesson.github.io/basic-ruffle-player/html/fireboy_and_watergirl/index.html'},
-{id:'subway',      name:'Subway Surfers',     emoji:'🛹', cat:'action',      badge:'hot',
+{id:'subway',      name:'Subway Surfers',     emoji:'🛹', cat:'action',      badge:'desktop-hot',
  thumb:'https://imgs.crazygames.com/auto-covers/subway-surfers_1x1.png',
  url:'https://classroomlesson.github.io/basic-ruffle-player/html/subway_surfers_barcelona/index.html', ext:'https://classroomlesson.github.io/basic-ruffle-player/html/subway_surfers_barcelona/index.html'},
 {id:'temple',      name:'Temple Run 2',       emoji:'🏛️', cat:'action',      badge:'popular',
@@ -1421,10 +1422,12 @@ function buildCard(g){
   a.style.background=`linear-gradient(135deg,${c[0]} 0%,${c[1]} 100%)`;
 
   // Badge HTML
-  const badgeHtml = g.badge==='hot'  ? '<span class="game-badge badge-hot">🔥 Hot</span>'
-                  : g.badge==='new'  ? '<span class="game-badge badge-new">✨ New</span>'
-                  : g.badge==='popular'? '<span class="game-badge badge-popular">⭐ Popular</span>'
-                  : g.badge==='trending'?'<span class="game-badge badge-trending">📈 Trending</span>'
+  const badgeHtml = g.badge==='hot'        ? '<span class="game-badge badge-hot">🔥 Hot</span>'
+                  : g.badge==='new'        ? '<span class="game-badge badge-new">✨ New</span>'
+                  : g.badge==='popular'    ? '<span class="game-badge badge-popular">⭐ Popular</span>'
+                  : g.badge==='trending'   ? '<span class="game-badge badge-trending">📈 Trending</span>'
+                  : g.badge==='desktop-hot'? '<span class="game-badge badge-hot">🔥 Hot</span><span class="game-badge badge-desktop" style="top:30px">💻 Desktop</span>'
+                  : g.badge==='desktop'    ? '<span class="game-badge badge-desktop">💻 Desktop</span>'
                   : '';
 
   a.innerHTML=`

@@ -101,6 +101,28 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
 .error-screen.show{display:flex}
 .error-screen h2{font-size:1.15rem;font-weight:800}
 .error-screen p{color:var(--text2);font-size:.85rem;max-width:340px;line-height:1.6}
+
+/* ── DESKTOP-ONLY SCREEN ── */
+.desktop-screen{
+  display:none;position:absolute;inset:0;background:var(--bg);z-index:10;
+  flex-direction:column;align-items:center;justify-content:center;
+  gap:16px;text-align:center;padding:28px;
+}
+.desktop-screen.show{display:flex}
+.desktop-icon{font-size:3.5rem}
+.desktop-screen h2{font-size:1.2rem;font-weight:800}
+.desktop-screen p{color:var(--text2);font-size:.84rem;max-width:320px;line-height:1.6}
+.desktop-badge-strip{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.3);
+  border-radius:10px;padding:10px 16px;margin-top:4px;
+}
+.desktop-badge-strip span{font-size:.82rem;color:var(--text2);text-align:left;line-height:1.5}
+.btn-try-anyway{
+  background:transparent;border:1px solid var(--border);color:var(--text2);
+  border-radius:8px;padding:8px 20px;font-size:.8rem;cursor:pointer;margin-top:4px;
+}
+.btn-try-anyway:hover{border-color:var(--accent);color:var(--text)}
 .btn-play{
   background:var(--accent);border:none;color:#fff;border-radius:10px;
   padding:12px 30px;font-size:.95rem;font-weight:700;cursor:pointer;
@@ -290,6 +312,19 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
           <a id="ext-link" class="btn-play" href="#" target="_blank" rel="noopener noreferrer">▶ Play Now — Open in New Tab</a>
           <p style="font-size:.73rem;margin-top:8px;color:var(--text2)">Press the back button to return here.</p>
         </div>
+        <!-- Desktop-only screen (shown on mobile for heavy Unity WebGL games) -->
+        <div class="desktop-screen" id="desktop-screen">
+          <div class="desktop-icon">💻</div>
+          <h2>Desktop Game</h2>
+          <p id="desktop-game-name" style="font-size:1rem;font-weight:700;color:var(--text)"></p>
+          <div class="desktop-badge-strip">
+            <span style="font-size:1.2rem">⚠️</span>
+            <span>This game needs <b style="color:var(--text)">26MB+ of memory</b> to load. Mobile browsers can't run it inside a page — but it works great on desktop or if you open it directly.</span>
+          </div>
+          <a id="desktop-ext-link" class="btn-play" href="#" target="_blank" rel="noopener noreferrer">↗ Open in New Tab — Play Now</a>
+          <a class="back-btn" href="/index.html" style="margin-top:2px;color:var(--text2);font-size:.82rem">← Pick a mobile-friendly game</a>
+          <button class="btn-try-anyway" onclick="tryDesktopGameAnyway()">Try loading anyway</button>
+        </div>
         <!-- The iframe — src set by JS after preconnect warms up -->
         <iframe
           id="game-frame"
@@ -367,6 +402,16 @@ const GAME_NAME= (P.get('name') || 'Game').trim();
 const GAME_URL = (P.get('url')  || '').trim();
 const GAME_EXT = (P.get('ext')  || GAME_URL).trim();
 const GAME_CAT = (P.get('cat')  || '').trim();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DESKTOP-ONLY GAMES — Heavy Unity WebGL (fails on mobile browsers due to WASM memory)
+// ─────────────────────────────────────────────────────────────────────────────
+const DESKTOP_ONLY_IDS = new Set([
+  'subway',        // 26MB Unity WASM — can't allocate in mobile iframe
+  'subwaybarcelona',
+  'templerun',
+  'templerun2',
+]);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PORTRAIT GAMES — 9:16 layout
@@ -480,10 +525,35 @@ checkRotatePrompt();
 // LOAD GAME — fast: set iframe src immediately
 // ─────────────────────────────────────────────────────────────────────────────
 const isMobileDevice = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth <= 640;
+const isDesktopOnly  = DESKTOP_ONLY_IDS.has(GAME_ID);
 
 function showError(){
   loadEl.style.display = 'none';
   errorEl.classList.add('show');
+}
+function showDesktopOnly(){
+  loadEl.style.display = 'none';
+  const ds = document.getElementById('desktop-screen');
+  if(ds){
+    ds.classList.add('show');
+    const nameEl = document.getElementById('desktop-game-name');
+    if(nameEl) nameEl.textContent = GAME_NAME;
+    const extLinkEl = document.getElementById('desktop-ext-link');
+    if(extLinkEl) extLinkEl.href = extUrl;
+    // Update the warning text with actual size if known
+    const strip = ds.querySelector('.desktop-badge-strip span:last-child');
+    if(strip && GAME_ID === 'subway'){
+      strip.innerHTML = 'This game needs <b style="color:var(--text)">26MB of memory</b> to load. Mobile browsers can\'t run it inside a page — but it works great on desktop or if you open it directly.';
+    }
+  }
+}
+function tryDesktopGameAnyway(){
+  const ds = document.getElementById('desktop-screen');
+  if(ds) ds.classList.remove('show');
+  loadEl.style.display = 'flex';
+  loadEl.classList.remove('fade');
+  setLoadMsg('Loading… this may take a while on mobile');
+  frame.src = GAME_URL;
 }
 function showGame(){
   loadEl.classList.add('fade');
@@ -495,6 +565,9 @@ function setLoadMsg(msg){ const p = loadEl.querySelector('p'); if(p) p.textConte
 
 if(!GAME_URL){
   showError();
+} else if(isMobileDevice && isDesktopOnly){
+  // Heavy Unity WebGL game — won't run in mobile iframe, show desktop-only screen immediately
+  showDesktopOnly();
 } else {
   frame.src = GAME_URL;
 
