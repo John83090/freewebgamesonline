@@ -404,14 +404,9 @@ const GAME_EXT = (P.get('ext')  || GAME_URL).trim();
 const GAME_CAT = (P.get('cat')  || '').trim();
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DESKTOP-ONLY GAMES — Heavy Unity WebGL (fails on mobile browsers due to WASM memory)
+// DESKTOP-ONLY GAMES — reserved for future use (currently empty)
 // ─────────────────────────────────────────────────────────────────────────────
-const DESKTOP_ONLY_IDS = new Set([
-  'subway',        // 26MB Unity WASM — can't allocate in mobile iframe
-  'subwaybarcelona',
-  'templerun',
-  'templerun2',
-]);
+const DESKTOP_ONLY_IDS = new Set([]);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PORTRAIT GAMES — 9:16 layout
