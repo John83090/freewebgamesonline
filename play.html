@@ -131,6 +131,34 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
 }
 .btn-play:hover{opacity:.85}
 
+/* ── NEWTAB SPLASH SCREEN (for games that block iframe embedding) ── */
+.newtab-screen{
+  display:none;position:absolute;inset:0;background:var(--bg);z-index:10;
+  flex-direction:column;align-items:center;justify-content:center;
+  gap:20px;text-align:center;padding:28px;
+}
+.newtab-screen.show{display:flex}
+.newtab-cover{
+  width:140px;height:140px;border-radius:20px;overflow:hidden;
+  background:var(--bg3);flex-shrink:0;
+  box-shadow:0 8px 32px rgba(0,0,0,.6);
+}
+.newtab-cover img,.newtab-cover-emoji{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.newtab-cover img{object-fit:cover;display:block}
+.newtab-cover-emoji{font-size:4rem;background:linear-gradient(135deg,var(--bg3),#1e1e3a)}
+.newtab-title{font-size:1.5rem;font-weight:800;margin-bottom:2px}
+.newtab-sub{color:var(--text2);font-size:.85rem;max-width:280px;line-height:1.5}
+.btn-newtab-play{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--accent);color:#fff;border-radius:12px;
+  padding:14px 40px;font-size:1.05rem;font-weight:800;
+  text-decoration:none;
+  box-shadow:0 4px 24px rgba(108,99,255,.45);
+  transition:opacity .15s,transform .1s;
+}
+.btn-newtab-play:hover,.btn-newtab-play:active{opacity:.88;transform:scale(.98)}
+.newtab-hint{font-size:.74rem;color:var(--text2);margin-top:-6px}
+
 /* ── ROTATE PROMPT ── */
 .rotate-prompt{
   display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);
@@ -325,6 +353,16 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
           <a class="back-btn" href="/index.html" style="margin-top:2px;color:var(--text2);font-size:.82rem">← Pick a mobile-friendly game</a>
           <button class="btn-try-anyway" onclick="tryDesktopGameAnyway()">Try loading anyway</button>
         </div>
+        <!-- Newtab splash (for games that block iframe embedding, e.g. CrazyGames) -->
+        <div class="newtab-screen" id="newtab-screen">
+          <div class="newtab-cover" id="newtab-cover-wrap"></div>
+          <div>
+            <div class="newtab-title" id="newtab-title"></div>
+            <div class="newtab-sub">This game opens in a new tab for the best experience</div>
+          </div>
+          <a class="btn-newtab-play" id="newtab-play-btn" href="#" target="_blank" rel="noopener noreferrer">▶&nbsp;Play Now</a>
+          <div class="newtab-hint">Free · No download needed · Opens in new tab</div>
+        </div>
         <!-- The iframe — src set by JS after preconnect warms up -->
         <iframe
           id="game-frame"
@@ -407,6 +445,12 @@ const GAME_CAT = (P.get('cat')  || '').trim();
 // DESKTOP-ONLY GAMES — reserved for future use (currently empty)
 // ─────────────────────────────────────────────────────────────────────────────
 const DESKTOP_ONLY_IDS = new Set([]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NEWTAB GAMES — games that block iframe embedding (JS-detected, e.g. CrazyGames)
+// These show a splash screen with a "Play Now" button that opens in a new tab
+// ─────────────────────────────────────────────────────────────────────────────
+const NEWTAB_IDS = new Set(['subway','temple']);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PORTRAIT GAMES — 9:16 layout
@@ -542,6 +586,30 @@ function showDesktopOnly(){
     }
   }
 }
+function showNewtabSplash(){
+  loadEl.style.display = 'none';
+  const ns = document.getElementById('newtab-screen');
+  if(!ns) return;
+  ns.classList.add('show');
+  // Title
+  const titleEl = document.getElementById('newtab-title');
+  if(titleEl) titleEl.textContent = GAME_NAME;
+  // Play button URL
+  const btn = document.getElementById('newtab-play-btn');
+  if(btn) btn.href = extUrl;
+  // Cover image
+  const coverWrap = document.getElementById('newtab-cover-wrap');
+  if(coverWrap && GAME_ID){
+    const img = new Image();
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block';
+    img.onload = () => { coverWrap.innerHTML=''; coverWrap.appendChild(img); };
+    img.onerror = () => {
+      const g = typeof GAMES_LIST!=='undefined' ? GAMES_LIST.find(x=>x.id===GAME_ID) : null;
+      coverWrap.innerHTML = `<div class="newtab-cover-emoji">${g?g.emoji:'🎮'}</div>`;
+    };
+    img.src = `/img/covers/${GAME_ID}.jpg`;
+  }
+}
 function tryDesktopGameAnyway(){
   const ds = document.getElementById('desktop-screen');
   if(ds) ds.classList.remove('show');
@@ -560,6 +628,9 @@ function setLoadMsg(msg){ const p = loadEl.querySelector('p'); if(p) p.textConte
 
 if(!GAME_URL){
   showError();
+} else if(NEWTAB_IDS.has(GAME_ID)){
+  // Game blocks iframe embedding (JS-detected) — show splash + open in new tab
+  showNewtabSplash();
 } else if(isMobileDevice && isDesktopOnly){
   // Heavy Unity WebGL game — won't run in mobile iframe, show desktop-only screen immediately
   showDesktopOnly();
