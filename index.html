@@ -1290,7 +1290,7 @@ const SEO_PAGES={
 function buildCard(g){
   const a = document.createElement('a');
   a.className='game-card';
-  a.href=SEO_PAGES[g.id]||`play.html?name=${encodeURIComponent(g.name)}&url=${encodeURIComponent(g.url)}&ext=${encodeURIComponent(g.ext||g.url)}`;
+  a.href=SEO_PAGES[g.id]||`play.html?id=${encodeURIComponent(g.id)}&name=${encodeURIComponent(g.name)}&url=${encodeURIComponent(g.url)}&ext=${encodeURIComponent(g.ext||g.url)}&cat=${encodeURIComponent(g.cat)}`;
   a.dataset.cat=g.cat;
   a.dataset.id=g.id;
 
