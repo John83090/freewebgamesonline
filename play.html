@@ -5,194 +5,235 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <title>Play – FreeWebGamesOnline</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<!-- Performance: preconnect to common game hosts -->
+<link rel="preconnect" href="https://classroomlesson.github.io"/>
+<link rel="preconnect" href="https://maddox05.github.io"/>
+<link rel="dns-prefetch" href="https://db2.duckmath.org"/>
+<link rel="dns-prefetch" href="https://pagead2.googlesyndication.com"/>
 <!-- Google AdSense -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9483059588332842" crossorigin="anonymous"></script>
 <style>
 :root{
   --bg:#0d0d14;--bg2:#13131f;--bg3:#1a1a2e;--border:#2a2a45;
   --accent:#6c63ff;--accent2:#8b83ff;--text:#e8e8f0;--text2:#9898b8;
-  --green:#22c55e;--red:#ef4444;
+  --green:#22c55e;--red:#ef4444;--bar-h:54px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden}
 
 /* ── TOP NAV ── */
 .topnav{
   background:var(--bg2);border-bottom:1px solid var(--border);
   padding:0 16px;display:flex;align-items:center;gap:10px;height:50px;
-  position:sticky;top:0;z-index:100;flex-shrink:0;
+  position:sticky;top:0;z-index:100;
 }
 .back-btn{
   display:flex;align-items:center;gap:6px;color:var(--text2);
-  text-decoration:none;font-size:0.82rem;white-space:nowrap;
-  padding:5px 8px;border-radius:6px;transition:background 0.15s;
+  text-decoration:none;font-size:.82rem;white-space:nowrap;
+  padding:5px 10px;border-radius:6px;transition:background .15s;
 }
 .back-btn:hover{background:var(--border);color:var(--text)}
-.nav-title{font-weight:700;font-size:0.95rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-title{font-weight:700;font-size:.95rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nav-btn{
   background:var(--bg3);border:1px solid var(--border);color:var(--text);
-  border-radius:7px;padding:5px 13px;font-size:0.8rem;cursor:pointer;
+  border-radius:7px;padding:5px 13px;font-size:.8rem;cursor:pointer;
   white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;gap:5px;
-  transition:border-color 0.15s,background 0.15s;
+  transition:border-color .15s,background .15s;
 }
 .nav-btn:hover{border-color:var(--accent);background:var(--bg)}
-.nav-btn.accent{background:var(--accent);border-color:var(--accent);color:#fff}
-.nav-btn.accent:hover{background:var(--accent2);border-color:var(--accent2)}
+.nav-btn.accent{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.nav-btn.accent:hover{background:var(--accent2)}
 
-/* ── MAIN LAYOUT ── */
-.page-wrap{display:flex;flex-direction:column;min-height:calc(100vh - 50px)}
-.content-row{display:flex;gap:0;flex:1}
+/* ── LAYOUT ── */
+.page-wrap{display:flex;flex-direction:column}
+.content-row{display:flex;align-items:flex-start}
 
 /* ── GAME COLUMN ── */
-.game-col{flex:1;min-width:0;display:flex;flex-direction:column;padding:16px 16px 0 16px}
+.game-col{flex:1;min-width:0;padding:14px 14px 0 14px;display:flex;flex-direction:column}
 
-/* Game frame container */
+/* Game container – aspect ratio drives height */
 .game-outer{
   position:relative;background:#000;border-radius:12px;overflow:hidden;
-  width:100%;
+  width:100%;contain:layout style;
+  box-shadow:0 8px 32px rgba(0,0,0,.6);
 }
-.game-outer.landscape{aspect-ratio:16/9;max-width:100%}
-.game-outer.portrait{aspect-ratio:9/16;max-width:420px;margin:0 auto}
+.game-outer.landscape{aspect-ratio:16/9}
+.game-outer.portrait{aspect-ratio:9/16;max-width:400px;margin:0 auto}
 
-#game-frame{width:100%;height:100%;border:none;display:block;position:absolute;inset:0}
+#game-frame{
+  position:absolute;inset:0;width:100%;height:100%;
+  border:none;display:block;
+}
 
-/* Loading overlay */
+/* ── LOADING OVERLAY ── */
 .loading-overlay{
-  position:absolute;inset:0;background:var(--bg);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
-  z-index:10;transition:opacity 0.3s;
+  position:absolute;inset:0;background:var(--bg);z-index:10;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  transition:opacity .25s;
 }
-.spinner{width:48px;height:48px;border:4px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite}
+.spinner{
+  width:46px;height:46px;border-radius:50%;
+  border:3px solid var(--border);border-top-color:var(--accent);
+  animation:spin .7s linear infinite;will-change:transform;
+}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading-overlay p{color:var(--text2);font-size:0.9rem}
+.loading-overlay p{color:var(--text2);font-size:.88rem}
+.loading-overlay.fade{opacity:0;pointer-events:none}
 
-/* Error screen */
+/* ── ERROR SCREEN ── */
 .error-screen{
-  display:none;position:absolute;inset:0;background:var(--bg);
+  display:none;position:absolute;inset:0;background:var(--bg);z-index:10;
   flex-direction:column;align-items:center;justify-content:center;
-  gap:16px;text-align:center;padding:24px;z-index:10;
+  gap:14px;text-align:center;padding:24px;
 }
-.error-screen h2{font-size:1.2rem}
-.error-screen p{color:var(--text2);font-size:0.87rem;max-width:380px;line-height:1.6}
+.error-screen.show{display:flex}
+.error-screen h2{font-size:1.15rem;font-weight:800}
+.error-screen p{color:var(--text2);font-size:.85rem;max-width:340px;line-height:1.6}
 .btn-play{
   background:var(--accent);border:none;color:#fff;border-radius:10px;
-  padding:12px 28px;font-size:0.95rem;font-weight:700;cursor:pointer;
+  padding:12px 30px;font-size:.95rem;font-weight:700;cursor:pointer;
   text-decoration:none;display:inline-block;margin-top:4px;
+  transition:opacity .15s;
 }
-.btn-play:hover{opacity:0.85}
+.btn-play:hover{opacity:.85}
 
-/* Rotate prompt */
+/* ── ROTATE PROMPT ── */
 .rotate-prompt{
-  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);
   flex-direction:column;align-items:center;justify-content:center;
-  gap:16px;z-index:200;text-align:center;padding:24px;
+  gap:14px;z-index:300;text-align:center;padding:24px;
 }
 .rotate-prompt.show{display:flex}
-.rotate-icon{font-size:4rem;animation:rotateIcon 1.5s ease-in-out infinite alternate}
-@keyframes rotateIcon{from{transform:rotate(0deg)}to{transform:rotate(90deg)}}
-.rotate-prompt h2{font-size:1.2rem}
-.rotate-prompt p{color:var(--text2);font-size:0.87rem;max-width:280px;line-height:1.5}
+.rotate-icon{font-size:3.5rem;animation:rock 1.4s ease-in-out infinite alternate}
+@keyframes rock{from{transform:rotate(-10deg)}to{transform:rotate(80deg)}}
+.rotate-prompt h2{font-size:1.1rem;font-weight:800}
+.rotate-prompt p{color:var(--text2);font-size:.84rem;max-width:260px;line-height:1.55}
 .rotate-dismiss{
   background:transparent;border:1px solid var(--border);color:var(--text2);
-  border-radius:8px;padding:8px 20px;font-size:0.82rem;cursor:pointer;margin-top:8px;
+  border-radius:8px;padding:8px 20px;font-size:.8rem;cursor:pointer;margin-top:6px;
 }
 .rotate-dismiss:hover{border-color:var(--accent);color:var(--text)}
 
 /* ── CONTROLS BAR ── */
 .controls-bar{
   display:flex;align-items:center;gap:8px;padding:10px 0;
-  border-bottom:1px solid var(--border);
+  border-bottom:1px solid var(--border);flex-shrink:0;
 }
 .ctrl-btn{
   display:flex;align-items:center;gap:6px;background:var(--bg3);
   border:1px solid var(--border);color:var(--text);border-radius:8px;
-  padding:7px 14px;font-size:0.82rem;cursor:pointer;transition:all 0.15s;white-space:nowrap;
+  padding:7px 14px;font-size:.82rem;cursor:pointer;
+  transition:border-color .15s,color .15s;white-space:nowrap;text-decoration:none;
 }
 .ctrl-btn:hover{border-color:var(--accent);color:var(--accent)}
 .ctrl-btn.liked{border-color:var(--red);color:var(--red)}
-.ctrl-btn.liked:hover{border-color:var(--red);color:var(--red);opacity:0.8}
 .ctrl-spacer{flex:1}
 
-/* ── GAME INFO BOX ── */
+/* ── GAME INFO ── */
 .game-info{
-  display:flex;gap:16px;padding:18px 0;border-bottom:1px solid var(--border);
+  display:flex;gap:14px;padding:16px 0;
+  border-bottom:1px solid var(--border);
 }
 .game-cover-thumb{
-  width:80px;height:80px;border-radius:10px;object-fit:cover;
-  flex-shrink:0;background:var(--bg3);border:1px solid var(--border);
+  width:76px;height:76px;border-radius:10px;object-fit:cover;flex-shrink:0;
+  background:var(--bg3);border:1px solid var(--border);
 }
 .game-cover-emoji{
-  width:80px;height:80px;border-radius:10px;flex-shrink:0;
+  width:76px;height:76px;border-radius:10px;flex-shrink:0;
   background:var(--bg3);border:1px solid var(--border);
-  display:flex;align-items:center;justify-content:center;font-size:2.2rem;
+  display:flex;align-items:center;justify-content:center;font-size:2rem;
 }
-.game-meta{flex:1}
-.game-meta h1{font-size:1.1rem;font-weight:800;margin-bottom:6px;line-height:1.3}
+.game-meta{flex:1;min-width:0}
+.game-meta h1{font-size:1.05rem;font-weight:800;margin-bottom:5px;line-height:1.3}
 .cat-badge{
   display:inline-block;background:var(--accent);color:#fff;
-  border-radius:5px;padding:2px 8px;font-size:0.72rem;font-weight:700;
-  letter-spacing:.3px;margin-bottom:8px;text-transform:uppercase;
+  border-radius:5px;padding:2px 8px;font-size:.7rem;font-weight:700;
+  letter-spacing:.3px;margin-bottom:7px;text-transform:uppercase;
 }
-.game-meta p{color:var(--text2);font-size:0.82rem;line-height:1.55}
+.game-meta p{color:var(--text2);font-size:.82rem;line-height:1.55}
 
 /* ── AD SLOT ── */
 .ad-slot{
   background:var(--bg2);border:1px solid var(--border);border-radius:10px;
   min-height:90px;display:flex;align-items:center;justify-content:center;
-  color:var(--text2);font-size:0.78rem;margin:14px 0;padding:8px;overflow:hidden;
+  color:var(--text2);font-size:.75rem;margin:12px 0;overflow:hidden;
 }
 
 /* ── SIDEBAR ── */
 .sidebar{
-  width:270px;flex-shrink:0;padding:16px 16px 16px 0;
-  display:flex;flex-direction:column;gap:12px;
+  width:260px;flex-shrink:0;padding:14px 14px 14px 0;
+  display:flex;flex-direction:column;gap:10px;
+  max-height:calc(100vh - 50px);overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
 }
-.sidebar-title{font-size:0.85rem;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px}
-.rel-grid{display:flex;flex-direction:column;gap:8px}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.sidebar-title{font-size:.8rem;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase}
+.rel-grid{display:flex;flex-direction:column;gap:7px}
 .rel-card{
-  display:flex;align-items:center;gap:10px;padding:8px;
-  background:var(--bg2);border:1px solid var(--border);border-radius:10px;
-  cursor:pointer;transition:border-color 0.15s,background 0.15s;text-decoration:none;
+  display:flex;align-items:center;gap:9px;padding:7px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:9px;
+  cursor:pointer;transition:border-color .13s,background .13s;text-decoration:none;color:var(--text);
 }
 .rel-card:hover{border-color:var(--accent);background:var(--bg3)}
 .rel-thumb{
-  width:44px;height:44px;border-radius:7px;object-fit:cover;
-  flex-shrink:0;background:var(--bg3);
+  width:42px;height:42px;border-radius:6px;object-fit:cover;flex-shrink:0;
+  background:var(--bg3);
 }
 .rel-emoji{
-  width:44px;height:44px;border-radius:7px;flex-shrink:0;
-  background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1.4rem;
+  width:42px;height:42px;border-radius:6px;flex-shrink:0;
+  background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1.3rem;
 }
 .rel-info{flex:1;min-width:0}
-.rel-name{font-size:0.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rel-cat{font-size:0.72rem;color:var(--text2)}
+.rel-name{font-size:.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rel-cat{font-size:.7rem;color:var(--text2)}
 
-/* ── MOBILE BAR (≤640px) ── */
+/* ── MOBILE BAR ── */
 .mobile-bar{
-  display:none;position:fixed;bottom:0;left:0;right:0;z-index:150;
-  background:var(--bg2);border-top:1px solid var(--border);
-  padding:8px 16px;padding-bottom:calc(8px + env(safe-area-inset-bottom));
-  display:none;align-items:center;justify-content:space-around;gap:8px;
+  display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;
+  background:rgba(19,19,31,.96);border-top:1px solid var(--border);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  padding:6px 16px;padding-bottom:calc(6px + env(safe-area-inset-bottom));
+  align-items:center;justify-content:space-around;
+  height:var(--bar-h);
 }
-.mobile-bar-btn{
-  display:flex;flex-direction:column;align-items:center;gap:3px;
-  background:none;border:none;color:var(--text2);cursor:pointer;font-size:0.7rem;padding:4px 8px;
+.mob-btn{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  background:none;border:none;color:var(--text2);cursor:pointer;
+  font-size:.65rem;padding:4px 12px;text-decoration:none;
 }
-.mobile-bar-btn span{font-size:1.2rem;line-height:1}
-.mobile-bar-btn:hover{color:var(--text)}
-.mobile-bar-btn.m-accent{color:var(--accent)}
+.mob-icon{font-size:1.3rem;line-height:1}
+.mob-btn:hover,.mob-btn:active{color:var(--text)}
+.mob-btn.accent{color:var(--accent)}
 
 /* ── RESPONSIVE ── */
-@media(max-width:900px){
-  .sidebar{display:none}
-}
+
+/* Tablet: 641–900px — full-width game, no sidebar */
+@media(max-width:900px){.sidebar{display:none}}
+
+/* Mobile: ≤640px — fullscreen game */
 @media(max-width:640px){
   body{background:#000}
   .topnav{display:none}
-  .page-wrap,.content-row,.game-col{display:block;padding:0;margin:0}
-  .game-outer{border-radius:0;max-width:100% !important;aspect-ratio:unset !important;height:100svh}
-  #game-frame{position:fixed;inset:0;height:100svh;z-index:1}
-  .loading-overlay,.error-screen{position:fixed;inset:0;z-index:50}
+  .page-wrap,.content-row{display:block}
+  .game-col{padding:0}
+
+  /* Game fills screen above the mobile bar */
+  .game-outer{
+    border-radius:0;
+    max-width:100% !important;
+    /* Remove aspect ratio, use explicit height */
+    aspect-ratio:unset !important;
+    height:calc(100svh - var(--bar-h));
+    height:calc(100vh - var(--bar-h));
+  }
+  /* Use 100svh if supported */
+  @supports(height:100svh){
+    .game-outer{height:calc(100svh - var(--bar-h))}
+  }
+
+  #game-frame{position:absolute;inset:0;width:100%;height:100%}
+
   .controls-bar,.game-info,.ad-slot{display:none}
   .mobile-bar{display:flex}
 }
@@ -202,18 +243,18 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
 
 <!-- TOP NAV -->
 <div class="topnav">
-  <a class="back-btn" href="index.html">← All Games</a>
+  <a class="back-btn" href="/index.html">← All Games</a>
   <span class="nav-title" id="nav-title">Loading…</span>
-  <a class="nav-btn" id="nav-newtab" href="#" target="_blank" rel="noopener">↗ New Tab</a>
-  <button class="nav-btn accent" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+  <a class="nav-btn" id="nav-newtab" href="#" target="_blank" rel="noopener noreferrer">↗ New Tab</a>
+  <button class="nav-btn accent" onclick="goFullscreen()">⛶ Fullscreen</button>
 </div>
 
-<!-- ROTATE PROMPT (landscape games on portrait phones) -->
-<div class="rotate-prompt" id="rotate-prompt">
+<!-- ROTATE PROMPT -->
+<div class="rotate-prompt" id="rotate-prompt" role="dialog" aria-label="Rotate device">
   <div class="rotate-icon">📱</div>
-  <h2>Rotate your device</h2>
-  <p>This game plays best in landscape mode. Turn your phone sideways for the full experience!</p>
-  <button class="rotate-dismiss" onclick="dismissRotate()">Play anyway in portrait</button>
+  <h2>Rotate for best experience</h2>
+  <p>This game plays in landscape mode. Turn your phone sideways!</p>
+  <button class="rotate-dismiss" onclick="dismissRotate()">Play anyway</button>
 </div>
 
 <div class="page-wrap">
@@ -222,29 +263,37 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
     <!-- GAME COLUMN -->
     <div class="game-col">
 
-      <!-- GAME FRAME -->
       <div class="game-outer" id="game-outer">
-        <div class="loading-overlay" id="loading-overlay">
-          <div class="spinner"></div>
+        <!-- Loading -->
+        <div class="loading-overlay" id="loading-overlay" aria-live="polite">
+          <div class="spinner" aria-hidden="true"></div>
           <p>Loading game…</p>
         </div>
-        <div class="error-screen" id="error-screen">
-          <div style="font-size:3rem">🔒</div>
-          <h2>This game blocks embedding</h2>
-          <p>Many games block being embedded in iframes. Click below to open it directly — it works perfectly!</p>
-          <a id="ext-link" class="btn-play" href="#" target="_blank" rel="noopener">▶ Play Now — Open in New Tab</a>
-          <p style="font-size:0.75rem;margin-top:10px;color:#555">Press Ctrl+W to return here when done.</p>
+        <!-- Error -->
+        <div class="error-screen" id="error-screen" role="alert">
+          <div style="font-size:2.8rem" aria-hidden="true">🔒</div>
+          <h2>Can't embed this game</h2>
+          <p>This game blocks iframes. Click below to open it directly — works great!</p>
+          <a id="ext-link" class="btn-play" href="#" target="_blank" rel="noopener noreferrer">▶ Play Now — Open in New Tab</a>
+          <p style="font-size:.73rem;margin-top:8px;color:var(--text2)">Press the back button to return here.</p>
         </div>
-        <iframe id="game-frame" allowfullscreen allow="fullscreen;autoplay;gamepad"
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock allow-top-navigation-by-user-activation"></iframe>
+        <!-- The iframe — src set by JS after preconnect warms up -->
+        <iframe
+          id="game-frame"
+          title="Game"
+          allowfullscreen
+          allow="fullscreen *; autoplay *; gamepad *"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock allow-top-navigation-by-user-activation allow-downloads"
+          referrerpolicy="no-referrer-when-downgrade"
+        ></iframe>
       </div>
 
       <!-- CONTROLS BAR -->
       <div class="controls-bar">
-        <button class="ctrl-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
-        <a class="ctrl-btn" id="ctrl-newtab" href="#" target="_blank" rel="noopener">↗ Open in New Tab</a>
+        <button class="ctrl-btn" onclick="goFullscreen()">⛶&nbsp;Fullscreen</button>
+        <a class="ctrl-btn" id="ctrl-newtab" href="#" target="_blank" rel="noopener noreferrer">↗&nbsp;New Tab</a>
         <div class="ctrl-spacer"></div>
-        <button class="ctrl-btn" id="like-btn" onclick="toggleLike()">♡ Like</button>
+        <button class="ctrl-btn" id="like-btn" onclick="toggleLike()">♡&nbsp;Like</button>
       </div>
 
       <!-- GAME INFO -->
@@ -253,49 +302,62 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
         <div class="game-meta">
           <span class="cat-badge" id="cat-badge">Game</span>
           <h1 id="info-title">Loading…</h1>
-          <p id="info-desc"></p>
+          <p id="info-desc">Enjoy this free browser game — no download needed!</p>
         </div>
       </div>
 
       <!-- AD SLOT -->
       <div class="ad-slot">
         <ins class="adsbygoogle" style="display:block;width:100%;height:90px"
-          data-ad-client="ca-pub-9483059588332842" data-ad-slot="auto" data-ad-format="horizontal" data-full-width-responsive="true"></ins>
+          data-ad-client="ca-pub-9483059588332842"
+          data-ad-slot="auto"
+          data-ad-format="horizontal"
+          data-full-width-responsive="true"></ins>
       </div>
 
     </div><!-- /game-col -->
 
     <!-- SIDEBAR -->
     <div class="sidebar" id="sidebar">
-      <div class="sidebar-title">More Games</div>
-      <div class="rel-grid" id="rel-grid"></div>
-      <div class="ad-slot" style="margin:0">
+      <div class="sidebar-title">More Like This</div>
+      <div class="rel-grid" id="rel-grid">
+        <!-- Populated by JS with lazy-loaded images -->
+      </div>
+      <div class="ad-slot" style="margin:0;min-height:250px">
         <ins class="adsbygoogle" style="display:block;width:100%;min-height:250px"
-          data-ad-client="ca-pub-9483059588332842" data-ad-slot="auto" data-ad-format="rectangle" data-full-width-responsive="true"></ins>
+          data-ad-client="ca-pub-9483059588332842"
+          data-ad-slot="auto"
+          data-ad-format="rectangle"
+          data-full-width-responsive="true"></ins>
       </div>
     </div>
 
-  </div><!-- /content-row -->
+  </div>
 </div><!-- /page-wrap -->
 
 <!-- MOBILE BAR -->
 <div class="mobile-bar" id="mobile-bar">
-  <a class="mobile-bar-btn" href="index.html"><span>←</span> Games</a>
-  <a class="mobile-bar-btn" id="mob-newtab" href="#" target="_blank" rel="noopener"><span>↗</span> New Tab</a>
-  <button class="mobile-bar-btn m-accent" onclick="toggleFullscreen()"><span>⛶</span> Fullscreen</button>
+  <a class="mob-btn" href="/index.html"><span class="mob-icon">←</span>Games</a>
+  <a class="mob-btn" id="mob-newtab" href="#" target="_blank" rel="noopener noreferrer"><span class="mob-icon">↗</span>New Tab</a>
+  <button class="mob-btn accent" onclick="goFullscreen()"><span class="mob-icon">⛶</span>Fullscreen</button>
 </div>
 
-<script src="/games-list.js"></script>
+<!-- Load game data (non-render-blocking) -->
+<script src="/games-list.js" defer></script>
 <script>
-// ── PARAMS ──────────────────────────────────────────────────────────────────
-const P = new URLSearchParams(location.search);
-const GAME_ID  = P.get('id')   || '';
-const GAME_NAME= P.get('name') || 'Game';
-const GAME_URL = P.get('url')  || '';
-const GAME_EXT = P.get('ext')  || GAME_URL;
-const GAME_CAT = P.get('cat')  || '';
+// ─────────────────────────────────────────────────────────────────────────────
+// URL PARAMS
+// ─────────────────────────────────────────────────────────────────────────────
+const P       = new URLSearchParams(location.search);
+const GAME_ID  = (P.get('id')   || '').trim();
+const GAME_NAME= (P.get('name') || 'Game').trim();
+const GAME_URL = (P.get('url')  || '').trim();
+const GAME_EXT = (P.get('ext')  || GAME_URL).trim();
+const GAME_CAT = (P.get('cat')  || '').trim();
 
-// ── PORTRAIT GAME IDs ────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// PORTRAIT GAMES — 9:16 layout
+// ─────────────────────────────────────────────────────────────────────────────
 const PORTRAIT_IDS = new Set([
   'helix','holeio','doodle_jump','bitlife','tiny_fishing','where_water',
   'happy_glass','capybara_click','idle_ants','orb_farm','stack',
@@ -307,181 +369,250 @@ const PORTRAIT_IDS = new Set([
 ]);
 const isPortrait = PORTRAIT_IDS.has(GAME_ID);
 
-// ── CATEGORY LABELS ──────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// CATEGORY LABELS & DESCRIPTIONS
+// ─────────────────────────────────────────────────────────────────────────────
 const CAT_LABEL = {
   action:'Action',shooting:'Shooting',racing:'Racing',sports:'Sports',
   puzzle:'Puzzle',adventure:'Adventure',io:'IO Games',horror:'Horror',
   idle:'Idle & Clicker',creative:'Creative',minecraft:'Minecraft',
   pokemon:'Pokémon',math:'Math Games',misc:'Casual'
 };
-
-// ── DOM REFS ─────────────────────────────────────────────────────────────────
-const frame       = document.getElementById('game-frame');
-const loadingEl   = document.getElementById('loading-overlay');
-const errorEl     = document.getElementById('error-screen');
-const gameOuter   = document.getElementById('game-outer');
-const rotateEl    = document.getElementById('rotate-prompt');
-
-// ── SETUP LABELS & LINKS ─────────────────────────────────────────────────────
-document.title = GAME_NAME + ' – FreeWebGamesOnline';
-document.getElementById('nav-title').textContent   = GAME_NAME;
-document.getElementById('info-title').textContent  = GAME_NAME;
-document.getElementById('cat-badge').textContent   = CAT_LABEL[GAME_CAT] || 'Game';
-
-const extUrl = GAME_EXT || GAME_URL;
-document.getElementById('nav-newtab').href  = extUrl;
-document.getElementById('ctrl-newtab').href = extUrl;
-document.getElementById('ext-link').href    = extUrl;
-const mobNewtab = document.getElementById('mob-newtab');
-if(mobNewtab) mobNewtab.href = extUrl;
-
-// ── DESCRIPTION ───────────────────────────────────────────────────────────────
-const DESCRIPTIONS = {
-  action:'Fast-paced action game — fight, dodge, and survive!',
+const CAT_DESC = {
+  action:'Fast-paced action — fight, dodge, and survive!',
   shooting:'Aim and shoot your way through waves of enemies.',
   racing:'Hit the gas and race to the finish line!',
-  sports:'Classic sports fun you can play right in your browser.',
+  sports:'Classic sports fun right in your browser.',
   puzzle:'Challenge your brain with clever puzzles.',
   adventure:'Explore worlds and go on an epic adventure.',
   io:'Compete against players worldwide in real-time!',
   horror:'Creepy, atmospheric, and full of scares.',
   idle:'Sit back, click, and watch your empire grow.',
-  creative:'Build, draw, and create to your heart\'s content.',
-  minecraft:'Minecraft-inspired building and survival fun.',
-  pokemon:'Catch, train, and battle Pokémon in classic RPG style.',
-  math:'Fun educational games that make math enjoyable!',
-  misc:'A great casual game to enjoy in your browser.'
+  creative:'Build, draw, and create freely.',
+  minecraft:'Minecraft-inspired building and survival.',
+  pokemon:'Catch, train, and battle Pokémon!',
+  math:'Fun educational games that make math click.',
+  misc:'A great casual game to enjoy for free.'
 };
-document.getElementById('info-desc').textContent = DESCRIPTIONS[GAME_CAT] || 'Enjoy this free browser game — no download needed!';
 
-// ── COVER IMAGE ───────────────────────────────────────────────────────────────
-const coverWrap = document.getElementById('cover-wrap');
-if(GAME_ID){
-  const img = document.createElement('img');
+// ─────────────────────────────────────────────────────────────────────────────
+// DOM REFS
+// ─────────────────────────────────────────────────────────────────────────────
+const frame     = document.getElementById('game-frame');
+const loadEl    = document.getElementById('loading-overlay');
+const errorEl   = document.getElementById('error-screen');
+const gameOuter = document.getElementById('game-outer');
+const rotateEl  = document.getElementById('rotate-prompt');
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POPULATE PAGE META
+// ─────────────────────────────────────────────────────────────────────────────
+document.title = GAME_NAME + ' – FreeWebGamesOnline';
+document.getElementById('nav-title').textContent  = GAME_NAME;
+document.getElementById('info-title').textContent = GAME_NAME;
+document.getElementById('cat-badge').textContent  = CAT_LABEL[GAME_CAT] || 'Game';
+document.getElementById('info-desc').textContent  = CAT_DESC[GAME_CAT]  || 'Enjoy this free browser game — no download needed!';
+
+const extUrl = GAME_EXT || GAME_URL || '#';
+document.getElementById('nav-newtab').href  = extUrl;
+document.getElementById('ctrl-newtab').href = extUrl;
+document.getElementById('ext-link').href    = extUrl;
+document.getElementById('mob-newtab').href  = extUrl;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COVER IMAGE
+// ─────────────────────────────────────────────────────────────────────────────
+(function(){
+  const wrap = document.getElementById('cover-wrap');
+  function fallbackEmoji(){
+    const g = typeof GAMES_LIST!=='undefined' ? GAMES_LIST.find(x=>x.id===GAME_ID) : null;
+    wrap.innerHTML = `<div class="game-cover-emoji">${g?g.emoji:'🎮'}</div>`;
+  }
+  if(!GAME_ID){ fallbackEmoji(); return; }
+  const img = new Image();
   img.className = 'game-cover-thumb';
   img.alt = GAME_NAME;
-  img.onerror = function(){
-    coverWrap.innerHTML = `<div class="game-cover-emoji">${getEmoji()}</div>`;
-  };
+  img.decoding = 'async';
+  img.onload = () => wrap.appendChild(img);
+  img.onerror = fallbackEmoji;
   img.src = `/img/covers/${GAME_ID}.jpg`;
-  coverWrap.appendChild(img);
-} else {
-  coverWrap.innerHTML = `<div class="game-cover-emoji">${getEmoji()}</div>`;
-}
-function getEmoji(){
-  if(typeof GAMES_LIST==='undefined') return '🎮';
-  const g = GAMES_LIST.find(x=>x.id===GAME_ID);
-  return g ? g.emoji : '🎮';
-}
+})();
 
-// ── ORIENTATION / LAYOUT ──────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// ORIENTATION
+// ─────────────────────────────────────────────────────────────────────────────
 gameOuter.classList.add(isPortrait ? 'portrait' : 'landscape');
 
-function checkOrientation(){
+function checkRotatePrompt(){
   const isMobile = window.innerWidth <= 640;
-  if(!isMobile || isPortrait) return;
-  // landscape game on a portrait phone?
-  if(window.innerHeight > window.innerWidth){
-    rotateEl.classList.add('show');
-  } else {
-    rotateEl.classList.remove('show');
-  }
+  if(!isMobile || isPortrait){ rotateEl.classList.remove('show'); return; }
+  rotateEl.classList.toggle('show', window.innerHeight > window.innerWidth);
 }
 function dismissRotate(){ rotateEl.classList.remove('show'); }
 
 // Try to lock orientation
-if(navigator.wakeLock){ navigator.wakeLock.request('screen').catch(()=>{}); }
 if(screen.orientation && screen.orientation.lock){
   screen.orientation.lock(isPortrait ? 'portrait' : 'landscape').catch(()=>{});
 }
+// Prevent screen sleep on mobile
+if(navigator.wakeLock){
+  navigator.wakeLock.request('screen').catch(()=>{});
+}
 
-window.addEventListener('resize', checkOrientation);
-window.addEventListener('orientationchange', ()=>setTimeout(checkOrientation,300));
-checkOrientation();
+window.addEventListener('resize', checkRotatePrompt, {passive:true});
+window.addEventListener('orientationchange', ()=>setTimeout(checkRotatePrompt,200), {passive:true});
+checkRotatePrompt();
 
-// ── LOAD GAME ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// LOAD GAME — fast: set iframe src immediately
+// ─────────────────────────────────────────────────────────────────────────────
 function showError(){
-  loadingEl.style.display = 'none';
-  frame.style.display = 'none';
-  errorEl.style.display = 'flex';
+  loadEl.style.display = 'none';
+  errorEl.classList.add('show');
 }
 function showGame(){
-  loadingEl.style.opacity = '0';
-  setTimeout(()=>{ loadingEl.style.display = 'none'; }, 300);
+  loadEl.classList.add('fade');
+  setTimeout(()=>{ loadEl.style.display='none'; }, 260);
 }
 
-if(!GAME_URL){ showError(); }
-else {
+if(!GAME_URL){
+  showError();
+} else {
+  // Set src right away — the preconnect headers already warmed the TCP connection
   frame.src = GAME_URL;
-  const timeout = setTimeout(()=>{ if(loadingEl.style.display!=='none') showError(); }, 6000);
 
-  frame.onload = ()=>{
-    clearTimeout(timeout);
+  // Fallback timeout — 4 seconds
+  const t = setTimeout(showError, 4000);
+
+  frame.onload = () => {
+    clearTimeout(t);
+    // Try to detect blank/error page (cross-origin may throw)
     try {
       const doc = frame.contentDocument || frame.contentWindow.document;
-      if(doc && doc.body && doc.body.innerHTML.trim()===''){showError();return;}
-    } catch(e){}
+      if(doc && doc.body && !doc.body.innerHTML.trim()){ showError(); return; }
+    } catch(_){}
     showGame();
   };
-  frame.onerror = ()=>{ clearTimeout(timeout); showError(); };
+  frame.onerror = () => { clearTimeout(t); showError(); };
 }
 
-// ── FULLSCREEN ────────────────────────────────────────────────────────────────
-function toggleFullscreen(){
+// ─────────────────────────────────────────────────────────────────────────────
+// FULLSCREEN
+// ─────────────────────────────────────────────────────────────────────────────
+function goFullscreen(){
   const el = gameOuter;
-  if(!document.fullscreenElement){
-    (el.requestFullscreen || el.webkitRequestFullscreen || (()=>{})).call(el);
+  if(document.fullscreenElement){
+    document.exitFullscreen && document.exitFullscreen();
   } else {
-    (document.exitFullscreen || document.webkitExitFullscreen || (()=>{})).call(document);
+    (el.requestFullscreen || el.webkitRequestFullscreen || (()=>{})).call(el);
   }
 }
 
-// ── LIKE BUTTON ───────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// LIKE BUTTON
+// ─────────────────────────────────────────────────────────────────────────────
 const LIKES_KEY = 'fwgo_likes';
 const likeBtn = document.getElementById('like-btn');
-function getLikes(){ try{ return JSON.parse(localStorage.getItem(LIKES_KEY)||'[]'); }catch{return[];} }
+function getLikes(){
+  try{ return JSON.parse(localStorage.getItem(LIKES_KEY)||'[]'); }catch{ return []; }
+}
 function updateLikeUI(){
   const liked = GAME_ID && getLikes().includes(GAME_ID);
   likeBtn.className = 'ctrl-btn' + (liked ? ' liked' : '');
-  likeBtn.textContent = liked ? '♥ Liked' : '♡ Like';
+  likeBtn.textContent = (liked ? '♥ Liked' : '♡ Like');
 }
 function toggleLike(){
   if(!GAME_ID) return;
-  const likes = getLikes();
-  const idx = likes.indexOf(GAME_ID);
-  if(idx===-1) likes.push(GAME_ID); else likes.splice(idx,1);
+  const likes = getLikes(), idx = likes.indexOf(GAME_ID);
+  idx === -1 ? likes.push(GAME_ID) : likes.splice(idx, 1);
   try{ localStorage.setItem(LIKES_KEY, JSON.stringify(likes)); }catch{}
   updateLikeUI();
 }
 updateLikeUI();
 
-// ── RELATED GAMES SIDEBAR ─────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// SIDEBAR — built after games-list.js is ready, images lazy-loaded
+// ─────────────────────────────────────────────────────────────────────────────
 function buildSidebar(){
   if(typeof GAMES_LIST === 'undefined') return;
-  let related = GAMES_LIST.filter(g => g.id !== GAME_ID && (GAME_CAT ? g.cat === GAME_CAT : true));
-  // Shuffle
-  for(let i=related.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [related[i],related[j]]=[related[j],related[i]];
-  }
-  related = related.slice(0, 14);
+
+  let pool = GAMES_LIST.filter(g => g.id !== GAME_ID);
+  // Prefer same category
+  let same = pool.filter(g => GAME_CAT && g.cat === GAME_CAT);
+  let other = pool.filter(g => !GAME_CAT || g.cat !== GAME_CAT);
+
+  // Shuffle both
+  const shuffle = a => { for(let i=a.length-1;i>0;i--){const j=0|Math.random()*(i+1);[a[i],a[j]]=[a[j],a[i]];} return a; };
+  same = shuffle(same); other = shuffle(other);
+
+  const related = [...same, ...other].slice(0, 16);
   if(!related.length) return;
+
   const grid = document.getElementById('rel-grid');
-  grid.innerHTML = '';
+  if(!grid) return;
+
+  // Use IntersectionObserver for lazy image loading
+  const imgObs = 'IntersectionObserver' in window
+    ? new IntersectionObserver((entries, obs) => {
+        entries.forEach(e => {
+          if(e.isIntersecting){
+            const img = e.target;
+            img.src = img.dataset.src;
+            obs.unobserve(img);
+          }
+        });
+      }, {rootMargin:'200px'})
+    : null;
+
+  const frag = document.createDocumentFragment();
   related.forEach(g => {
     const a = document.createElement('a');
     a.className = 'rel-card';
-    a.href = `play.html?id=${encodeURIComponent(g.id)}&name=${encodeURIComponent(g.name)}&url=${encodeURIComponent(g.url)}&ext=${encodeURIComponent(g.ext)}&cat=${encodeURIComponent(g.cat)}`;
-    const thumbHTML = `<img class="rel-thumb" src="/img/covers/${g.id}.jpg" alt="${g.name.replace(/"/g,'')}" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><div class="rel-emoji" style="display:none">${g.emoji}</div>`;
-    a.innerHTML = `${thumbHTML}<div class="rel-info"><div class="rel-name">${g.name}</div><div class="rel-cat">${CAT_LABEL[g.cat]||g.cat}</div></div>`;
-    grid.appendChild(a);
-  });
-}
-buildSidebar();
+    a.href = `/play.html?id=${encodeURIComponent(g.id)}&name=${encodeURIComponent(g.name)}&url=${encodeURIComponent(g.url)}&ext=${encodeURIComponent(g.ext)}&cat=${encodeURIComponent(g.cat)}`;
 
-// Init AdSense
-try{ (adsbygoogle=window.adsbygoogle||[]).push({}); }catch{}
-try{ (adsbygoogle=window.adsbygoogle||[]).push({}); }catch{}
+    const img = document.createElement('img');
+    img.className = 'rel-thumb';
+    img.alt = g.name;
+    img.decoding = 'async';
+
+    const emojiDiv = document.createElement('div');
+    emojiDiv.className = 'rel-emoji';
+    emojiDiv.textContent = g.emoji;
+    emojiDiv.style.display = 'none';
+
+    if(imgObs){
+      img.dataset.src = `/img/covers/${g.id}.jpg`;
+      img.src = '';
+      imgObs.observe(img);
+    } else {
+      img.src = `/img/covers/${g.id}.jpg`;
+    }
+    img.onerror = () => { img.style.display='none'; emojiDiv.style.display='flex'; };
+
+    const info = document.createElement('div');
+    info.className = 'rel-info';
+    info.innerHTML = `<div class="rel-name">${g.name}</div><div class="rel-cat">${CAT_LABEL[g.cat]||g.cat}</div>`;
+
+    a.append(img, emojiDiv, info);
+    frag.appendChild(a);
+  });
+  grid.appendChild(frag);
+}
+
+// Build sidebar after defer scripts load
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', () => setTimeout(buildSidebar, 50));
+} else {
+  setTimeout(buildSidebar, 50);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ADSENSE
+// ─────────────────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  try{ (window.adsbygoogle=window.adsbygoogle||[]).push({}); }catch{}
+  try{ (window.adsbygoogle=window.adsbygoogle||[]).push({}); }catch{}
+}, {once:true});
 </script>
 </body>
 </html>

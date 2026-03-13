@@ -7,6 +7,9 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
 <link rel="shortcut icon" href="/favicon.svg"/>
 <!-- Google AdSense -->
+<link rel="preconnect" href="https://classroomlesson.github.io"/>
+<link rel="dns-prefetch" href="https://maddox05.github.io"/>
+<link rel="dns-prefetch" href="https://db2.duckmath.org"/>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9483059588332842" crossorigin="anonymous"></script>
 <style>
 :root{
@@ -1316,6 +1319,7 @@ function buildCard(g){
          src="/img/covers/${g.id}.jpg"
          alt="${g.name}"
          loading="lazy"
+         decoding="async"
          onerror="this.onerror=null;this.src='https://image.thum.io/get/width/300/crop/300/'+encodeURIComponent(${JSON.stringify(g.url)})"
     />
     <!-- Always-visible name bar -->
@@ -1334,16 +1338,30 @@ function buildCard(g){
 
 /* ── RENDER ── */
 function renderAll(){
-  // Hot section
+  // Hot section — always render all hot games immediately
   const hotGrid = document.getElementById('hot-grid');
   hotGrid.innerHTML='';
   GAMES.filter(g=>g.badge==='hot').forEach(g=>hotGrid.appendChild(buildCard(g)));
 
-  // All games section
+  // All games: render first 60 immediately, rest progressively on idle
   const allGrid = document.getElementById('all-grid');
   allGrid.innerHTML='';
-  GAMES.forEach(g=>allGrid.appendChild(buildCard(g)));
+  const INITIAL = 60;
+  GAMES.slice(0, INITIAL).forEach(g=>allGrid.appendChild(buildCard(g)));
   document.getElementById('all-cnt').textContent=`(${GAMES.length})`;
+
+  if(GAMES.length > INITIAL){
+    const idle = window.requestIdleCallback || (cb=>setTimeout(cb,30));
+    function addBatch(start){
+      if(start >= GAMES.length) return;
+      const end = Math.min(start+50, GAMES.length);
+      const frag = document.createDocumentFragment();
+      GAMES.slice(start,end).forEach(g=>frag.appendChild(buildCard(g)));
+      allGrid.appendChild(frag);
+      idle(()=>addBatch(end));
+    }
+    idle(()=>addBatch(INITIAL));
+  }
 }
 
 /* ── FILTER by category ── */
