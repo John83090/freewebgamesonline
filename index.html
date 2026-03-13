@@ -255,17 +255,132 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:16px 20p
 footer a{color:var(--text2);text-decoration:none;margin:0 8px}
 footer a:hover{color:var(--text)}
 
-@media(max-width:680px){
+/* ── MOBILE HEADER (≤640px) ── */
+.mob-header{display:none}
+.mob-cats{display:none}
+
+/* ── MOBILE SEARCH OVERLAY ── */
+.mob-search-bar{
+  display:none;background:var(--bg2);padding:8px 12px;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:52px;z-index:98;
+  height:52px;align-items:center;
+}
+.mob-search-bar.open{display:flex;gap:8px;align-items:center}
+.mob-search-bar input{
+  flex:1;background:var(--bg3);border:1.5px solid var(--border);border-radius:22px;
+  padding:8px 16px;color:var(--text);font-size:.9rem;outline:none;
+}
+.mob-search-bar input:focus{border-color:var(--accent)}
+.mob-search-clear{background:none;border:none;color:var(--text2);font-size:1.2rem;cursor:pointer;padding:4px 6px;line-height:1}
+.mob-search-clear:hover{color:var(--text)}
+
+@media(max-width:640px){
+  /* Hide desktop elements */
+  .sidebar{display:none !important}
+  #cloak-bar{display:none}
+  header{display:none}
+  .hero{display:none}
+  .main-area{margin-left:0}
+
+  /* Mobile header */
+  .mob-header{
+    display:flex;align-items:center;gap:10px;
+    background:var(--bg2);border-bottom:1px solid var(--border);
+    padding:0 14px;height:52px;position:sticky;top:0;z-index:200;
+    flex-shrink:0;
+  }
+  .mob-logo{display:flex;align-items:center;gap:7px;text-decoration:none;color:var(--text);flex:1}
+  .mob-logo-icon{font-size:1.4rem}
+  .mob-logo-text{font-size:.95rem;font-weight:900;background:linear-gradient(135deg,#a78bfa,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .mob-icon-btn{
+    background:var(--bg3);border:1px solid var(--border);color:var(--text2);
+    border-radius:9px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-size:1.1rem;transition:background .15s,color .15s;
+    flex-shrink:0;
+  }
+  .mob-icon-btn:hover,.mob-icon-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .mob-search-bar{top:52px}
+
+  /* Horizontal category chips */
+  .mob-cats{
+    display:flex;gap:7px;overflow-x:auto;padding:10px 12px;
+    background:var(--bg2);border-bottom:1px solid var(--border);
+    position:sticky;top:52px;z-index:199;scrollbar-width:none;
+    flex-shrink:0;-webkit-overflow-scrolling:touch;
+  }
+  .mob-cats.search-open{top:104px}
+  .mob-cats::-webkit-scrollbar{display:none}
+  .mob-cat-chip{
+    flex-shrink:0;display:flex;align-items:center;gap:5px;
+    background:var(--bg3);border:1.5px solid var(--border);border-radius:22px;
+    padding:6px 13px;font-size:.78rem;font-weight:700;color:var(--text2);
+    cursor:pointer;white-space:nowrap;transition:all .15s;
+  }
+  .mob-cat-chip:hover{border-color:var(--accent);color:var(--text)}
+  .mob-cat-chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  /* Content */
+  .content{padding:10px 10px 80px 10px}
+  .game-grid{grid-template-columns:repeat(3,1fr);gap:8px}
+  .section-title{font-size:.88rem;margin-bottom:10px}
+  .section{margin-bottom:20px}
+
+  /* Popup disabled on mobile */
+  #game-popup{display:none !important}
+
+  /* Footer compact */
+  footer{margin-bottom:0}
+}
+
+@media(max-width:360px){
+  .game-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+@media(min-width:641px) and (max-width:900px){
   .sidebar{width:48px}
   .main-area{margin-left:48px}
   .hero h1{font-size:1.5rem}
-  .game-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+  .game-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
   nav,.hero-badges{display:none}
   .content{padding:14px}
 }
 </style>
 </head>
 <body>
+
+<!-- MOBILE HEADER (visible ≤640px) -->
+<div class="mob-header">
+  <a class="mob-logo" href="index.html">
+    <span class="mob-logo-icon">🎮</span>
+    <span class="mob-logo-text">FreeWebGamesOnline</span>
+  </a>
+  <button class="mob-icon-btn" id="mob-search-toggle" onclick="toggleMobSearch()" title="Search">🔍</button>
+</div>
+
+<!-- MOBILE SEARCH BAR (toggleable) -->
+<div class="mob-search-bar" id="mob-search-bar">
+  <input type="text" id="mob-search-input" placeholder="Search 270+ games…" oninput="filterGames()" autocomplete="off"/>
+  <button class="mob-search-clear" onclick="clearMobSearch()" title="Clear">✕</button>
+</div>
+
+<!-- MOBILE CATEGORY CHIPS -->
+<div class="mob-cats" id="mob-cats">
+  <button class="mob-cat-chip active" onclick="setFilter('all',this)" data-cat="all">🎮 All</button>
+  <button class="mob-cat-chip" onclick="setFilter('action',this)" data-cat="action">⚡ Action</button>
+  <button class="mob-cat-chip" onclick="setFilter('shooting',this)" data-cat="shooting">🔫 Shooting</button>
+  <button class="mob-cat-chip" onclick="setFilter('io',this)" data-cat="io">🌐 .io</button>
+  <button class="mob-cat-chip" onclick="setFilter('racing',this)" data-cat="racing">🏎️ Racing</button>
+  <button class="mob-cat-chip" onclick="setFilter('sports',this)" data-cat="sports">🏈 Sports</button>
+  <button class="mob-cat-chip" onclick="setFilter('puzzle',this)" data-cat="puzzle">🧩 Puzzle</button>
+  <button class="mob-cat-chip" onclick="setFilter('adventure',this)" data-cat="adventure">🗺️ Adventure</button>
+  <button class="mob-cat-chip" onclick="setFilter('idle',this)" data-cat="idle">🍪 Idle</button>
+  <button class="mob-cat-chip" onclick="setFilter('horror',this)" data-cat="horror">👻 Horror</button>
+  <button class="mob-cat-chip" onclick="setFilter('minecraft',this)" data-cat="minecraft">⛏️ Minecraft</button>
+  <button class="mob-cat-chip" onclick="setFilter('pokemon',this)" data-cat="pokemon">⚡ Pokémon</button>
+  <button class="mob-cat-chip" onclick="setFilter('math',this)" data-cat="math">🔢 Math</button>
+  <button class="mob-cat-chip" onclick="setFilter('creative',this)" data-cat="creative">🎨 Creative</button>
+</div>
 
 <!-- CLOAK BAR -->
 <div id="cloak-bar">
@@ -1366,43 +1481,64 @@ function renderAll(){
 
 /* ── FILTER by category ── */
 function setFilter(cat, btn){
+  // Sync both desktop sidebar and mobile chips active state
   document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+  document.querySelectorAll('.mob-cat-chip').forEach(b=>b.classList.remove('active'));
+  // Activate matching items in both navs
+  document.querySelectorAll('.sb-item').forEach(b=>{
+    if(b.getAttribute('onclick') && b.getAttribute('onclick').includes("'"+cat+"'")) b.classList.add('active');
+  });
+  document.querySelectorAll('.mob-cat-chip').forEach(b=>{
+    if(b.dataset.cat===cat) b.classList.add('active');
+  });
+
+  // Clear both search inputs
+  const desk = document.getElementById('search-input');
+  const mob  = document.getElementById('mob-search-input');
+  if(desk) desk.value='';
+  if(mob)  mob.value='';
 
   const hotSec = document.getElementById('sec-hot');
-  const allSec = document.getElementById('sec-all');
   const allGrid = document.getElementById('all-grid');
+
+  const CAT_TITLES = {
+    action:'⚡ Action',shooting:'🔫 Shooting',multiplayer:'👥 Multiplayer',
+    sports:'🏈 Sports',racing:'🏎️ Racing',puzzle:'🧩 Puzzle',
+    idle:'🍪 Idle & Clicker',retro:'👾 Retro',io:'🌐 .io Games',
+    adventure:'🗺️ Adventure',strategy:'♟️ Strategy',horror:'👻 Horror',
+    minecraft:'⛏️ Minecraft',pokemon:'⚡ Pokémon',math:'🔢 Math',creative:'🎨 Creative',misc:'🎯 Casual'
+  };
 
   if(cat==='all'){
     hotSec.style.display='';
     document.querySelector('#sec-all .section-title').textContent='🎮 All Games';
-    allGrid.innerHTML='';
-    GAMES.forEach(g=>allGrid.appendChild(buildCard(g)));
-    document.getElementById('all-cnt').textContent=`(${GAMES.length})`;
+    renderAll();
   } else {
     hotSec.style.display='none';
-    const filtered=GAMES.filter(g=>g.cat===cat);
-    const label = {
-      action:'⚡ Action',shooting:'🔫 Shooting',multiplayer:'👥 Multiplayer',
-      sports:'🏈 Sports',racing:'🏎️ Racing',puzzle:'🧩 Puzzle',
-      idle:'🍪 Idle',retro:'👾 Retro',io:'🌐 .io Games',
-      adventure:'🗺️ Adventure',strategy:'♟️ Strategy'
-    }[cat]||cat;
-    document.querySelector('#sec-all .section-title').textContent=label;
+    document.querySelector('#sec-all .section-title').textContent = CAT_TITLES[cat] || cat;
+    const filtered = GAMES.filter(g=>g.cat===cat);
     allGrid.innerHTML='';
-    filtered.forEach(g=>allGrid.appendChild(buildCard(g)));
+    const frag = document.createDocumentFragment();
+    filtered.forEach(g=>frag.appendChild(buildCard(g)));
+    allGrid.appendChild(frag);
     document.getElementById('all-cnt').textContent=`(${filtered.length})`;
   }
-  document.getElementById('search-input').value='';
   document.getElementById('no-results').classList.remove('show');
 }
 
 /* ── SEARCH ── */
+function getSearchQuery(){
+  // Read from whichever input is visible/focused
+  const mob = document.getElementById('mob-search-input');
+  const desk = document.getElementById('search-input');
+  if(mob && mob.value.trim()) return mob.value.toLowerCase().trim();
+  if(desk && desk.value.trim()) return desk.value.toLowerCase().trim();
+  return '';
+}
 function filterGames(){
-  const q=document.getElementById('search-input').value.toLowerCase().trim();
-  const hotSec=document.getElementById('sec-hot');
-  const allSec=document.getElementById('sec-all');
-  const allGrid=document.getElementById('all-grid');
+  const q = getSearchQuery();
+  const hotSec  = document.getElementById('sec-hot');
+  const allGrid = document.getElementById('all-grid');
 
   if(!q){
     renderAll();
@@ -1414,9 +1550,30 @@ function filterGames(){
   document.querySelector('#sec-all .section-title').textContent='🔍 Search Results';
   const results=GAMES.filter(g=>g.name.toLowerCase().includes(q)||g.cat.toLowerCase().includes(q));
   allGrid.innerHTML='';
-  results.forEach(g=>allGrid.appendChild(buildCard(g)));
+  const frag=document.createDocumentFragment();
+  results.forEach(g=>frag.appendChild(buildCard(g)));
+  allGrid.appendChild(frag);
   document.getElementById('all-cnt').textContent=`(${results.length})`;
   document.getElementById('no-results').classList.toggle('show',results.length===0);
+}
+
+/* ── MOBILE SEARCH TOGGLE ── */
+function toggleMobSearch(){
+  const bar  = document.getElementById('mob-search-bar');
+  const btn  = document.getElementById('mob-search-toggle');
+  const cats = document.getElementById('mob-cats');
+  const open = bar.classList.toggle('open');
+  btn.classList.toggle('active', open);
+  cats.classList.toggle('search-open', open);
+  if(open){
+    setTimeout(()=>{ const inp=document.getElementById('mob-search-input'); if(inp) inp.focus(); },80);
+  } else {
+    clearMobSearch();
+  }
+}
+function clearMobSearch(){
+  const inp = document.getElementById('mob-search-input');
+  if(inp){ inp.value=''; filterGames(); }
 }
 
 /* ── TAB CLOAK ── */
@@ -1516,6 +1673,29 @@ window.addEventListener('scroll', () => { if(popup.classList.contains('show')) p
 
 /* ── INIT ── */
 renderAll();
+
+/* ── CLOSE MOBILE SEARCH ON OUTSIDE TAP ── */
+document.addEventListener('click', function(e){
+  const bar = document.getElementById('mob-search-bar');
+  const btn = document.getElementById('mob-search-toggle');
+  if(bar && bar.classList.contains('open') && !bar.contains(e.target) && e.target !== btn && !btn.contains(e.target)){
+    // Don't close if there's a search query active
+    const inp = document.getElementById('mob-search-input');
+    if(inp && inp.value.trim()) return;
+    toggleMobSearch();
+  }
+}, {passive:true});
+
+/* ── SYNC DESKTOP SEARCH TO MOBILE AND VICE VERSA ── */
+(function(){
+  const desk = document.getElementById('search-input');
+  if(desk){
+    desk.addEventListener('input', function(){
+      const mob = document.getElementById('mob-search-input');
+      if(mob) mob.value = desk.value;
+    });
+  }
+})();
 </script>
 
 </body>
