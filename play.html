@@ -77,8 +77,20 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
   animation:spin .7s linear infinite;will-change:transform;
 }
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading-overlay p{color:var(--text2);font-size:.88rem}
+.loading-overlay p{color:var(--text2);font-size:.88rem;text-align:center;max-width:280px;line-height:1.5;transition:opacity .3s}
 .loading-overlay.fade{opacity:0;pointer-events:none}
+.loading-bar{
+  width:160px;height:3px;background:var(--border);border-radius:2px;overflow:hidden;
+}
+.loading-bar-fill{
+  height:100%;background:var(--accent);border-radius:2px;
+  animation:loadbar 2s ease-in-out infinite;
+}
+@keyframes loadbar{
+  0%{width:0%;margin-left:0}
+  50%{width:60%;margin-left:20%}
+  100%{width:0%;margin-left:100%}
+}
 
 /* ── ERROR SCREEN ── */
 .error-screen{
@@ -267,6 +279,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
         <!-- Loading -->
         <div class="loading-overlay" id="loading-overlay" aria-live="polite">
           <div class="spinner" aria-hidden="true"></div>
+          <div class="loading-bar"><div class="loading-bar-fill"></div></div>
           <p>Loading game…</p>
         </div>
         <!-- Error -->
@@ -466,6 +479,8 @@ checkRotatePrompt();
 // ─────────────────────────────────────────────────────────────────────────────
 // LOAD GAME — fast: set iframe src immediately
 // ─────────────────────────────────────────────────────────────────────────────
+const isMobileDevice = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth <= 640;
+
 function showError(){
   loadEl.style.display = 'none';
   errorEl.classList.add('show');
@@ -475,25 +490,47 @@ function showGame(){
   setTimeout(()=>{ loadEl.style.display='none'; }, 260);
 }
 
+// Update loading message text
+function setLoadMsg(msg){ const p = loadEl.querySelector('p'); if(p) p.textContent = msg; }
+
 if(!GAME_URL){
   showError();
 } else {
-  // Set src right away — the preconnect headers already warmed the TCP connection
   frame.src = GAME_URL;
 
-  // Fallback timeout — 4 seconds
-  const t = setTimeout(showError, 4000);
+  // Mobile needs more time — heavy games (Subway Surfers etc.) can take 15–20s on mobile
+  // Desktop: 6s timeout. Mobile: no auto-error, just show a "still loading" message
+  let slowTimer, giveUpTimer;
+
+  if(isMobileDevice){
+    // After 5s on mobile: update message to reassure user
+    slowTimer = setTimeout(()=>{ setLoadMsg('Still loading… heavy games take a moment on mobile'); }, 5000);
+    // After 20s: offer to open in new tab instead (but don't auto-error)
+    giveUpTimer = setTimeout(()=>{
+      setLoadMsg('Taking too long? Tap below to open in a new tab');
+      // Show a helpful link inside the loading overlay
+      const btn = document.createElement('a');
+      btn.href = extUrl; btn.target = '_blank'; btn.rel = 'noopener noreferrer';
+      btn.style.cssText = 'margin-top:12px;background:var(--accent);color:#fff;border-radius:8px;padding:10px 22px;font-size:.88rem;font-weight:700;text-decoration:none;display:inline-block';
+      btn.textContent = '↗ Open in New Tab';
+      loadEl.appendChild(btn);
+    }, 20000);
+  } else {
+    // Desktop: 6s hard timeout (most games load in <3s on desktop)
+    giveUpTimer = setTimeout(showError, 6000);
+    slowTimer = setTimeout(()=>{ setLoadMsg('Loading game…'); }, 3000);
+  }
 
   frame.onload = () => {
-    clearTimeout(t);
-    // Try to detect blank/error page (cross-origin may throw)
-    try {
-      const doc = frame.contentDocument || frame.contentWindow.document;
-      if(doc && doc.body && !doc.body.innerHTML.trim()){ showError(); return; }
-    } catch(_){}
+    clearTimeout(slowTimer);
+    clearTimeout(giveUpTimer);
     showGame();
   };
-  frame.onerror = () => { clearTimeout(t); showError(); };
+  frame.onerror = () => {
+    clearTimeout(slowTimer);
+    clearTimeout(giveUpTimer);
+    showError();
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
