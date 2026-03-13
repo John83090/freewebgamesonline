@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Sudoku – DuckMath</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.topbar{width:100%;background:#13131f;border-bottom:1px solid #2a2a45;padding:10px 20px;display:flex;align-items:center;gap:12px}
+.back{color:#9898b8;text-decoration:none;font-size:0.85rem}.back:hover{color:#e8e8f0}
+.game-title{font-weight:800;font-size:1rem}.spacer{flex:1}
+.area{display:flex;flex-direction:column;align-items:center;padding:20px;gap:16px}
+.sudoku-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:1px;background:#6c63ff;border:3px solid #6c63ff;border-radius:8px;overflow:hidden;max-width:360px;width:100%}
+.cell{background:#13131f;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;cursor:pointer;transition:background 0.15s;border:none;outline:none}
+.cell:nth-child(3n){border-right:2px solid #6c63ff}
+.cell.box-border-bottom{border-bottom:2px solid #6c63ff}
+.cell.selected{background:#252540}
+.cell.given{color:#6c63ff;cursor:default}
+.cell.user{color:#4ade80}
+.cell.error{background:rgba(239,68,68,0.3);color:#ef4444}
+.cell.highlight{background:#1a1a3a}
+.numpad{display:grid;grid-template-columns:repeat(5,48px);gap:8px}
+.num-btn{background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;height:48px;font-size:1.1rem;font-weight:700;cursor:pointer;color:#e8e8f0;transition:all 0.15s}
+.num-btn:hover{background:#6c63ff;border-color:#6c63ff}
+.btn{background:#6c63ff;border:none;color:#fff;border-radius:8px;padding:10px 20px;font-size:0.9rem;font-weight:700;cursor:pointer}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.diff-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.diff-btn{background:#1e1e30;border:1px solid #2a2a45;color:#9898b8;border-radius:8px;padding:6px 14px;font-size:0.8rem;cursor:pointer;font-weight:600}
+.diff-btn.active{background:#6c63ff;border-color:#6c63ff;color:#fff}
+.timer{font-size:1rem;font-weight:700;color:#ffd93d}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back" href="../index.html">← Back</a>
+  <span class="game-title">🔢 Sudoku</span>
+  <div class="spacer"></div>
+  <div class="timer" id="timer">⏱ 0:00</div>
+</div>
+<div class="area">
+  <div class="diff-row">
+    <button class="diff-btn active" onclick="newGame(30,this)">😊 Easy</button>
+    <button class="diff-btn" onclick="newGame(45,this)">😐 Medium</button>
+    <button class="diff-btn" onclick="newGame(55,this)">😨 Hard</button>
+  </div>
+  <div class="sudoku-grid" id="grid"></div>
+  <div class="numpad" id="numpad"></div>
+  <div class="btn-row">
+    <button class="btn" onclick="newGame(blanks,null)">🔄 New</button>
+    <button class="btn" style="background:#1e1e30;border:1px solid #2a2a45" onclick="checkSolution()">✓ Check</button>
+    <button class="btn" style="background:#1e1e30;border:1px solid #2a2a45" onclick="hint()">💡 Hint</button>
+  </div>
+</div>
+<script>
+// Simple valid Sudoku generator
+let puzzle,solution,selected,blanks=30,timerInt,seconds=0;
+function generateSudoku(){
+  const grid=Array.from({length:9},()=>Array(9).fill(0));
+  fillGrid(grid);
+  return grid;
+}
+function fillGrid(g){
+  for(let i=0;i<81;i++){
+    const r=Math.floor(i/9),c=i%9;
+    if(g[r][c]===0){
+      const nums=[1,2,3,4,5,6,7,8,9].sort(()=>Math.random()-0.5);
+      for(const n of nums){if(isValid(g,r,c,n)){g[r][c]=n;if(fillGrid(g))return true;g[r][c]=0;}}
+      return false;
+    }
+  }return true;
+}
+function isValid(g,r,c,n){
+  for(let i=0;i<9;i++)if(g[r][i]===n||g[i][c]===n)return false;
+  const br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;
+  for(let i=0;i<3;i++)for(let j=0;j<3;j++)if(g[br+i][bc+j]===n)return false;
+  return true;
+}
+function newGame(b,btn){
+  blanks=b;
+  if(btn){document.querySelectorAll('.diff-btn').forEach(x=>x.classList.remove('active'));btn.classList.add('active');}
+  clearInterval(timerInt);seconds=0;
+  solution=generateSudoku();
+  puzzle=solution.map(r=>[...r]);
+  // Remove cells
+  let removed=0;
+  while(removed<blanks){const r=Math.floor(Math.random()*9),c=Math.floor(Math.random()*9);if(puzzle[r][c]!==0){puzzle[r][c]=0;removed++;}}
+  selected=null;
+  timerInt=setInterval(()=>{seconds++;const m=Math.floor(seconds/60),s=seconds%60;document.getElementById('timer').textContent=`⏱ ${m}:${s.toString().padStart(2,'0')}`;},1000);
+  render();
+}
+function render(){
+  const g=document.getElementById('grid');g.innerHTML='';
+  puzzle.forEach((row,r)=>row.forEach((v,c)=>{
+    const d=document.createElement('div');d.className='cell';
+    if(v!==0){d.textContent=v;d.classList.add('given');}
+    if(selected&&selected[0]===r&&selected[1]===c)d.classList.add('selected');
+    const sr=Math.floor(r/3),sc=Math.floor(c/3);
+    if((r+1)%3===0&&r!==8)d.classList.add('box-border-bottom');
+    d.onclick=()=>{if(puzzle[r][c]!==0&&solution[r][c]===puzzle[r][c]&&solution[r][c]!==0)return;selected=[r,c];render();};
+    g.appendChild(d);
+  }));
+  // Numpad
+  const np=document.getElementById('numpad');np.innerHTML='';
+  for(let i=1;i<=9;i++){const b=document.createElement('button');b.className='num-btn';b.textContent=i;b.onclick=()=>enterNum(i);np.appendChild(b);}
+  const del=document.createElement('button');del.className='num-btn';del.textContent='⌫';del.onclick=()=>enterNum(0);np.appendChild(del);
+}
+function enterNum(n){
+  if(!selected)return;const[r,c]=selected;
+  if(solution[r][c]!==0&&puzzle[r][c]!==0&&solution[r][c]===puzzle[r][c])return;
+  puzzle[r][c]=n;render();
+  if(puzzle.every((row,r2)=>row.every((v,c2)=>v===solution[r2][c2]))){clearInterval(timerInt);setTimeout(()=>alert('🎉 Solved! Time: '+document.getElementById('timer').textContent),200);}
+}
+function checkSolution(){
+  let errors=0;
+  puzzle.forEach((row,r)=>row.forEach((v,c)=>{if(v!==0&&v!==solution[r][c])errors++;}));
+  alert(errors===0?'✅ No errors so far!':'❌ '+errors+' error(s) found. Keep trying!');
+}
+function hint(){
+  if(!selected)return;const[r,c]=selected;
+  if(puzzle[r][c]===0)puzzle[r][c]=solution[r][c];render();
+}
+newGame(30,null);
+</script>
+</body>
+</html>

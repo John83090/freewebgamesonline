@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Tic Tac Toe – DuckMath</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.topbar{width:100%;background:#13131f;border-bottom:1px solid #2a2a45;padding:10px 20px;display:flex;align-items:center;gap:12px}
+.back{color:#9898b8;text-decoration:none;font-size:0.85rem}.back:hover{color:#e8e8f0}
+.game-title{font-weight:800;font-size:1rem}.spacer{flex:1}
+.area{display:flex;flex-direction:column;align-items:center;padding:24px;gap:16px;max-width:440px;margin:0 auto;width:100%}
+.score-row{display:flex;gap:12px;width:100%}
+.score-box{flex:1;background:#1e1e30;border:1px solid #2a2a45;border-radius:10px;padding:12px;text-align:center}
+.score-box label{font-size:0.7rem;color:#9898b8;display:block;margin-bottom:4px;text-transform:uppercase}
+.score-box span{font-size:1.4rem;font-weight:900}
+.status{background:#1e1e30;border:1px solid #6c63ff;border-radius:10px;padding:10px 20px;font-size:1rem;font-weight:600;text-align:center;width:100%;min-height:42px;display:flex;align-items:center;justify-content:center}
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:300px}
+.cell{aspect-ratio:1;background:#1e1e30;border:2px solid #2a2a45;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;cursor:pointer;transition:all 0.2s}
+.cell:hover:not(.taken){background:#252540;border-color:#6c63ff}
+.cell.x{color:#6c63ff;border-color:#6c63ff}
+.cell.o{color:#f472b6;border-color:#f472b6}
+.cell.win{background:rgba(108,99,255,0.2);border-color:#ffd93d;animation:pulse 0.5s infinite alternate}
+@keyframes pulse{to{box-shadow:0 0 16px rgba(255,217,61,0.4)}}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.btn{background:#6c63ff;border:none;color:#fff;border-radius:8px;padding:10px 20px;font-size:0.85rem;font-weight:700;cursor:pointer}
+.btn-outline{background:transparent;border:1px solid #6c63ff;color:#6c63ff}
+.mode-row{display:flex;gap:8px}
+.mode-btn{background:#1e1e30;border:1px solid #2a2a45;color:#9898b8;border-radius:8px;padding:6px 14px;font-size:0.8rem;font-weight:600;cursor:pointer}
+.mode-btn.active{background:#6c63ff;border-color:#6c63ff;color:#fff}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back" href="../index.html">← Back</a>
+  <span class="game-title">❌ Tic Tac Toe</span>
+  <div class="spacer"></div>
+</div>
+<div class="area">
+  <div class="mode-row">
+    <button class="mode-btn active" id="pvpBtn" onclick="setMode('pvp',this)">👥 2 Players</button>
+    <button class="mode-btn" id="aiBtn" onclick="setMode('ai',this)">🤖 vs AI</button>
+    <button class="mode-btn" id="hardBtn" onclick="setMode('hard',this)">💀 vs Hard AI</button>
+  </div>
+  <div class="score-row">
+    <div class="score-box" style="border-color:#6c63ff"><label>❌ Player X</label><span id="sx" style="color:#6c63ff">0</span></div>
+    <div class="score-box"><label>🤝 Draws</label><span id="sd">0</span></div>
+    <div class="score-box" style="border-color:#f472b6"><label>⭕ Player O</label><span id="so" style="color:#f472b6">0</span></div>
+  </div>
+  <div class="status" id="status">❌ X's turn</div>
+  <div class="board" id="board"></div>
+  <div class="btn-row">
+    <button class="btn" onclick="newGame()">🔄 New Round</button>
+    <button class="btn btn-outline" onclick="resetScores()">↺ Reset Scores</button>
+  </div>
+</div>
+<script>
+let board,turn,gameOver,mode,scores;
+const WINS=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+function setMode(m,btn){
+  mode=m;document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  newGame();
+}
+function newGame(){board=Array(9).fill('');turn='X';gameOver=false;render();setStatus('❌ X\'s turn');}
+function resetScores(){scores={X:0,O:0,D:0};updateScores();}
+function setStatus(s){document.getElementById('status').textContent=s;}
+function updateScores(){document.getElementById('sx').textContent=scores.X;document.getElementById('so').textContent=scores.O;document.getElementById('sd').textContent=scores.D;}
+function click(i){
+  if(gameOver||board[i])return;
+  board[i]=turn;
+  const w=checkWin(board,turn);
+  if(w){gameOver=true;scores[turn]++;updateScores();render(w);setStatus((turn==='X'?'❌':'⭕')+' '+turn+' wins! 🎉');return;}
+  if(board.every(v=>v)){gameOver=true;scores.D++;updateScores();render();setStatus('🤝 It\'s a draw!');return;}
+  turn=turn==='X'?'O':'X';
+  render();setStatus((turn==='X'?'❌':'⭕')+' '+turn+'\'s turn');
+  if((mode==='ai'||mode==='hard')&&turn==='O'&&!gameOver){setTimeout(aiMove,300);}
+}
+function checkWin(b,p){for(const [a,c2,d] of WINS)if(b[a]===p&&b[c2]===p&&b[d]===p)return[a,c2,d];return null;}
+function aiMove(){
+  let move;
+  if(mode==='hard'){move=minimax(board,'O').idx;}
+  else{
+    // Easy AI: block, win, or random
+    for(const p of['O','X']){for(let i=0;i<9;i++){if(!board[i]){const t=[...board];t[i]=p;if(checkWin(t,p)){move=i;break;}}};if(move!==undefined)break;}
+    if(move===undefined){const empty=board.map((v,i)=>v?null:i).filter(v=>v!==null);move=empty[Math.floor(Math.random()*empty.length)];}
+  }
+  if(move!==undefined)click(move);
+}
+function minimax(b,p){
+  const w=checkWin(b,'O'),l=checkWin(b,'X');
+  if(w)return{score:10};if(l)return{score:-10};
+  if(b.every(v=>v))return{score:0};
+  const moves=[];
+  for(let i=0;i<9;i++){if(!b[i]){const nb=[...b];nb[i]=p;const s=minimax(nb,p==='O'?'X':'O');moves.push({idx:i,score:s.score});}}
+  return moves.reduce((a,m)=>p==='O'?(m.score>a.score?m:a):(m.score<a.score?m:a));
+}
+function render(wins){
+  const el=document.getElementById('board');el.innerHTML='';
+  board.forEach((v,i)=>{
+    const d=document.createElement('div');d.className='cell'+(v?' taken '+(v==='X'?'x':'o'):'');
+    if(wins&&wins.includes(i))d.classList.add('win');
+    d.textContent=v==='X'?'❌':v==='O'?'⭕':'';
+    d.onclick=()=>click(i);el.appendChild(d);
+  });
+}
+scores={X:0,O:0,D:0};mode='pvp';newGame();
+</script>
+</body>
+</html>

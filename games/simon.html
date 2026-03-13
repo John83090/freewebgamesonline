@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Simon Says – DuckMath</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.topbar{width:100%;background:#13131f;border-bottom:1px solid #2a2a45;padding:10px 20px;display:flex;align-items:center;gap:12px}
+.back{color:#9898b8;text-decoration:none;font-size:0.85rem}.back:hover{color:#e8e8f0}
+.game-title{font-weight:800;font-size:1rem}.spacer{flex:1}
+.badge{background:#1e1e30;border:1px solid #2a2a45;border-radius:20px;padding:4px 14px;font-size:0.85rem;font-weight:700;color:#ffd93d}
+.area{display:flex;flex-direction:column;align-items:center;padding:24px;gap:20px}
+.simon-board{width:280px;height:280px;border-radius:50%;position:relative;background:#1a1a2e;border:4px solid #2a2a45;overflow:hidden}
+.quadrant{position:absolute;width:50%;height:50%;cursor:pointer;transition:filter 0.1s,opacity 0.1s;opacity:0.6}
+.q1{top:0;left:0;background:#ef4444;border-radius:100% 0 0 0;transform-origin:100% 100%}
+.q2{top:0;right:0;background:#4ade80;border-radius:0 100% 0 0;transform-origin:0% 100%}
+.q3{bottom:0;left:0;background:#3b82f6;border-radius:0 0 0 100%;transform-origin:100% 0%}
+.q4{bottom:0;right:0;background:#fbbf24;border-radius:0 0 100% 0;transform-origin:0% 0%}
+.quadrant:hover{opacity:0.85}
+.quadrant.active{opacity:1;filter:brightness(1.5)}
+.center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:70px;height:70px;border-radius:50%;background:#13131f;border:3px solid #2a2a45;display:flex;align-items:center;justify-content:center;z-index:10;font-size:1.5rem}
+.status{background:#1e1e30;border:1px solid #2a2a45;border-radius:10px;padding:10px 20px;font-size:0.95rem;font-weight:600;text-align:center;min-width:240px}
+.stats{display:flex;gap:16px}
+.stat{background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;padding:8px 20px;text-align:center}
+.stat label{font-size:0.7rem;color:#9898b8;display:block}
+.stat span{font-size:1.2rem;font-weight:800;color:#ffd93d}
+.btn{background:#6c63ff;border:none;color:#fff;border-radius:8px;padding:12px 28px;font-size:1rem;font-weight:700;cursor:pointer;transition:opacity 0.2s}
+.btn:hover{opacity:0.85}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back" href="../index.html">← Back</a>
+  <span class="game-title">🔴 Simon Says</span>
+  <div class="spacer"></div>
+  <div class="badge">Best: <span id="best">0</span></div>
+</div>
+<div class="area">
+  <div class="stats">
+    <div class="stat"><label>Round</label><span id="round">0</span></div>
+    <div class="stat"><label>Score</label><span id="score">0</span></div>
+  </div>
+  <div class="status" id="status">Press Start to play!</div>
+  <div class="simon-board" id="board">
+    <div class="quadrant q1" id="q0" onclick="press(0)"></div>
+    <div class="quadrant q2" id="q1" onclick="press(1)"></div>
+    <div class="quadrant q3" id="q2" onclick="press(2)"></div>
+    <div class="quadrant q4" id="q3" onclick="press(3)"></div>
+    <div class="center">🎮</div>
+  </div>
+  <button class="btn" onclick="startGame()">▶ Start</button>
+</div>
+<script>
+const COLORS=['#ef4444','#4ade80','#3b82f6','#fbbf24'];
+let sequence,playerSeq,round,score,canPress,best;
+const AudioCtx=window.AudioContext||window.webkitAudioContext;
+let actx;
+function beep(freq,dur){
+  if(!actx)try{actx=new AudioCtx();}catch(e){return;}
+  const o=actx.createOscillator(),g=actx.createGain();
+  o.connect(g);g.connect(actx.destination);
+  o.frequency.value=freq;g.gain.setValueAtTime(0.3,actx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+dur);
+  o.start();o.stop(actx.currentTime+dur);
+}
+const FREQS=[261,329,392,523];
+function light(idx,on){
+  const el=document.getElementById('q'+idx);
+  el.classList.toggle('active',on);
+  if(on)beep(FREQS[idx],0.2);
+}
+function playSequence(){
+  canPress=false;
+  document.getElementById('status').textContent='Watch the sequence...';
+  let i=0;
+  const int=setInterval(()=>{
+    if(i>0)light(sequence[i-1],false);
+    if(i>=sequence.length){clearInterval(int);setTimeout(()=>{canPress=true;document.getElementById('status').textContent='Your turn! ('+sequence.length+' steps)';},300);return;}
+    setTimeout(()=>light(sequence[i],true),100);
+    i++;
+  },700);
+}
+function press(idx){
+  if(!canPress)return;
+  light(idx,true);setTimeout(()=>light(idx,false),200);
+  playerSeq.push(idx);
+  const pos=playerSeq.length-1;
+  if(playerSeq[pos]!==sequence[pos]){
+    beep(100,0.5);canPress=false;
+    const best2=Math.max(score,parseInt((function(){try{return localStorage.getItem('simonBest')}catch(e){return null}})()||0));
+    (function(){try{localStorage.setItem('simonBest',best2)}catch(e){}})();document.getElementById('best').textContent=best2;
+    document.getElementById('status').textContent='❌ Wrong! Score: '+score;
+    setTimeout(()=>{document.getElementById('status').textContent='Press Start to try again!';},1500);
+    return;
+  }
+  score+=10;document.getElementById('score').textContent=score;
+  if(playerSeq.length===sequence.length){
+    canPress=false;round++;document.getElementById('round').textContent=round;
+    document.getElementById('status').textContent='✅ Correct! Get ready...';
+    setTimeout(()=>{sequence.push(Math.floor(Math.random()*4));playerSeq=[];playSequence();},1000);
+  }
+}
+function startGame(){
+  sequence=[Math.floor(Math.random()*4)];playerSeq=[];round=1;score=0;canPress=false;
+  document.getElementById('score').textContent=0;document.getElementById('round').textContent=1;
+  best=parseInt((function(){try{return localStorage.getItem('simonBest')}catch(e){return null}})()||0);document.getElementById('best').textContent=best;
+  playSequence();
+}
+best=parseInt((function(){try{return localStorage.getItem('simonBest')}catch(e){return null}})()||0);document.getElementById('best').textContent=best;
+</script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Page Not Found – FreeWebGamesOnline</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Segoe UI',system-ui,sans-serif;
+  background:#1a1b2e;color:#e8e8f5;
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:24px;
+}
+.glitch{
+  font-size:7rem;font-weight:900;line-height:1;
+  background:linear-gradient(135deg,#a78bfa,#7c3aed);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  position:relative;user-select:none;
+}
+@keyframes glitch1{
+  0%,94%,100%{clip-path:inset(0 0 100% 0);transform:translate(0)}
+  95%{clip-path:inset(20% 0 60% 0);transform:translate(-4px,0);-webkit-text-fill-color:#f0abfc}
+  97%{clip-path:inset(50% 0 20% 0);transform:translate(4px,0);-webkit-text-fill-color:#818cf8}
+}
+.glitch::after{
+  content:'404';position:absolute;inset:0;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background:linear-gradient(135deg,#f0abfc,#818cf8);
+  animation:glitch1 3s infinite;pointer-events:none;
+}
+h2{font-size:1.5rem;font-weight:800;margin:16px 0 10px;color:#e8e8f5}
+p{color:#8080aa;font-size:.95rem;line-height:1.6;max-width:420px;margin:0 auto 28px}
+.btn-home{
+  display:inline-block;background:#7c3aed;color:#fff;
+  text-decoration:none;border-radius:12px;padding:13px 32px;
+  font-size:.95rem;font-weight:700;
+  transition:background .18s,transform .18s;margin:6px;
+}
+.btn-home:hover{background:#9d5cff;transform:translateY(-2px)}
+.btn-sec{
+  display:inline-block;background:transparent;color:#8080aa;
+  text-decoration:none;border:1.5px solid #2d2f52;border-radius:12px;
+  padding:12px 24px;font-size:.88rem;font-weight:600;
+  transition:all .18s;margin:6px;
+}
+.btn-sec:hover{border-color:#7c3aed;color:#e8e8f5}
+.emoji{font-size:3.5rem;margin-bottom:6px;display:block;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.popular{margin-top:36px;max-width:560px;width:100%}
+.popular h3{font-size:.82rem;font-weight:700;color:#8080aa;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px}
+.game-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.chip{
+  background:#1e2040;border:1px solid #2d2f52;border-radius:20px;
+  padding:6px 14px;font-size:.8rem;font-weight:600;color:#c4b5fd;
+  text-decoration:none;transition:all .15s;
+}
+.chip:hover{background:#2d2f52;color:#fff;border-color:#7c3aed}
+</style>
+</head>
+<body>
+
+<span class="emoji">🎮</span>
+<div class="glitch">404</div>
+<h2>Oops! Page Not Found</h2>
+<p>This page doesn't exist or may have moved. But don't worry — there are 100+ free games waiting for you!</p>
+
+<div>
+  <a class="btn-home" href="/">🎮 Back to All Games</a>
+  <a class="btn-sec" href="javascript:history.back()">← Go Back</a>
+</div>
+
+<div class="popular">
+  <h3>Popular games to play now</h3>
+  <div class="game-chips">
+    <a class="chip" href="/play.html?name=Slope&url=https%3A%2F%2Fslopegame.io%2F&ext=https%3A%2F%2Fslopegame.io%2F">🎿 Slope</a>
+    <a class="chip" href="/play.html?name=1v1.LOL&url=https%3A%2F%2F1v1lol.net%2F&ext=https%3A%2F%2F1v1.lol%2F">🏗️ 1v1.LOL</a>
+    <a class="chip" href="/play.html?name=Shell+Shockers&url=https%3A%2F%2Fshellshock.io%2F&ext=https%3A%2F%2Fshellshock.io%2F">🥚 Shell Shockers</a>
+    <a class="chip" href="/play.html?name=Krunker.io&url=https%3A%2F%2Fkrunker.io%2F&ext=https%3A%2F%2Fkrunker.io%2F">🔫 Krunker</a>
+    <a class="chip" href="/play.html?name=Retro+Bowl&url=https%3A%2F%2Fretrobowl.me%2F&ext=https%3A%2F%2Fretrobowl.me%2F">🏈 Retro Bowl</a>
+    <a class="chip" href="/play.html?name=Among+Us&url=https%3A%2F%2Famung.us%2F&ext=https%3A%2F%2Famung.us%2F">🔴 Among Us</a>
+    <a class="chip" href="/play.html?name=Cookie+Clicker&url=https%3A%2F%2Forteil.dashnet.org%2Fcookieclicker%2F&ext=https%3A%2F%2Forteil.dashnet.org%2Fcookieclicker%2F">🍪 Cookie Clicker</a>
+    <a class="chip" href="/play.html?name=Agar.io&url=https%3A%2F%2Fagar.io%2F&ext=https%3A%2F%2Fagar.io%2F">🟢 Agar.io</a>
+  </div>
+</div>
+
+</body>
+</html>

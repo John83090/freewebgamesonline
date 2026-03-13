@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Math Race – DuckMath</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.topbar{width:100%;background:#13131f;border-bottom:1px solid #2a2a45;padding:10px 20px;display:flex;align-items:center;gap:12px}
+.back{color:#9898b8;text-decoration:none;font-size:0.85rem}.back:hover{color:#e8e8f0}
+.game-title{font-weight:800;font-size:1rem}.spacer{flex:1}
+.area{display:flex;flex-direction:column;align-items:center;padding:24px 16px;gap:18px;max-width:480px;width:100%;margin:0 auto}
+.track{width:100%;background:#1a1a2e;border:2px solid #6c63ff;border-radius:10px;overflow:hidden}
+.lane{height:48px;display:flex;align-items:center;gap:10px;padding:0 10px;border-bottom:1px solid #2a2a45;position:relative}
+.lane:last-child{border-bottom:none}
+.car-icon{font-size:1.5rem;position:absolute;transition:left 0.3s;left:50px}
+.lane-label{font-size:0.75rem;color:#9898b8;width:60px;flex-shrink:0}
+.lane-track{flex:1;height:8px;background:#2a2a45;border-radius:4px;overflow:visible;position:relative}
+.lane-fill{height:100%;border-radius:4px;transition:width 0.3s}
+.finish{position:absolute;right:0;top:-12px;font-size:1.2rem}
+.question-card{background:#1e1e30;border:2px solid #6c63ff;border-radius:12px;padding:20px;text-align:center;width:100%}
+.eq{font-size:2rem;font-weight:900;margin-bottom:16px}
+.ans-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ans-btn{background:#13131f;border:2px solid #2a2a45;border-radius:8px;padding:12px;font-size:1.1rem;font-weight:700;cursor:pointer;transition:all 0.15s;color:#e8e8f0}
+.ans-btn:hover{border-color:#6c63ff;background:#1e1e30}
+.ans-btn.correct{background:#4ade80;border-color:#4ade80;color:#000}
+.ans-btn.wrong{background:#ef4444;border-color:#ef4444}
+.timer-bar{width:100%;height:8px;background:#1e1e30;border-radius:4px;overflow:hidden}
+.timer-fill{height:100%;background:linear-gradient(90deg,#4ade80,#ffd93d,#ef4444);border-radius:4px;transition:width 0.1s}
+.stats{display:flex;gap:16px;justify-content:center}
+.stat{background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;padding:8px 16px;text-align:center}
+.stat label{font-size:0.7rem;color:#9898b8;display:block}
+.stat span{font-size:1rem;font-weight:800;color:#ffd93d}
+.btn{background:#6c63ff;border:none;color:#fff;border-radius:10px;padding:12px 28px;font-size:1rem;font-weight:700;cursor:pointer}
+.result{text-align:center;background:#1e1e30;border:1px solid #6c63ff;border-radius:12px;padding:24px;width:100%;display:none}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back" href="../index.html">← Back</a>
+  <span class="game-title">🏎️ Math Race</span>
+  <div class="spacer"></div>
+  <div style="background:#1e1e30;border:1px solid #2a2a45;border-radius:20px;padding:4px 14px;font-size:0.85rem;font-weight:700;color:#ffd93d">
+    Q: <span id="q-num">0</span>/10
+  </div>
+</div>
+<div class="area">
+  <div class="track" id="track">
+    <div class="lane" id="lane-you"><div class="lane-label">🏎️ You</div><div class="lane-track"><div class="lane-fill" id="fill-you" style="background:#6c63ff;width:0%"></div></div></div>
+    <div class="lane" id="lane-ai1"><div class="lane-label">🤖 AI 1</div><div class="lane-track"><div class="lane-fill" id="fill-ai1" style="background:#ef4444;width:0%"></div></div></div>
+    <div class="lane" id="lane-ai2"><div class="lane-label">👾 AI 2</div><div class="lane-track"><div class="lane-fill" id="fill-ai2" style="background:#fbbf24;width:0%"></div></div></div>
+  </div>
+  <div class="timer-bar"><div class="timer-fill" id="timer-fill" style="width:100%"></div></div>
+  <div class="stats">
+    <div class="stat"><label>Correct</label><span id="correct">0</span></div>
+    <div class="stat"><label>Streak</label><span id="streak">0</span>🔥</div>
+    <div class="stat"><label>Speed Bonus</label><span id="bonus">×1</span></div>
+  </div>
+  <div id="start-card" style="text-align:center;background:#1e1e30;border:1px solid #6c63ff;border-radius:12px;padding:24px;width:100%">
+    <h2 style="margin-bottom:8px">🏎️ Math Race</h2>
+    <p style="color:#9898b8;margin-bottom:16px;font-size:0.9rem">Answer 10 math questions faster than the AI cars!<br/>Correct answers move your car forward.</p>
+    <select id="diff-sel" style="background:#13131f;border:1px solid #2a2a45;color:#e8e8f0;border-radius:8px;padding:8px 14px;font-size:0.9rem;margin-bottom:12px;cursor:pointer">
+      <option value="easy">😊 Easy (Addition)</option>
+      <option value="medium" selected>😐 Medium (Mixed)</option>
+      <option value="hard">😨 Hard (All ops)</option>
+    </select><br/>
+    <button class="btn" onclick="startRace()">🚦 Start Race!</button>
+  </div>
+  <div class="question-card" id="q-card" style="display:none">
+    <div class="eq" id="equation">?</div>
+    <div class="ans-grid" id="ans-grid"></div>
+  </div>
+  <div class="result" id="result">
+    <div style="font-size:3rem;margin-bottom:8px" id="result-emoji">🏆</div>
+    <h2 id="result-title">You Win!</h2>
+    <p id="result-msg" style="color:#9898b8;margin:8px 0 16px"></p>
+    <button class="btn" onclick="resetRace()">🔄 Race Again</button>
+  </div>
+</div>
+<script>
+let progress={you:0,ai1:0,ai2:0},correct=0,streak=0,qNum=0,gameOver=false;
+let timerInterval,questionTimer,currentAns,aiInterval;
+function genQ(diff){
+  const ops=diff==='easy'?['+']:diff==='medium'?['+','-','×']:[ '+','-','×','÷'];
+  const op=ops[Math.floor(Math.random()*ops.length)];
+  let a,b,answer;
+  if(op==='+'){a=Math.floor(Math.random()*50)+1;b=Math.floor(Math.random()*50)+1;answer=a+b;}
+  else if(op==='-'){a=Math.floor(Math.random()*50)+5;b=Math.floor(Math.random()*a)+1;answer=a-b;}
+  else if(op==='×'){a=Math.floor(Math.random()*12)+1;b=Math.floor(Math.random()*12)+1;answer=a*b;}
+  else{b=Math.floor(Math.random()*11)+2;answer=Math.floor(Math.random()*11)+1;a=b*answer;}
+  return{eq:`${a} ${op} ${b} = ?`,answer};
+}
+function showQuestion(){
+  if(qNum>=10){endRace();return;}
+  const diff=document.getElementById('diff-sel').value;
+  const{eq,answer}=genQ(diff);currentAns=answer;
+  document.getElementById('equation').textContent=eq;
+  document.getElementById('q-num').textContent=qNum+1;
+  const wrongs=new Set();while(wrongs.size<3){const w=answer+Math.floor(Math.random()*20)-10;if(w!==answer&&w>0)wrongs.add(w);}
+  const opts=[...wrongs,answer].sort(()=>Math.random()-0.5);
+  const grid=document.getElementById('ans-grid');grid.innerHTML='';
+  opts.forEach(o=>{const b=document.createElement('button');b.className='ans-btn';b.textContent=o;b.onclick=()=>answer_q(o,b);grid.appendChild(b);});
+  // Timer
+  clearInterval(timerInterval);let t=10;
+  document.getElementById('timer-fill').style.width='100%';
+  timerInterval=setInterval(()=>{t-=0.1;document.getElementById('timer-fill').style.width=(t/10*100)+'%';if(t<=0){clearInterval(timerInterval);streak=0;qNum++;updateStats();showQuestion();}},100);
+}
+function answer_q(v,btn){
+  clearInterval(timerInterval);
+  document.querySelectorAll('.ans-btn').forEach(b=>b.disabled=true);
+  if(v===currentAns){btn.classList.add('correct');correct++;streak++;progress.you=Math.min(100,progress.you+10);updateTrack();}
+  else{btn.classList.add('wrong');streak=0;}
+  qNum++;updateStats();
+  setTimeout(showQuestion,500);
+}
+function aiStep(){
+  const ai1Speed=0.6+Math.random()*0.8,ai2Speed=0.4+Math.random()*0.6;
+  progress.ai1=Math.min(100,progress.ai1+ai1Speed);
+  progress.ai2=Math.min(100,progress.ai2+ai2Speed);
+  updateTrack();
+  if(progress.ai1>=100||progress.ai2>=100){endRace();}
+}
+function updateTrack(){
+  document.getElementById('fill-you').style.width=progress.you+'%';
+  document.getElementById('fill-ai1').style.width=progress.ai1+'%';
+  document.getElementById('fill-ai2').style.width=progress.ai2+'%';
+}
+function updateStats(){
+  document.getElementById('correct').textContent=correct;
+  document.getElementById('streak').textContent=streak;
+  document.getElementById('bonus').textContent='×'+(streak>=5?3:streak>=3?2:1);
+}
+function startRace(){
+  document.getElementById('start-card').style.display='none';
+  document.getElementById('q-card').style.display='block';
+  document.getElementById('result').style.display='none';
+  progress={you:0,ai1:0,ai2:0};correct=0;streak=0;qNum=0;gameOver=false;
+  updateTrack();
+  aiInterval=setInterval(aiStep,800);
+  showQuestion();
+}
+function endRace(){
+  clearInterval(timerInterval);clearInterval(aiInterval);gameOver=true;
+  document.getElementById('q-card').style.display='none';
+  const res=document.getElementById('result');res.style.display='block';
+  const won=progress.you>=progress.ai1&&progress.you>=progress.ai2;
+  document.getElementById('result-emoji').textContent=won?'🏆':progress.you>50?'🥈':'🥉';
+  document.getElementById('result-title').textContent=won?'You Win! 🎉':'Race Over!';
+  document.getElementById('result-msg').textContent=`Correct: ${correct}/10 · Progress: ${Math.floor(progress.you)}%`;
+}
+function resetRace(){document.getElementById('result').style.display='none';document.getElementById('start-card').style.display='block';}
+</script>
+</body>
+</html>

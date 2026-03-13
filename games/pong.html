@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Pong – DuckMath</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.topbar{width:100%;background:#13131f;border-bottom:1px solid #2a2a45;padding:10px 20px;display:flex;align-items:center;gap:12px}
+.back{color:#9898b8;text-decoration:none;font-size:0.85rem}.back:hover{color:#e8e8f0}
+.game-title{font-weight:800;font-size:1rem}.spacer{flex:1}
+.area{display:flex;flex-direction:column;align-items:center;padding:20px;gap:12px}
+canvas{border:2px solid #6c63ff;border-radius:8px;background:#0a0a14;max-width:100%}
+.btn{background:#6c63ff;border:none;color:#fff;border-radius:8px;padding:10px 24px;font-size:0.9rem;font-weight:700;cursor:pointer}
+.info{font-size:0.8rem;color:#9898b8;text-align:center}
+.mode-row{display:flex;gap:8px}
+.mode-btn{background:#1e1e30;border:1px solid #2a2a45;color:#9898b8;border-radius:8px;padding:6px 14px;font-size:0.8rem;font-weight:600;cursor:pointer}
+.mode-btn.active{background:#6c63ff;border-color:#6c63ff;color:#fff}
+</style>
+</head>
+<body>
+<script>
+// Polyfill: ctx.roundRect (Chrome 99+, Firefox 112+, Safari 15.4+ only)
+(function(){
+  var p = CanvasRenderingContext2D.prototype;
+  if (!p.roundRect) {
+    p.roundRect = function(x, y, w, h, r) {
+      if (typeof r === 'object') r = r[0];
+      r = Math.min(r || 0, Math.abs(w)/2, Math.abs(h)/2);
+      this.moveTo(x + r, y);
+      this.arcTo(x + w, y,     x + w, y + h, r);
+      this.arcTo(x + w, y + h, x,     y + h, r);
+      this.arcTo(x,     y + h, x,     y,     r);
+      this.arcTo(x,     y,     x + w, y,     r);
+      this.closePath();
+    };
+  }
+})();
+// Safe localStorage (fails silently in restricted file:// contexts)
+var safeStorage = {
+  getItem:  function(k)  { try { return (function(){try{return localStorage.getItem(k)}catch(e){return null}})();  } catch(e) { return null; } },
+  setItem:  function(k,v){ try { (function(){try{localStorage.setItem(k,v)}catch(e){}})();        } catch(e) {} }
+};
+</script>
+
+<div class="topbar">
+  <a class="back" href="../index.html">← Back</a>
+  <span class="game-title">🏓 Pong</span>
+  <div class="spacer"></div>
+</div>
+<div class="area">
+  <div class="mode-row">
+    <button class="mode-btn active" onclick="setMode('ai',this)">🤖 vs AI</button>
+    <button class="mode-btn" onclick="setMode('2p',this)">👥 2 Players</button>
+  </div>
+  <canvas id="c" width="560" height="380"></canvas>
+  <button class="btn" onclick="startGame()">▶ Start</button>
+  <div class="info" id="controls-info">W/S = Left paddle · ↑/↓ = Right paddle</div>
+</div>
+<script>
+const c=document.getElementById('c'),ctx=c.getContext('2d');
+const W=560,H=380,PW=12,PH=70,BS=8;
+let p1,p2,ball,score,running,mode,animId;
+const SPEED=4;
+function init(){
+  p1={x:16,y:H/2-PH/2,score:0,vy:0};
+  p2={x:W-16-PW,y:H/2-PH/2,score:0,vy:0};
+  ball={x:W/2,y:H/2,vx:(Math.random()>0.5?1:-1)*SPEED,vy:(Math.random()*2-1)*SPEED};
+  score={l:0,r:0};running=false;
+}
+function setMode(m,btn){mode=m;document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  document.getElementById('controls-info').textContent=m==='2p'?'W/S = Left · ↑/↓ = Right':'W/S = Your paddle · AI controls right';
+  init();draw();}
+function step(){
+  if(!running)return;
+  // Ball
+  ball.x+=ball.vx;ball.y+=ball.vy;
+  if(ball.y<=BS||ball.y>=H-BS)ball.vy*=-1;
+  // AI
+  if(mode==='ai'){
+    const mid=p2.y+PH/2;
+    if(mid<ball.y-5)p2.y+=3.5;
+    else if(mid>ball.y+5)p2.y-=3.5;
+  }
+  // Player movement
+  p1.y+=p1.vy;p2.y+=p2.vy;
+  p1.y=Math.max(0,Math.min(H-PH,p1.y));
+  p2.y=Math.max(0,Math.min(H-PH,p2.y));
+  // Paddle collision
+  if(ball.x-BS<=p1.x+PW&&ball.x-BS>=p1.x&&ball.y>=p1.y&&ball.y<=p1.y+PH){
+    ball.vx=Math.abs(ball.vx)+0.2;
+    ball.vy=(ball.y-(p1.y+PH/2))/(PH/2)*5;
+  }
+  if(ball.x+BS>=p2.x&&ball.x+BS<=p2.x+PW&&ball.y>=p2.y&&ball.y<=p2.y+PH){
+    ball.vx=-(Math.abs(ball.vx)+0.2);
+    ball.vy=(ball.y-(p2.y+PH/2))/(PH/2)*5;
+  }
+  ball.vx=Math.max(-12,Math.min(12,ball.vx));
+  ball.vy=Math.max(-10,Math.min(10,ball.vy));
+  // Score
+  if(ball.x<0){score.r++;if(score.r>=7)endGame('Right');else reset();}
+  if(ball.x>W){score.l++;if(score.l>=7)endGame('Left');else reset();}
+}
+function reset(){ball={x:W/2,y:H/2,vx:(Math.random()>0.5?1:-1)*SPEED,vy:(Math.random()*2-1)*3};p1.y=H/2-PH/2;p2.y=H/2-PH/2;}
+function draw(){
+  ctx.fillStyle='#0a0a14';ctx.fillRect(0,0,W,H);
+  // Center line
+  ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=2;ctx.setLineDash([10,10]);
+  ctx.beginPath();ctx.moveTo(W/2,0);ctx.lineTo(W/2,H);ctx.stroke();ctx.setLineDash([]);
+  // Scores
+  ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font='bold 40px monospace';ctx.textAlign='center';
+  ctx.fillText(score.l,W/4,50);ctx.fillText(score.r,3*W/4,50);
+  // Paddles
+  const pg1=ctx.createLinearGradient(p1.x,0,p1.x+PW,0);pg1.addColorStop(0,'#6c63ff');pg1.addColorStop(1,'#a855f7');
+  ctx.fillStyle=pg1;ctx.beginPath();ctx.roundRect(p1.x,p1.y,PW,PH,4);ctx.fill();
+  const pg2=ctx.createLinearGradient(p2.x,0,p2.x+PW,0);pg2.addColorStop(0,'#f472b6');pg2.addColorStop(1,'#ec4899');
+  ctx.fillStyle=pg2;ctx.beginPath();ctx.roundRect(p2.x,p2.y,PW,PH,4);ctx.fill();
+  // Ball glow
+  ctx.shadowColor='#6c63ff';ctx.shadowBlur=15;
+  ctx.fillStyle='white';ctx.beginPath();ctx.arc(ball.x,ball.y,BS,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;
+  if(!running){
+    ctx.fillStyle='rgba(13,13,20,0.7)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='white';ctx.font='bold 22px Segoe UI';ctx.textAlign='center';
+    ctx.fillText('🏓 Pong — Press Start',W/2,H/2);
+  }
+}
+function endGame(winner){running=false;clearInterval(animId);
+  ctx.fillStyle='rgba(13,13,20,0.8)';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#ffd93d';ctx.font='bold 26px Segoe UI';ctx.textAlign='center';
+  ctx.fillText(winner+' wins! 🎉',W/2,H/2-10);
+  ctx.fillStyle='white';ctx.font='18px Segoe UI';ctx.fillText(`${score.l} – ${score.r}`,W/2,H/2+25);
+}
+function startGame(){init();running=true;clearInterval(animId);animId=setInterval(()=>{step();draw();},16);}
+const keys={};
+document.addEventListener('keydown',e=>{keys[e.key]=true;});
+document.addEventListener('keyup',e=>{keys[e.key]=false;});
+setInterval(()=>{
+  if(keys['w']||keys['W'])p1.vy=-5;else if(keys['s']||keys['S'])p1.vy=5;else p1.vy=0;
+  if(mode==='2p'){if(keys['ArrowUp'])p2.vy=-5;else if(keys['ArrowDown'])p2.vy=5;else p2.vy=0;}
+},16);
+mode='ai';init();draw();
+</script>
+</body>
+</html>

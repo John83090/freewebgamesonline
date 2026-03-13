@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FreeWebGamesOnline – Unblocked Games Free</title>
+<meta name="description" content="Play 100+ free unblocked games online. No download, no signup. Slope, 1v1.LOL, Shell Shockers, Krunker and more!"/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="shortcut icon" href="/favicon.svg"/>
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9483059588332842" crossorigin="anonymous"></script>
+<style>
+:root{
+  --bg:#1a1b2e;--bg2:#13142a;--bg3:#232544;--card:#1e2040;
+  --border:#2d2f52;--accent:#7c3aed;--accent-h:#9d5cff;
+  --text:#e8e8f5;--text2:#8080aa;--gold:#fbbf24;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;min-height:100vh}
+
+/* ── CLOAK BAR ── */
+#cloak-bar{background:#0f1022;border-bottom:1px solid var(--border);padding:5px 16px 5px 72px;display:flex;align-items:center;gap:10px;font-size:.73rem;color:var(--text2);flex-shrink:0}
+#cloak-bar span{flex:1}
+#cloak-bar select{background:var(--bg3);color:var(--text2);border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-size:.72rem;cursor:pointer;outline:none}
+
+/* ── LAYOUT ── */
+.layout{display:flex;flex:1;min-height:0}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:56px;background:var(--bg2);border-right:1px solid var(--border);
+  position:fixed;top:0;left:0;bottom:0;z-index:300;
+  display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:2px;
+  overflow-y:auto;scrollbar-width:none
+}
+.sidebar::-webkit-scrollbar{display:none}
+.sb-logo{font-size:1.5rem;padding:6px;margin-bottom:6px;cursor:pointer;text-decoration:none}
+.sb-divider{width:32px;height:1px;background:var(--border);margin:4px 0;flex-shrink:0}
+.sb-item{
+  width:46px;height:46px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;border-radius:10px;cursor:pointer;border:none;background:none;
+  color:var(--text2);transition:all .18s;gap:1px;padding:0;text-decoration:none;flex-shrink:0
+}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--accent);color:#fff}
+.sb-item .si{font-size:1.25rem;line-height:1;display:block}
+.sb-item .sl{font-size:.47rem;font-weight:700;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;display:block}
+
+/* ── MAIN AREA ── */
+.main-area{margin-left:56px;flex:1;display:flex;flex-direction:column;min-width:0}
+
+/* ── HEADER ── */
+header{
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  height:52px;padding:0 20px;position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;gap:14px;flex-shrink:0
+}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);flex-shrink:0}
+.logo-icon{font-size:1.4rem}
+.logo-text{font-size:1.1rem;font-weight:900;background:linear-gradient(135deg,#a78bfa,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.search-wrap{flex:1;max-width:440px;position:relative}
+.search-wrap input{
+  width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:24px;
+  padding:7px 16px 7px 38px;color:var(--text);font-size:.875rem;outline:none;transition:border-color .2s
+}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-wrap input::placeholder{color:var(--text2)}
+.search-wrap .si-search{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text2);font-size:.95rem;pointer-events:none}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+nav{display:flex;gap:2px}
+nav a{color:var(--text2);text-decoration:none;padding:5px 10px;border-radius:8px;font-size:.82rem;font-weight:600;transition:all .18s;white-space:nowrap}
+nav a:hover{color:var(--text);background:var(--bg3)}
+.coins-badge{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 11px;font-size:.82rem;font-weight:700;color:var(--gold);cursor:pointer;white-space:nowrap}
+.btn-login{background:var(--accent);border:none;color:#fff;border-radius:8px;padding:6px 16px;font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn-login:hover{background:var(--accent-h)}
+
+/* ── HERO ── */
+.hero{
+  background:linear-gradient(135deg,#0e0f20 0%,#1a0d38 55%,#0d1830 100%);
+  padding:28px 24px;border-bottom:1px solid var(--border);position:relative;overflow:hidden;flex-shrink:0
+}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 25% 60%,rgba(124,58,237,.18) 0%,transparent 55%),radial-gradient(ellipse at 75% 40%,rgba(59,130,246,.10) 0%,transparent 55%)}
+.hero-inner{position:relative;max-width:680px}
+.hero h1{font-size:2rem;font-weight:900;line-height:1.2;margin-bottom:8px}
+.hero h1 span{background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:.88rem;line-height:1.6;margin-bottom:14px}
+.hero-badges{display:flex;gap:7px;flex-wrap:wrap}
+.hero-badge{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:4px 12px;font-size:.77rem;font-weight:600;color:var(--text2)}
+.hero-badge b{color:#a78bfa}
+
+/* ── CONTENT ── */
+.content{padding:20px;max-width:1700px;width:100%}
+
+/* ── SECTION ── */
+.section{margin-bottom:32px}
+.section-title{font-size:1rem;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px;color:var(--text)}
+.section-title .cnt{color:var(--text2);font-size:.78rem;font-weight:600}
+
+/* ── GAME GRID ── */
+.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px}
+
+/* ── GAME CARD ── */
+.game-card{
+  position:relative;border-radius:12px;overflow:hidden;cursor:pointer;
+  text-decoration:none;color:var(--text);display:block;aspect-ratio:1/1;
+  background:var(--card);border:1px solid var(--border);
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s
+}
+.game-card:hover{transform:scale(1.06);box-shadow:0 10px 36px rgba(0,0,0,.65);z-index:3}
+.game-card.hidden{display:none}
+
+/* ── THUMBNAIL ── */
+.card-img{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;display:block;
+  transition:transform .35s ease;
+  z-index:1;
+}
+.game-card:hover .card-img{transform:scale(1.1)}
+
+/* Gradient fallback bg (shows when image loads / tinted) */
+.card-bg-grad{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.8rem;z-index:0;
+}
+
+/* ── ALWAYS-VISIBLE NAME BAR ── */
+.card-name-bar{
+  position:absolute;bottom:0;left:0;right:0;z-index:3;
+  background:linear-gradient(to top,rgba(0,0,0,.82) 0%,rgba(0,0,0,.3) 55%,transparent 100%);
+  padding:28px 9px 7px;
+}
+.card-name{
+  font-size:.74rem;font-weight:700;color:#fff;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;
+  text-shadow:0 1px 4px rgba(0,0,0,.7);
+}
+
+/* ── HOVER SLIDE-UP OVERLAY ── */
+.card-overlay{
+  position:absolute;bottom:0;left:0;right:0;z-index:4;
+  background:linear-gradient(to top,rgba(20,10,50,.95) 0%,rgba(20,10,50,.5) 70%,transparent 100%);
+  padding:36px 9px 9px;
+  transform:translateY(101%);
+  transition:transform .28s cubic-bezier(.25,.46,.45,.94);
+}
+.game-card:hover .card-overlay{transform:translateY(0)}
+.card-overlay .card-name{font-size:.8rem;margin-bottom:3px}
+.card-cat{font-size:.64rem;color:#c4b5fd;font-weight:600;text-transform:capitalize;display:block;margin-bottom:5px}
+.card-play-hint{font-size:.62rem;color:#a78bfa;display:block}
+
+/* ── BADGE ── */
+.game-badge{
+  position:absolute;top:7px;left:7px;z-index:5;
+  font-size:.58rem;font-weight:800;padding:2px 7px;border-radius:6px;text-transform:uppercase;letter-spacing:.03em
+}
+.badge-hot{background:#ef4444;color:#fff}
+.badge-new{background:#22c55e;color:#fff}
+.badge-popular{background:var(--accent);color:#fff}
+.badge-trending{background:#f97316;color:#fff}
+
+/* ── CRAZYGAMES POPUP ── */
+#game-popup{
+  position:fixed;z-index:9999;width:268px;
+  background:#1a1c3a;border:1px solid #3a3d6a;border-radius:16px;
+  overflow:hidden;
+  box-shadow:0 24px 70px rgba(0,0,0,.95),0 0 0 1px rgba(124,58,237,.15);
+  pointer-events:none;opacity:0;
+  transform:scale(.88) translateY(10px);
+  transition:opacity .2s ease,transform .22s cubic-bezier(.34,1.56,.64,1);
+  will-change:transform,opacity;
+}
+#game-popup.show{opacity:1;transform:scale(1) translateY(0);pointer-events:auto}
+
+/* Ken Burns preview */
+.pp-preview{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;background:#0d0d1a}
+.pp-img{width:100%;height:100%;object-fit:cover;display:block;
+  animation:kenBurns 6s ease-in-out infinite alternate}
+@keyframes kenBurns{
+  0%  {transform:scale(1)    translate(0%,0%)}
+  25% {transform:scale(1.08) translate(-2%,-1.5%)}
+  50% {transform:scale(1.12) translate(2%,1%)}
+  75% {transform:scale(1.07) translate(-1%,2%)}
+  100%{transform:scale(1.1)  translate(1.5%,-1%)}
+}
+.pp-play-overlay{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.18);opacity:0;transition:opacity .18s
+}
+#game-popup:hover .pp-play-overlay{opacity:1}
+.pp-play-btn{
+  width:52px;height:52px;border-radius:50%;
+  background:rgba(124,58,237,.92);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;
+  box-shadow:0 4px 20px rgba(124,58,237,.6);
+  transition:transform .15s;
+}
+#game-popup:hover .pp-play-btn{transform:scale(1.1)}
+
+/* Popup body */
+.pp-body{padding:12px 14px 14px}
+.pp-name{font-size:1rem;font-weight:900;color:#e8e8f5;margin-bottom:6px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pp-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.pp-rating{
+  display:flex;align-items:center;gap:4px;
+  background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.25);
+  border-radius:6px;padding:2px 8px;font-size:.78rem;font-weight:700;color:#fbbf24
+}
+.pp-cat-tag{
+  background:rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.35);
+  border-radius:6px;padding:2px 8px;font-size:.72rem;font-weight:700;
+  color:#c4b5fd;text-transform:capitalize
+}
+.pp-players{
+  font-size:.76rem;color:#86efac;font-weight:600;margin-bottom:10px;
+  display:flex;align-items:center;gap:5px
+}
+.pp-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;
+  display:inline-block;animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.pp-action-btn{
+  display:block;width:100%;
+  background:linear-gradient(135deg,#7c3aed,#6d28d9);
+  color:#fff;text-align:center;border:none;border-radius:10px;
+  padding:10px;font-size:.9rem;font-weight:800;cursor:pointer;
+  text-decoration:none;transition:all .18s;
+  box-shadow:0 4px 14px rgba(124,58,237,.4)
+}
+.pp-action-btn:hover{background:linear-gradient(135deg,#9d5cff,#7c3aed);
+  box-shadow:0 6px 20px rgba(124,58,237,.6);transform:translateY(-1px)}
+
+/* ── NO RESULTS ── */
+.no-results{text-align:center;padding:50px 20px;color:var(--text2);display:none}
+.no-results.show{display:block}
+
+/* ── AD ── */
+.ad-wrap{text-align:center;margin:8px 0 18px;min-height:90px}
+
+/* ── FOOTER ── */
+footer{background:var(--bg2);border-top:1px solid var(--border);padding:16px 20px 16px 76px;text-align:center;color:var(--text2);font-size:.74rem}
+footer a{color:var(--text2);text-decoration:none;margin:0 8px}
+footer a:hover{color:var(--text)}
+
+@media(max-width:680px){
+  .sidebar{width:48px}
+  .main-area{margin-left:48px}
+  .hero h1{font-size:1.5rem}
+  .game-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+  nav,.hero-badges{display:none}
+  .content{padding:14px}
+}
+</style>
+</head>
+<body>
+
+<!-- CLOAK BAR -->
+<div id="cloak-bar">
+  <span>🛡️ Tab Cloaker</span>
+  <select onchange="applyCloak(this.value)">
+    <option value="">— Disguise tab —</option>
+    <option value="classroom">Google Classroom</option>
+    <option value="khan">Khan Academy</option>
+    <option value="docs">Google Docs</option>
+    <option value="zoom">Zoom</option>
+    <option value="canvas">Canvas LMS</option>
+  </select>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <a class="sb-logo" href="index.html" title="FreeWebGamesOnline">🎮</a>
+  <div class="sb-divider"></div>
+  <button class="sb-item active" onclick="setFilter('all',this)" title="All Games"><span class="si">🎮</span><span class="sl">All</span></button>
+  <button class="sb-item" onclick="setFilter('action',this)" title="Action"><span class="si">⚡</span><span class="sl">Action</span></button>
+  <button class="sb-item" onclick="setFilter('shooting',this)" title="Shooting"><span class="si">🔫</span><span class="sl">Shoot</span></button>
+  <button class="sb-item" onclick="setFilter('multiplayer',this)" title="Multiplayer"><span class="si">👥</span><span class="sl">Multi</span></button>
+  <button class="sb-item" onclick="setFilter('sports',this)" title="Sports"><span class="si">🏈</span><span class="sl">Sports</span></button>
+  <button class="sb-item" onclick="setFilter('racing',this)" title="Racing"><span class="si">🏎️</span><span class="sl">Racing</span></button>
+  <button class="sb-item" onclick="setFilter('puzzle',this)" title="Puzzle"><span class="si">🧩</span><span class="sl">Puzzle</span></button>
+  <button class="sb-item" onclick="setFilter('idle',this)" title="Idle"><span class="si">🍪</span><span class="sl">Idle</span></button>
+  <button class="sb-item" onclick="setFilter('retro',this)" title="Retro"><span class="si">👾</span><span class="sl">Retro</span></button>
+  <button class="sb-item" onclick="setFilter('io',this)" title=".io Games"><span class="si">🌐</span><span class="sl">.io</span></button>
+  <button class="sb-item" onclick="setFilter('adventure',this)" title="Adventure"><span class="si">🗺️</span><span class="sl">Adv.</span></button>
+  <button class="sb-item" onclick="setFilter('strategy',this)" title="Strategy"><span class="si">♟️</span><span class="sl">Strat</span></button>
+  <div class="sb-divider"></div>
+  <a class="sb-item" href="leaderboard.html" title="Leaderboard"><span class="si">🏆</span><span class="sl">Board</span></a>
+</div>
+
+<!-- MAIN AREA -->
+<div class="main-area">
+  <!-- HEADER -->
+  <header>
+    <a class="logo" href="index.html">
+      <span class="logo-icon">🎮</span>
+      <span class="logo-text">FreeWebGames<span style="-webkit-text-fill-color:var(--accent-h)">Online</span></span>
+    </a>
+    <div class="search-wrap">
+      <span class="si-search">🔍</span>
+      <input type="text" id="search-input" placeholder="Search 100+ unblocked games…" oninput="filterGames()" autocomplete="off"/>
+    </div>
+    <div class="header-right">
+      <nav>
+        <a href="leaderboard.html">🏆 Leaderboard</a>
+        <a href="about.html">About</a>
+      </nav>
+      <div class="coins-badge">🪙 <span id="coin-count">0</span></div>
+      <button class="btn-login">Log In</button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-inner">
+      <h1>Play <span>Unblocked Games</span><br>Anywhere, Anytime</h1>
+      <p>100+ free games — all unblocked at school. Slope, 1v1.LOL, Shell Shockers, Retro Bowl &amp; more. No downloads needed!</p>
+      <div class="hero-badges">
+        <div class="hero-badge">🎮 <b>100+</b> Games</div>
+        <div class="hero-badge">🔓 <b>100%</b> Unblocked</div>
+        <div class="hero-badge">⚡ <b>No</b> Downloads</div>
+        <div class="hero-badge">🆓 <b>Always</b> Free</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- AD: Top Banner -->
+    <div class="ad-wrap">
+      <ins class="adsbygoogle" style="display:block"
+           data-ad-client="ca-pub-9483059588332842"
+           data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+    <!-- HOT GAMES -->
+    <div class="section" id="sec-hot">
+      <div class="section-title">🔥 Hot Right Now</div>
+      <div class="game-grid" id="hot-grid"></div>
+    </div>
+
+    <!-- ALL GAMES -->
+    <div class="section" id="sec-all">
+      <div class="section-title">🎮 All Games <span class="cnt" id="all-cnt"></span></div>
+      <div class="game-grid" id="all-grid"></div>
+    </div>
+
+    <div class="no-results" id="no-results">😕 No games found. Try a different search!</div>
+
+    <!-- AD: Bottom -->
+    <div class="ad-wrap" style="margin-top:16px">
+      <ins class="adsbygoogle" style="display:block"
+           data-ad-client="ca-pub-9483059588332842"
+           data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main-area -->
+
+<!-- CRAZYGAMES-STYLE HOVER POPUP -->
+<div id="game-popup">
+  <div class="pp-preview">
+    <img class="pp-img" id="pp-img" src="" alt="" loading="lazy"/>
+    <div class="pp-play-overlay">
+      <div class="pp-play-btn">▶</div>
+    </div>
+  </div>
+  <div class="pp-body">
+    <div class="pp-name" id="pp-name"></div>
+    <div class="pp-row">
+      <div class="pp-rating" id="pp-rating">⭐ 8.5</div>
+      <div class="pp-cat-tag" id="pp-cat"></div>
+    </div>
+    <div class="pp-players"><span class="pp-dot"></span><span id="pp-players"></span></div>
+    <a class="pp-action-btn" id="pp-action-btn" href="#">▶ Play Now — Free</a>
+  </div>
+</div>
+
+<footer>
+  <a href="about.html">About</a>
+  <a href="leaderboard.html">Leaderboard</a>
+  <a href="#">Privacy Policy</a>
+  <a href="#">DMCA</a>
+  &nbsp;|&nbsp; © 2025 FreeWebGamesOnline
+</footer>
+
+<script>
+/* ── COINS ── */
+let coins=0;try{coins=parseInt(localStorage.getItem('dm_coins')||0);}catch(e){}
+document.getElementById('coin-count').textContent=coins;
+
+/* ── GRADIENT FALLBACKS ── */
+const GRAD={
+  action:    ['#2d0a4e','#7c3aed'],
+  shooting:  ['#3b0a0a','#dc2626'],
+  multiplayer:['#0a1a3b','#1d4ed8'],
+  sports:    ['#052e16','#16a34a'],
+  racing:    ['#431407','#ea580c'],
+  puzzle:    ['#0c0a3e','#4f46e5'],
+  idle:      ['#1c1003','#ca8a04'],
+  retro:     ['#0a0a1e','#6d28d9'],
+  io:        ['#042f2e','#0d9488'],
+  adventure: ['#052e16','#15803d'],
+  strategy:  ['#1c1a03','#a16207'],
+};
+function gradStyle(cat){
+  const c=GRAD[cat]||['#1e2040','#7c3aed'];
+  return `background:linear-gradient(135deg,${c[0]} 0%,${c[1]} 100%)`;
+}
+
+/* ── GAMES DATA ── */
+/* thumb: reliable CDN image shown on card at all times */
+const GAMES=[
+
+/* ── ACTION ── */
+{id:'slope',       name:'Slope',              emoji:'🎿', cat:'action',      badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/slope_1x1.png',
+ url:'https://slopegame.io/',         ext:'https://slopegame.io/'},
+{id:'geometrydash', name:'Geometry Dash',     emoji:'🟨', cat:'action',      badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/geometry-dash_1x1.png',
+ url:'https://geometrydash.io/',      ext:'https://geometrydash.io/'},
+{id:'tunnel',      name:'Tunnel Rush',        emoji:'🌀', cat:'action',      badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/tunnel-rush_1x1.png',
+ url:'https://tunnelrush.io/',        ext:'https://tunnelrush.io/'},
+{id:'run3',        name:'Run 3',              emoji:'🏃', cat:'action',      badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/run-3_1x1.png',
+ url:'https://run3game.io/',          ext:'https://run3game.io/'},
+{id:'minecraft',   name:'Minecraft Classic',  emoji:'⛏️', cat:'action',      badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/minecraft-classic_1x1.png',
+ url:'https://classic.minecraft.net/',ext:'https://classic.minecraft.net/'},
+{id:'friday',      name:'Friday Night Funkin',emoji:'🎵', cat:'action',      badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/friday-night-funkin_1x1.png',
+ url:'https://www.fridaynightfunkin.net/',ext:'https://www.fridaynightfunkin.net/'},
+{id:'fireboy',     name:'Fireboy & Watergirl',emoji:'🔥', cat:'action',      badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/fireboy-and-watergirl-in-the-forest-temple_1x1.png',
+ url:'https://fireboyandwatergirlgame.com/',ext:'https://fireboyandwatergirlgame.com/'},
+{id:'subway',      name:'Subway Surfers',     emoji:'🛹', cat:'action',      badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/subway-surfers_1x1.png',
+ url:'https://subwaysurfersgame.io/', ext:'https://subwaysurfersgame.io/'},
+{id:'temple',      name:'Temple Run 2',       emoji:'🏛️', cat:'action',      badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/temple-run-2_1x1.png',
+ url:'https://templerun2.io/',        ext:'https://templerun2.io/'},
+{id:'vex5',        name:'Vex 5',              emoji:'🤸', cat:'action',      badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/vex-5_1x1.png',
+ url:'https://vex5game.io/',          ext:'https://vex5game.io/'},
+{id:'paperio',     name:'Paper.io 2',         emoji:'📄', cat:'action',      badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/paper-io-2_1x1.png',
+ url:'https://paper-io.com/',         ext:'https://paper-io.com/'},
+{id:'granny',      name:'Granny',             emoji:'👵', cat:'action',      badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/granny_1x1.png',
+ url:'https://grannygame.io/',        ext:'https://grannygame.io/'},
+{id:'eaglecraft',  name:'EagleCraft (MC 1.8)',emoji:'⛏️', cat:'action',      badge:'new',
+ thumb:'https://imgs.crazygames.com/auto-covers/minecraft-classic_1x1.png',
+ url:'https://eaglercraft.com/mc/1.8.8-wasm/',ext:'https://eaglercraft.com/mc/1.8.8-wasm/'},
+{id:'eggycar',     name:'Eggy Car',           emoji:'🥚', cat:'action',      badge:'new',
+ thumb:'https://imgs.crazygames.com/auto-covers/eggy-car_1x1.png',
+ url:'https://eggycars.io/',          ext:'https://eggycars.io/'},
+{id:'monkeymart',  name:'Monkey Mart',        emoji:'🐒', cat:'action',      badge:'new',
+ thumb:'https://imgs.crazygames.com/auto-covers/monkey-mart_1x1.png',
+ url:'https://poki.com/en/g/monkey-mart',ext:'https://poki.com/en/g/monkey-mart'},
+
+/* ── SHOOTING ── */
+{id:'shellshock',  name:'Shell Shockers',     emoji:'🥚', cat:'shooting',    badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/shell-shockers_1x1.png',
+ url:'https://shellshock.io/',        ext:'https://shellshock.io/'},
+{id:'krunker',     name:'Krunker.io',         emoji:'🔫', cat:'shooting',    badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/krunker_1x1.png',
+ url:'https://krunker.io/',           ext:'https://krunker.io/'},
+{id:'1v1lol',      name:'1v1.LOL',            emoji:'🏗️', cat:'shooting',    badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/1v1-lol_1x1.png',
+ url:'https://1v1lol.net/',           ext:'https://1v1.lol/'},
+{id:'warbrokers',  name:'War Brokers',        emoji:'🪖', cat:'shooting',    badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/war-brokers_1x1.png',
+ url:'https://warbrokers.io/',        ext:'https://warbrokers.io/'},
+{id:'zombsroyale', name:'ZombsRoyale.io',     emoji:'💀', cat:'shooting',    badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/zombsroyale-io_1x1.png',
+ url:'https://zombsroyale.io/',       ext:'https://zombsroyale.io/'},
+{id:'surviv',      name:'Surviv.io',          emoji:'🔵', cat:'shooting',    badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/surviv-io_1x1.png',
+ url:'https://surviv.io/',            ext:'https://surviv.io/'},
+{id:'bullet',      name:'Bullet Force',       emoji:'💥', cat:'shooting',    badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/bullet-force_1x1.png',
+ url:'https://www.crazygames.com/game/bullet-force-multiplayer',ext:'https://www.crazygames.com/game/bullet-force-multiplayer'},
+{id:'yohoho',      name:'YoHoHo.io',          emoji:'⚔️', cat:'shooting',    badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/yohoho-io_1x1.png',
+ url:'https://yohoho.io/',            ext:'https://yohoho.io/'},
+{id:'venge',       name:'Venge.io',           emoji:'🎯', cat:'shooting',    badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/venge-io_1x1.png',
+ url:'https://venge.io/',             ext:'https://venge.io/'},
+{id:'narrow',      name:'Narrow.one',         emoji:'🏹', cat:'shooting',    badge:'new',
+ thumb:'https://imgs.crazygames.com/auto-covers/narrow-one_1x1.png',
+ url:'https://narrow.one/',           ext:'https://narrow.one/'},
+{id:'deadshot',    name:'Deadshot.io',        emoji:'🎯', cat:'shooting',    badge:'new',
+ thumb:'https://imgs.crazygames.com/auto-covers/deadshot-io_1x1.png',
+ url:'https://deadshot.io/',          ext:'https://deadshot.io/'},
+{id:'buildroyale', name:'BuildRoyale.io',     emoji:'🏗️', cat:'shooting',    badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/buildroyale-io_1x1.png',
+ url:'https://buildroyale.io/',       ext:'https://buildroyale.io/'},
+
+/* ── MULTIPLAYER ── */
+{id:'amongus',     name:'Among Us Online',    emoji:'🔴', cat:'multiplayer', badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/among-us-online_1x1.png',
+ url:'https://amung.us/',             ext:'https://amung.us/'},
+{id:'smashkarts',  name:'Smash Karts',        emoji:'🏎️', cat:'multiplayer', badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/smash-karts_1x1.png',
+ url:'https://smashkarts.io/',        ext:'https://smashkarts.io/'},
+{id:'agario',      name:'Agar.io',            emoji:'🟢', cat:'multiplayer', badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/agario_1x1.png',
+ url:'https://agar.io/',              ext:'https://agar.io/'},
+{id:'slither',     name:'Slither.io',         emoji:'🐍', cat:'multiplayer', badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/slitherio_1x1.png',
+ url:'https://slither.io/',           ext:'https://slither.io/'},
+{id:'diep',        name:'Diep.io',            emoji:'🎯', cat:'multiplayer', badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/diepio_1x1.png',
+ url:'https://diep.io/',              ext:'https://diep.io/'},
+{id:'skribbl',     name:'skribbl.io',         emoji:'🎨', cat:'multiplayer', badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/skribbl-io_1x1.png',
+ url:'https://skribbl.io/',           ext:'https://skribbl.io/'},
+{id:'moomoo',      name:'MooMoo.io',          emoji:'🐄', cat:'multiplayer', badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/moomoo-io_1x1.png',
+ url:'https://moomoo.io/',            ext:'https://moomoo.io/'},
+{id:'miniRoyale',  name:'Mini Royale: Nations',emoji:'🗺️',cat:'multiplayer', badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/mini-royale-nations_1x1.png',
+ url:'https://miniroyale.io/',        ext:'https://miniroyale.io/'},
+{id:'gartic',      name:'Gartic.io',          emoji:'✏️', cat:'multiplayer', badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/gartic-io_1x1.png',
+ url:'https://gartic.io/',            ext:'https://gartic.io/'},
+{id:'lolbeans',    name:'LOL Beans',          emoji:'🫘', cat:'multiplayer', badge:'new',
+ thumb:'https://imgs.crazygames.com/auto-covers/lolbeans-io_1x1.png',
+ url:'https://lolbeans.io/',          ext:'https://lolbeans.io/'},
+{id:'bonk',        name:'Bonk.io',            emoji:'⚪', cat:'multiplayer', badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/bonk-io_1x1.png',
+ url:'https://bonk.io/',              ext:'https://bonk.io/'},
+{id:'wormate',     name:'Wormate.io',         emoji:'🐛', cat:'multiplayer', badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/wormate-io_1x1.png',
+ url:'https://wormate.io/',           ext:'https://wormate.io/'},
+
+/* ── SPORTS ── */
+{id:'retrobowl',   name:'Retro Bowl',         emoji:'🏈', cat:'sports',      badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/retro-bowl_1x1.png',
+ url:'https://retrobowl.me/',         ext:'https://retrobowl.me/'},
+{id:'basketbtrio', name:'Basketball Stars',   emoji:'🏀', cat:'sports',      badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/basketball-stars_1x1.png',
+ url:'https://poki.com/en/g/basketball-stars',ext:'https://poki.com/en/g/basketball-stars'},
+{id:'basketleg',   name:'Basketball Legends', emoji:'🏀', cat:'sports',      badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/basketball-legends-2020_1x1.png',
+ url:'https://poki.com/en/g/basketball-legends-2020',ext:'https://poki.com/en/g/basketball-legends-2020'},
+{id:'headSoccer',  name:'Head Soccer',        emoji:'⚽', cat:'sports',      badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/head-soccer_1x1.png',
+ url:'https://poki.com/en/g/head-soccer',ext:'https://poki.com/en/g/head-soccer'},
+{id:'penalty',     name:'Penalty Shootout',   emoji:'⚽', cat:'sports',      badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/penalty-shootout-extra-time_1x1.png',
+ url:'https://poki.com/en/g/penalty-shootout-extra-time',ext:'https://poki.com/en/g/penalty-shootout-extra-time'},
+{id:'bowmaster',   name:'Bowmasters',         emoji:'🏹', cat:'sports',      badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/bowmasters_1x1.png',
+ url:'https://poki.com/en/g/bowmasters',ext:'https://poki.com/en/g/bowmasters'},
+
+/* ── RACING ── */
+{id:'drifthunters',name:'Drift Hunters',      emoji:'🏎️', cat:'racing',      badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/drift-hunters_1x1.png',
+ url:'https://drifthunters.io/',      ext:'https://drifthunters.io/'},
+{id:'madalin',     name:'Madalin Stunt Cars 2',emoji:'🚗',cat:'racing',      badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/madalin-stunt-cars-2_1x1.png',
+ url:'https://www.madalinstuntcars2.com/',ext:'https://www.madalinstuntcars2.com/'},
+{id:'happywheels', name:'Happy Wheels',       emoji:'🚴', cat:'racing',      badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/happy-wheels_1x1.png',
+ url:'https://totaljerkface.com/happy_wheels.tjf',ext:'https://totaljerkface.com/happy_wheels.tjf'},
+{id:'driftboss',   name:'Drift Boss',         emoji:'🚕', cat:'racing',      badge:'new',
+ thumb:'https://imgs.crazygames.com/auto-covers/drift-boss_1x1.png',
+ url:'https://driftboss.io/',         ext:'https://driftboss.io/'},
+{id:'polytrack',   name:'Poly Track',         emoji:'🏁', cat:'racing',      badge:'new',
+ thumb:'https://imgs.crazygames.com/auto-covers/poly-track_1x1.png',
+ url:'https://polytrac.io/',          ext:'https://polytrac.io/'},
+{id:'retrohighway',name:'Retro Highway',      emoji:'🛣️', cat:'racing',      badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/retro-highway_1x1.png',
+ url:'https://www.crazygames.com/game/retro-highway',ext:'https://www.crazygames.com/game/retro-highway'},
+
+/* ── PUZZLE ── */
+{id:'2048',        name:'2048',               emoji:'🔢', cat:'puzzle',      badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/2048_1x1.png',
+ url:'https://play2048.co/',          ext:'https://play2048.co/'},
+{id:'wordle',      name:'Wordle',             emoji:'📝', cat:'puzzle',      badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/wordle_1x1.png',
+ url:'https://www.nytimes.com/games/wordle/index.html',ext:'https://www.nytimes.com/games/wordle/index.html'},
+{id:'bloxorz',     name:'Bloxorz',            emoji:'📦', cat:'puzzle',      badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/bloxorz_1x1.png',
+ url:'https://www.coolmathgames.com/0-bloxorz',ext:'https://www.coolmathgames.com/0-bloxorz'},
+{id:'chess',       name:'Chess',              emoji:'♟️', cat:'puzzle',      badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/chess_1x1.png',
+ url:'https://www.chess.org/play/',   ext:'https://www.chess.org/play/'},
+{id:'tetrisreal',  name:'Tetris',             emoji:'🟦', cat:'puzzle',      badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/tetris_1x1.png',
+ url:'https://tetris.com/play-tetris',ext:'https://tetris.com/play-tetris'},
+{id:'mahjong',     name:'Mahjong',            emoji:'🀄', cat:'puzzle',      badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/mahjong_1x1.png',
+ url:'https://poki.com/en/g/mahjong', ext:'https://poki.com/en/g/mahjong'},
+{id:'minesweeper', name:'Minesweeper',        emoji:'💣', cat:'puzzle',      badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/minesweeper-classic_1x1.png',
+ url:'https://minesweeper.online/',   ext:'https://minesweeper.online/'},
+{id:'helix',       name:'Helix Jump',         emoji:'🌀', cat:'puzzle',      badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/helix-jump_1x1.png',
+ url:'https://poki.com/en/g/helix-jump',ext:'https://poki.com/en/g/helix-jump'},
+
+/* ── IDLE ── */
+{id:'cookie',      name:'Cookie Clicker',     emoji:'🍪', cat:'idle',        badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/cookie-clicker_1x1.png',
+ url:'https://orteil.dashnet.org/cookieclicker/',ext:'https://orteil.dashnet.org/cookieclicker/'},
+{id:'clicker',     name:'Clicker Heroes',     emoji:'⚔️', cat:'idle',        badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/clicker-heroes_1x1.png',
+ url:'https://www.clickerheroes.com/',ext:'https://www.clickerheroes.com/'},
+{id:'sandspiel',   name:'Sandspiel',          emoji:'🏖️', cat:'idle',        badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/sand_1x1.png',
+ url:'https://sandspiel.club/',       ext:'https://sandspiel.club/'},
+
+/* ── RETRO ── */
+{id:'pacman',      name:'Pac-Man',            emoji:'👻', cat:'retro',       badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/pacman_1x1.png',
+ url:'https://www.google.com/logos/2010/pacman10-i.html',ext:'https://www.google.com/logos/2010/pacman10-i.html'},
+{id:'snakeretro',  name:'Snake',              emoji:'🐍', cat:'retro',       badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/snake_1x1.png',
+ url:'https://playsnake.org/',        ext:'https://playsnake.org/'},
+{id:'flappybird',  name:'Flappy Bird',        emoji:'🐦', cat:'retro',       badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/flappy-bird_1x1.png',
+ url:'https://flappybird.io/',        ext:'https://flappybird.io/'},
+{id:'dino',        name:'Chrome Dino',        emoji:'🦕', cat:'retro',       badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/dino_1x1.png',
+ url:'https://chromedino.com/',       ext:'https://chromedino.com/'},
+{id:'curveball',   name:'Curveball 3D',       emoji:'🎱', cat:'retro',       badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/curveball-3d_1x1.png',
+ url:'https://curveball3d.io/',       ext:'https://curveball3d.io/'},
+
+/* ── .IO ── */
+{id:'brutal',      name:'Brutal.io',          emoji:'💣', cat:'io',          badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/brutal-io_1x1.png',
+ url:'https://brutal.io/',            ext:'https://brutal.io/'},
+{id:'stabfish',    name:'Stabfish.io',        emoji:'🐟', cat:'io',          badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/stabfish-io_1x1.png',
+ url:'https://stabfish.io/',          ext:'https://stabfish.io/'},
+{id:'defly',       name:'Defly.io',           emoji:'✈️', cat:'io',          badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/defly-io_1x1.png',
+ url:'https://defly.io/',             ext:'https://defly.io/'},
+{id:'superhex',    name:'SuperHex.io',        emoji:'⬡', cat:'io',          badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/superhex-io_1x1.png',
+ url:'https://superhex.io/',          ext:'https://superhex.io/'},
+{id:'sploop',      name:'Sploop.io',          emoji:'🌊', cat:'io',          badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/sploop-io_1x1.png',
+ url:'https://sploop.io/',            ext:'https://sploop.io/'},
+{id:'lordz',       name:'Lordz.io',           emoji:'👑', cat:'io',          badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/lordz-io_1x1.png',
+ url:'https://lordz.io/',             ext:'https://lordz.io/'},
+{id:'oceanar',     name:'Oceanar.io',         emoji:'🐙', cat:'io',          badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/oceanar-io_1x1.png',
+ url:'https://oceanar.io/',           ext:'https://oceanar.io/'},
+{id:'holeio',      name:'Hole.io',            emoji:'🕳️', cat:'io',          badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/hole-io_1x1.png',
+ url:'https://hole.io/',              ext:'https://hole.io/'},
+{id:'powerline',   name:'Powerline.io',       emoji:'⚡', cat:'io',          badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/powerline-io_1x1.png',
+ url:'https://powerline.io/',         ext:'https://powerline.io/'},
+{id:'worms',       name:'Worms Zone',         emoji:'🪱', cat:'io',          badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/worms-zone-a-slithery-snake_1x1.png',
+ url:'https://wormszone.io/',         ext:'https://wormszone.io/'},
+
+/* ── ADVENTURE ── */
+{id:'getaway',     name:'Getaway Shootout',   emoji:'🔫', cat:'adventure',   badge:'hot',
+ thumb:'https://imgs.crazygames.com/auto-covers/getaway-shootout_1x1.png',
+ url:'https://getaway-shootout.com/', ext:'https://getaway-shootout.com/'},
+{id:'raftWars',    name:'Raft Wars',          emoji:'⚓', cat:'adventure',   badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/raft-wars_1x1.png',
+ url:'https://raftwars.io/',          ext:'https://raftwars.io/'},
+{id:'rooftop',     name:'Rooftop Snipers',    emoji:'🎯', cat:'adventure',   badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/rooftop-snipers_1x1.png',
+ url:'https://rooftopsnipers.io/',    ext:'https://rooftopsnipers.io/'},
+{id:'crossyroad',  name:'Crossy Road',        emoji:'🐔', cat:'adventure',   badge:'popular',
+ thumb:'https://imgs.crazygames.com/auto-covers/crossy-road_1x1.png',
+ url:'https://poki.com/en/g/crossy-road',ext:'https://poki.com/en/g/crossy-road'},
+
+/* ── STRATEGY ── */
+{id:'minibattle',  name:'10 Mini Battles',    emoji:'⚔️', cat:'strategy',    badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/10-mini-battles_1x1.png',
+ url:'https://poki.com/en/g/10-mini-battles',ext:'https://poki.com/en/g/10-mini-battles'},
+{id:'solitaire',   name:'Solitaire',          emoji:'🃏', cat:'strategy',    badge:'',
+ thumb:'https://imgs.crazygames.com/auto-covers/klondike-solitaire_1x1.png',
+ url:'https://solitaire.org/',        ext:'https://solitaire.org/'},
+
+];
+
+/* ── HOT LIST ── */
+const HOT_IDS=['slope','1v1lol','shellshock','krunker','smashkarts','retrobowl',
+               'friday','agario','cookieclicker','geometrydash','drifthunters','narrowone'];
+
+/* ── SEO INDIVIDUAL PAGES ── */
+const SEO_PAGES={
+  'slope':'/g/slope.html','1v1lol':'/g/1v1-lol.html',
+  'shellshock':'/g/shell-shockers.html','krunker':'/g/krunker.html',
+  'retrobowl':'/g/retro-bowl.html','smashkarts':'/g/smash-karts.html',
+  'cookie':'/g/cookie-clicker.html','drifthunters':'/g/drift-hunters.html',
+  'amongus':'/g/among-us.html','agario':'/g/agario.html',
+  'slither':'/g/slither-io.html','geometrydash':'/g/geometry-dash.html',
+  'run3':'/g/run-3.html','tunnel':'/g/tunnel-rush.html',
+  'friday':'/g/friday-night-funkin.html','minecraft':'/g/minecraft-classic.html',
+  'paperio':'/g/paper-io.html','venge':'/g/venge-io.html',
+  'narrow':'/g/narrow-one.html','diep':'/g/diep-io.html',
+  'moomoo':'/g/moomoo-io.html','holeio':'/g/hole-io.html',
+  '2048':'/g/2048.html','happywheels':'/g/happy-wheels.html',
+  'getaway':'/g/getaway-shootout.html',
+};
+
+/* ── BUILD CARD ── */
+function buildCard(g){
+  const a = document.createElement('a');
+  a.className='game-card';
+  a.href=SEO_PAGES[g.id]||`play.html?name=${encodeURIComponent(g.name)}&url=${encodeURIComponent(g.url)}&ext=${encodeURIComponent(g.ext||g.url)}`;
+  a.dataset.cat=g.cat;
+  a.dataset.id=g.id;
+
+  // Popup hover events
+  a.addEventListener('mouseenter', () => openPopup(a, g));
+  a.addEventListener('mouseleave', closePopup);
+
+  // Gradient fallback bg
+  const c=GRAD[g.cat]||['#1e2040','#7c3aed'];
+  a.style.background=`linear-gradient(135deg,${c[0]} 0%,${c[1]} 100%)`;
+
+  // Badge HTML
+  const badgeHtml = g.badge==='hot'  ? '<span class="game-badge badge-hot">🔥 Hot</span>'
+                  : g.badge==='new'  ? '<span class="game-badge badge-new">✨ New</span>'
+                  : g.badge==='popular'? '<span class="game-badge badge-popular">⭐ Popular</span>'
+                  : g.badge==='trending'?'<span class="game-badge badge-trending">📈 Trending</span>'
+                  : '';
+
+  a.innerHTML=`
+    ${badgeHtml}
+    <span class="card-bg-grad">${g.emoji}</span>
+    <img class="card-img"
+         src="${g.thumb}"
+         alt="${g.name}"
+         loading="lazy"
+         onerror="this.style.display='none'"
+    />
+    <!-- Always-visible name bar -->
+    <div class="card-name-bar">
+      <span class="card-name">${g.name}</span>
+    </div>
+    <!-- Hover slide-up overlay -->
+    <div class="card-overlay">
+      <span class="card-name">${g.name}</span>
+      <span class="card-cat">${g.cat}</span>
+      <span class="card-play-hint">▶ Click to play</span>
+    </div>
+  `;
+  return a;
+}
+
+/* ── RENDER ── */
+function renderAll(){
+  // Hot section
+  const hotGrid = document.getElementById('hot-grid');
+  hotGrid.innerHTML='';
+  GAMES.filter(g=>g.badge==='hot').forEach(g=>hotGrid.appendChild(buildCard(g)));
+
+  // All games section
+  const allGrid = document.getElementById('all-grid');
+  allGrid.innerHTML='';
+  GAMES.forEach(g=>allGrid.appendChild(buildCard(g)));
+  document.getElementById('all-cnt').textContent=`(${GAMES.length})`;
+}
+
+/* ── FILTER by category ── */
+function setFilter(cat, btn){
+  document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const hotSec = document.getElementById('sec-hot');
+  const allSec = document.getElementById('sec-all');
+  const allGrid = document.getElementById('all-grid');
+
+  if(cat==='all'){
+    hotSec.style.display='';
+    document.querySelector('#sec-all .section-title').textContent='🎮 All Games';
+    allGrid.innerHTML='';
+    GAMES.forEach(g=>allGrid.appendChild(buildCard(g)));
+    document.getElementById('all-cnt').textContent=`(${GAMES.length})`;
+  } else {
+    hotSec.style.display='none';
+    const filtered=GAMES.filter(g=>g.cat===cat);
+    const label = {
+      action:'⚡ Action',shooting:'🔫 Shooting',multiplayer:'👥 Multiplayer',
+      sports:'🏈 Sports',racing:'🏎️ Racing',puzzle:'🧩 Puzzle',
+      idle:'🍪 Idle',retro:'👾 Retro',io:'🌐 .io Games',
+      adventure:'🗺️ Adventure',strategy:'♟️ Strategy'
+    }[cat]||cat;
+    document.querySelector('#sec-all .section-title').textContent=label;
+    allGrid.innerHTML='';
+    filtered.forEach(g=>allGrid.appendChild(buildCard(g)));
+    document.getElementById('all-cnt').textContent=`(${filtered.length})`;
+  }
+  document.getElementById('search-input').value='';
+  document.getElementById('no-results').classList.remove('show');
+}
+
+/* ── SEARCH ── */
+function filterGames(){
+  const q=document.getElementById('search-input').value.toLowerCase().trim();
+  const hotSec=document.getElementById('sec-hot');
+  const allSec=document.getElementById('sec-all');
+  const allGrid=document.getElementById('all-grid');
+
+  if(!q){
+    renderAll();
+    hotSec.style.display='';
+    document.getElementById('no-results').classList.remove('show');
+    return;
+  }
+  hotSec.style.display='none';
+  document.querySelector('#sec-all .section-title').textContent='🔍 Search Results';
+  const results=GAMES.filter(g=>g.name.toLowerCase().includes(q)||g.cat.toLowerCase().includes(q));
+  allGrid.innerHTML='';
+  results.forEach(g=>allGrid.appendChild(buildCard(g)));
+  document.getElementById('all-cnt').textContent=`(${results.length})`;
+  document.getElementById('no-results').classList.toggle('show',results.length===0);
+}
+
+/* ── TAB CLOAK ── */
+const CLOAKS={
+  classroom:{title:'Google Classroom',icon:'https://ssl.gstatic.com/classroom/favicon.png'},
+  khan:     {title:'Khan Academy',    icon:'https://cdn.kastatic.org/images/favicon.ico'},
+  docs:     {title:'Google Docs',     icon:'https://ssl.gstatic.com/docs/doclist/images/drive_2022q3_32dp.png'},
+  zoom:     {title:'Zoom',            icon:'https://st1.zoom.us/zoom.ico'},
+  canvas:   {title:'Canvas',          icon:'https://du11hjcvx0uqb.cloudfront.net/dist/images/favicon-e10d657a73.ico'},
+};
+function applyCloak(v){
+  const c=CLOAKS[v];
+  if(!c){document.title='FreeWebGamesOnline – Unblocked Games Free';return;}
+  document.title=c.title;
+  let link=document.querySelector("link[rel='icon']")||document.createElement('link');
+  link.rel='icon';link.href=c.icon;document.head.appendChild(link);
+}
+
+/* ── CRAZYGAMES POPUP ENGINE ── */
+const popup = document.getElementById('game-popup');
+const ppImg = document.getElementById('pp-img');
+const ppName = document.getElementById('pp-name');
+const ppRating = document.getElementById('pp-rating');
+const ppCat = document.getElementById('pp-cat');
+const ppPlayers = document.getElementById('pp-players');
+const ppBtn = document.getElementById('pp-action-btn');
+let popTimer, hideTimer;
+
+/* Deterministic rating 7.2–9.8 based on game id */
+function getPopRating(id){
+  let h=0; for(let c of id) h=((h<<5)-h)+c.charCodeAt(0);
+  return (72 + Math.abs(h)%27)/10;
+}
+/* Deterministic player count 120–12800 */
+function getPopPlayers(id){
+  let h=0; for(let c of id) h=((h<<5)-h)+c.charCodeAt(0);
+  const n = 120 + Math.abs(h)%12680;
+  return n >= 1000 ? (n/1000).toFixed(1)+'k' : n;
+}
+
+function positionPopup(cardEl){
+  const r = cardEl.getBoundingClientRect();
+  const pw=268, ph=310;
+  let left = r.right + 12;
+  let top  = r.top + (r.height/2) - (ph/2);
+  if(left + pw > window.innerWidth - 8)  left = r.left - pw - 12;
+  if(left < 8) left = r.left + (r.width/2) - (pw/2);
+  top = Math.max(8, Math.min(top, window.innerHeight - ph - 8));
+  popup.style.left = left + 'px';
+  popup.style.top  = top  + 'px';
+}
+
+function openPopup(cardEl, g){
+  clearTimeout(hideTimer);
+  clearTimeout(popTimer);
+  /* Fill content */
+  ppImg.src = g.thumb;
+  ppImg.alt = g.name;
+  ppName.textContent = g.name;
+  ppRating.textContent = '⭐ ' + getPopRating(g.id);
+  ppCat.textContent = g.cat;
+  ppPlayers.textContent = getPopPlayers(g.id) + ' playing now';
+  ppBtn.href = cardEl.href;
+  ppBtn.textContent = '▶ Play ' + g.name + ' Free';
+  /* Position & show */
+  positionPopup(cardEl);
+  popTimer = setTimeout(() => popup.classList.add('show'), 80);
+}
+
+function closePopup(){
+  clearTimeout(popTimer);
+  hideTimer = setTimeout(() => popup.classList.remove('show'), 120);
+}
+
+/* Keep popup open when mouse is over it */
+popup.addEventListener('mouseenter', () => clearTimeout(hideTimer));
+popup.addEventListener('mouseleave', closePopup);
+
+/* Reposition on scroll */
+window.addEventListener('scroll', () => { if(popup.classList.contains('show')) popup.classList.remove('show'); }, {passive:true});
+
+/* ── INIT ── */
+renderAll();
+</script>
+
+</body>
+</html>

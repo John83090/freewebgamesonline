@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Breakout – DuckMath</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.topbar{width:100%;background:#13131f;border-bottom:1px solid #2a2a45;padding:10px 20px;display:flex;align-items:center;gap:12px}
+.back{color:#9898b8;text-decoration:none;font-size:0.85rem}.back:hover{color:#e8e8f0}
+.game-title{font-weight:800;font-size:1rem}.spacer{flex:1}
+.badge{background:#1e1e30;border:1px solid #2a2a45;border-radius:20px;padding:4px 14px;font-size:0.85rem;font-weight:700;color:#ffd93d}
+.area{display:flex;flex-direction:column;align-items:center;padding:20px;gap:12px}
+canvas{border:2px solid #6c63ff;border-radius:8px;background:#0a0a14;max-width:100%}
+.btn{background:#6c63ff;border:none;color:#fff;border-radius:8px;padding:10px 24px;font-size:0.9rem;font-weight:700;cursor:pointer}
+.info{font-size:0.8rem;color:#9898b8}
+</style>
+</head>
+<body>
+<script>
+// Polyfill: ctx.roundRect (Chrome 99+, Firefox 112+, Safari 15.4+ only)
+(function(){
+  var p = CanvasRenderingContext2D.prototype;
+  if (!p.roundRect) {
+    p.roundRect = function(x, y, w, h, r) {
+      if (typeof r === 'object') r = r[0];
+      r = Math.min(r || 0, Math.abs(w)/2, Math.abs(h)/2);
+      this.moveTo(x + r, y);
+      this.arcTo(x + w, y,     x + w, y + h, r);
+      this.arcTo(x + w, y + h, x,     y + h, r);
+      this.arcTo(x,     y + h, x,     y,     r);
+      this.arcTo(x,     y,     x + w, y,     r);
+      this.closePath();
+    };
+  }
+})();
+// Safe localStorage (fails silently in restricted file:// contexts)
+var safeStorage = {
+  getItem:  function(k)  { try { return (function(){try{return localStorage.getItem(k)}catch(e){return null}})();  } catch(e) { return null; } },
+  setItem:  function(k,v){ try { (function(){try{localStorage.setItem(k,v)}catch(e){}})();        } catch(e) {} }
+};
+</script>
+
+<div class="topbar">
+  <a class="back" href="../index.html">← Back</a>
+  <span class="game-title">🧱 Breakout</span>
+  <div class="spacer"></div>
+  <div class="badge">Score: <span id="score">0</span></div>
+  <div class="badge" style="color:#60a5fa">Lives: <span id="lives">3</span></div>
+</div>
+<div class="area">
+  <canvas id="c" width="420" height="480"></canvas>
+  <div style="display:flex;gap:10px">
+    <button class="btn" id="startBtn" onclick="startGame()">▶ Start</button>
+    <button class="btn" style="background:#1e1e30;border:1px solid #2a2a45" onclick="togglePause()">⏸ Pause</button>
+  </div>
+  <div class="info">Move mouse or touch to control paddle · Click to launch ball</div>
+</div>
+<script>
+const c=document.getElementById('c'),ctx=c.getContext('2d');
+const W=420,H=480,PR=50,PH=12,BW=10,BH=10;
+const ROWS=6,COLS=10,BRW=36,BRH=16,BRG=4;
+const COLORS=['#ef4444','#f97316','#f59e0b','#4ade80','#60a5fa','#a855f7'];
+let px,ball,bricks,score,lives,running,paused,launched,animId;
+function init(){
+  px=(W-PR)/2; ball={x:W/2,y:H-80,dx:3,dy:-3,r:8};
+  bricks=[]; score=0; lives=3; launched=false;
+  for(let r=0;r<ROWS;r++) for(let c2=0;c2<COLS;c2++)
+    bricks.push({x:c2*(BRW+BRG)+BRG,y:r*(BRH+BRG)+40,w:BRW,h:BRH,alive:true,color:COLORS[r]});
+  update();
+}
+function update(){
+  document.getElementById('score').textContent=score;
+  document.getElementById('lives').textContent='❤️'.repeat(lives);
+}
+function draw(){
+  ctx.fillStyle='#0a0a14';ctx.fillRect(0,0,W,H);
+  // Grid lines
+  ctx.strokeStyle='#1a1a2e';ctx.lineWidth=0.5;
+  for(let x=0;x<W;x+=30){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  // Bricks
+  bricks.forEach(b=>{if(!b.alive)return;
+    ctx.fillStyle=b.color;ctx.beginPath();ctx.roundRect(b.x,b.y,b.w,b.h,3);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(b.x+1,b.y+1,b.w-2,4);
+  });
+  // Paddle
+  const grad=ctx.createLinearGradient(px,0,px+PR,0);
+  grad.addColorStop(0,'#6c63ff');grad.addColorStop(1,'#a855f7');
+  ctx.fillStyle=grad;ctx.beginPath();ctx.roundRect(px,H-30,PR,PH,6);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillRect(px+4,H-30,PR-8,3);
+  // Ball
+  const bg=ctx.createRadialGradient(ball.x-2,ball.y-2,1,ball.x,ball.y,ball.r);
+  bg.addColorStop(0,'#fff');bg.addColorStop(1,'#6c63ff');
+  ctx.fillStyle=bg;ctx.beginPath();ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);ctx.fill();
+  // Glow
+  ctx.shadowColor='#6c63ff';ctx.shadowBlur=10;
+  ctx.beginPath();ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;
+  if(!launched){ctx.fillStyle='rgba(255,255,255,0.6)';ctx.font='14px Segoe UI';ctx.textAlign='center';ctx.fillText('Click to launch!',W/2,H/2);}
+}
+function step(){
+  if(!launched){ball.x=px+PR/2;draw();return;}
+  ball.x+=ball.dx; ball.y+=ball.dy;
+  if(ball.x<=ball.r||ball.x>=W-ball.r)ball.dx*=-1;
+  if(ball.y<=ball.r)ball.dy*=-1;
+  if(ball.y>=H-30-ball.r && ball.x>=px && ball.x<=px+PR){
+    ball.dy=-Math.abs(ball.dy);
+    const hit=(ball.x-px)/PR-0.5;
+    ball.dx=hit*6;
+  }
+  if(ball.y>H){lives--;update();if(lives<=0){endGame();return;}launched=false;}
+  for(let b of bricks){if(!b.alive)continue;
+    if(ball.x>b.x&&ball.x<b.x+b.w&&ball.y>b.y&&ball.y<b.y+b.h){
+      b.alive=false;ball.dy*=-1;score+=10;update();break;
+    }
+  }
+  if(bricks.every(b=>!b.alive)){score+=500;update();showWin();return;}
+  draw();
+}
+function startGame(){clearInterval(animId);init();running=true;paused=false;animId=setInterval(step,16);document.getElementById('startBtn').textContent='🔄 Restart';}
+function togglePause(){if(!running)return;paused=!paused;paused?clearInterval(animId):animId=setInterval(step,16);}
+function endGame(){clearInterval(animId);running=false;ctx.fillStyle='rgba(13,13,20,0.8)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#e8e8f0';ctx.font='bold 28px Segoe UI';ctx.textAlign='center';ctx.fillText('Game Over!',W/2,H/2-20);ctx.fillStyle='#ffd93d';ctx.font='18px Segoe UI';ctx.fillText('Score: '+score,W/2,H/2+15);}
+function showWin(){clearInterval(animId);running=false;ctx.fillStyle='rgba(13,13,20,0.8)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#ffd93d';ctx.font='bold 28px Segoe UI';ctx.textAlign='center';ctx.fillText('🎉 You Win!',W/2,H/2-20);ctx.font='18px Segoe UI';ctx.fillText('Score: '+score,W/2,H/2+15);}
+c.addEventListener('mousemove',e=>{const r=c.getBoundingClientRect();px=e.clientX-r.left-PR/2;px=Math.max(0,Math.min(W-PR,px));if(!launched)draw();});
+c.addEventListener('click',()=>{if(!running)return;launched=true;});
+c.addEventListener('touchmove',e=>{e.preventDefault();const r=c.getBoundingClientRect();const scaleX=W/r.width;px=(e.touches[0].clientX-r.left)*scaleX-PR/2;px=Math.max(0,Math.min(W-PR,px));},{passive:false});
+c.addEventListener('touchstart',()=>{if(!running)return;launched=true;},{passive:true});
+init();draw();
+</script>
+</body>
+</html>

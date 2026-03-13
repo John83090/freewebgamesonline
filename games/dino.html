@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Dino Runner – DuckMath</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.topbar{width:100%;background:#13131f;border-bottom:1px solid #2a2a45;padding:10px 20px;display:flex;align-items:center;gap:12px}
+.back{color:#9898b8;text-decoration:none;font-size:0.85rem}.back:hover{color:#e8e8f0}
+.game-title{font-weight:800;font-size:1rem}.spacer{flex:1}
+.badge{background:#1e1e30;border:1px solid #2a2a45;border-radius:20px;padding:4px 14px;font-size:0.85rem;font-weight:700;color:#ffd93d}
+.area{display:flex;flex-direction:column;align-items:center;padding:20px;gap:12px}
+canvas{border:2px solid #6c63ff;border-radius:8px;background:#0a0a14;cursor:pointer;max-width:100%}
+.info{font-size:0.8rem;color:#9898b8}
+.btn{background:#6c63ff;border:none;color:#fff;border-radius:8px;padding:10px 24px;font-size:0.9rem;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<script>
+// Polyfill: ctx.roundRect (Chrome 99+, Firefox 112+, Safari 15.4+ only)
+(function(){
+  var p = CanvasRenderingContext2D.prototype;
+  if (!p.roundRect) {
+    p.roundRect = function(x, y, w, h, r) {
+      if (typeof r === 'object') r = r[0];
+      r = Math.min(r || 0, Math.abs(w)/2, Math.abs(h)/2);
+      this.moveTo(x + r, y);
+      this.arcTo(x + w, y,     x + w, y + h, r);
+      this.arcTo(x + w, y + h, x,     y + h, r);
+      this.arcTo(x,     y + h, x,     y,     r);
+      this.arcTo(x,     y,     x + w, y,     r);
+      this.closePath();
+    };
+  }
+})();
+// Safe localStorage (fails silently in restricted file:// contexts)
+var safeStorage = {
+  getItem:  function(k)  { try { return (function(){try{return localStorage.getItem(k)}catch(e){return null}})();  } catch(e) { return null; } },
+  setItem:  function(k,v){ try { (function(){try{localStorage.setItem(k,v)}catch(e){}})();        } catch(e) {} }
+};
+</script>
+
+<div class="topbar">
+  <a class="back" href="../index.html">← Back</a>
+  <span class="game-title">🦕 Dino Runner</span>
+  <div class="spacer"></div>
+  <div class="badge">Score: <span id="score">0</span></div>
+  <div class="badge" style="color:#60a5fa">Best: <span id="best">0</span></div>
+</div>
+<div class="area">
+  <canvas id="c" width="600" height="200"></canvas>
+  <div class="info">Press Space / Click / Tap to jump · Double-jump available!</div>
+</div>
+<script>
+const c=document.getElementById('c'),ctx=c.getContext('2d');
+const W=600,H=200,GH=160;
+let dino,obstacles,clouds,score,best,speed,running,gameOver,frame,doubleJump,groundY=GH;
+function init(){
+  dino={x:70,y:GH-36,w:34,h:36,vy:0,onGround:true,jumps:0,legFrame:0};
+  obstacles=[];clouds=[{x:100,y:30,w:80,h:30},{x:350,y:50,w:60,h:25},{x:550,y:20,w:100,h:35}];
+  score=0;speed=4;running=false;gameOver=false;frame=0;
+}
+function jump(){
+  if(gameOver){init();running=true;return;}
+  if(!running){running=true;return;}
+  if(dino.onGround||dino.jumps<2){dino.vy=-12;dino.onGround=false;dino.jumps++;}
+}
+function step(){
+  if(!running)return;
+  frame++;score++;speed=4+Math.floor(score/300)*0.5;
+  document.getElementById('score').textContent=score;
+  best=Math.max(score,parseInt((function(){try{return localStorage.getItem('dinoBest')}catch(e){return null}})()||0));
+  (function(){try{localStorage.setItem('dinoBest',best)}catch(e){}})();document.getElementById('best').textContent=best;
+  // Dino physics
+  dino.vy+=0.7;dino.y+=dino.vy;
+  if(dino.y>=GH-dino.h){dino.y=GH-dino.h;dino.vy=0;dino.onGround=true;dino.jumps=0;}
+  dino.legFrame=Math.floor(frame/8)%2;
+  // Obstacles
+  if(frame%Math.floor(80-speed*3)===0||obstacles.length===0){
+    const h=30+Math.random()*30,w=20+Math.random()*20;
+    obstacles.push({x:W+10,y:GH-h,w,h,type:Math.random()<0.3?'bird':'cactus'});
+  }
+  obstacles.forEach(o=>o.x-=speed);
+  obstacles=obstacles.filter(o=>o.x>-50);
+  // Clouds
+  clouds.forEach(cl=>cl.x-=0.5);
+  clouds=clouds.filter(cl=>cl.x>-120);
+  if(clouds.length<3&&Math.random()<0.01)clouds.push({x:W+10,y:10+Math.random()*60,w:60+Math.random()*60,h:20+Math.random()*20});
+  // Collision
+  for(const o of obstacles){
+    const pad=6;
+    if(dino.x+dino.w-pad>o.x+pad&&dino.x+pad<o.x+o.w-pad&&dino.y+dino.h-pad>o.y+pad&&dino.y+pad<o.y+o.h-pad){
+      running=false;gameOver=true;return;
+    }
+  }
+}
+function draw(){
+  ctx.fillStyle='#0a0a14';ctx.fillRect(0,0,W,H);
+  // Stars
+  if(frame%2===0){ctx.fillStyle='rgba(255,255,255,0.5)';for(let i=0;i<3;i++){const x=(i*200+frame*0.3)%W;ctx.fillRect(x,10+i*20,1,1);}}
+  // Clouds
+  ctx.fillStyle='rgba(255,255,255,0.08)';
+  clouds.forEach(cl=>{ctx.beginPath();ctx.ellipse(cl.x,cl.y,cl.w/2,cl.h/2,0,0,Math.PI*2);ctx.fill();});
+  // Ground
+  ctx.fillStyle='#2a2a45';ctx.fillRect(0,GH,W,H-GH);
+  ctx.fillStyle='#3a3a6a';ctx.fillRect(0,GH,W,3);
+  // Ground dashes
+  ctx.strokeStyle='#2a2a55';ctx.lineWidth=1;ctx.setLineDash([20,15]);
+  ctx.beginPath();ctx.moveTo(0,GH+8);ctx.lineTo(W,GH+8);ctx.stroke();ctx.setLineDash([]);
+  // Obstacles
+  obstacles.forEach(o=>{
+    if(o.type==='cactus'){
+      ctx.fillStyle='#4ade80';
+      ctx.fillRect(o.x+o.w/3,o.y,o.w/3,o.h);
+      ctx.fillRect(o.x,o.y+o.h*0.4,o.w,o.h*0.15);
+      ctx.beginPath();ctx.roundRect(o.x+o.w/3-2,o.y,o.w/3+4,o.h,4);ctx.fill();
+    } else {
+      ctx.fillStyle='#fb923c';
+      ctx.beginPath();ctx.ellipse(o.x+o.w/2,o.y+o.h/2,o.w/2,o.h/2,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#ffd93d';ctx.font='16px sans-serif';ctx.textAlign='center';
+      ctx.fillText('🦅',o.x+o.w/2,o.y+o.h/2+5);
+    }
+  });
+  // Dino
+  ctx.save();ctx.translate(dino.x,dino.y);
+  // Body
+  ctx.fillStyle='#6c63ff';ctx.beginPath();ctx.roundRect(2,4,dino.w-4,dino.h-12,6);ctx.fill();
+  // Head
+  ctx.beginPath();ctx.roundRect(dino.w-14,0,18,16,6);ctx.fill();
+  // Eye
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(dino.w+2,5,3,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#1a1a2e';ctx.beginPath();ctx.arc(dino.w+3,5,1.5,0,Math.PI*2);ctx.fill();
+  // Tail
+  ctx.fillStyle='#5a53ef';ctx.beginPath();ctx.moveTo(2,8);ctx.lineTo(-10,16);ctx.lineTo(2,20);ctx.fill();
+  // Legs
+  ctx.fillStyle='#6c63ff';
+  if(dino.onGround){
+    ctx.fillRect(8,dino.h-10,6,10);
+    ctx.fillRect(18,dino.h-10+(dino.legFrame?-4:0),6,10-(dino.legFrame?-4:0));
+  } else {
+    ctx.fillRect(8,dino.h-10,6,8);ctx.fillRect(18,dino.h-10,6,8);
+  }
+  ctx.restore();
+  // Score
+  ctx.fillStyle='white';ctx.font='bold 16px Segoe UI';ctx.textAlign='right';
+  ctx.fillText('Score: '+score,W-10,25);
+  ctx.font='12px Segoe UI';ctx.fillStyle='#9898b8';
+  ctx.fillText('Best: '+best,W-10,44);
+  // Overlays
+  if(!running&&!gameOver){
+    ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='white';ctx.font='bold 20px Segoe UI';ctx.textAlign='center';
+    ctx.fillText('🦕 Dino Runner',W/2,H/2-20);
+    ctx.font='14px Segoe UI';ctx.fillStyle='rgba(255,255,255,0.7)';
+    ctx.fillText('Press Space / Click to start',W/2,H/2+10);
+  }
+  if(gameOver){
+    ctx.fillStyle='rgba(0,0,0,0.65)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='white';ctx.font='bold 24px Segoe UI';ctx.textAlign='center';
+    ctx.fillText('Game Over! 💥',W/2,H/2-20);
+    ctx.fillStyle='#ffd93d';ctx.font='16px Segoe UI';
+    ctx.fillText('Score: '+score+' · Best: '+best,W/2,H/2+10);
+    ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font='13px Segoe UI';
+    ctx.fillText('Tap to restart',W/2,H/2+40);
+  }
+}
+function loop(){step();draw();requestAnimationFrame(loop);}
+c.addEventListener('click',jump);
+document.addEventListener('keydown',e=>{if(e.code==='Space'||e.key==='ArrowUp'){e.preventDefault();jump();}});
+c.addEventListener('touchstart',e=>{e.preventDefault();jump();},{passive:false});
+init();best=parseInt((function(){try{return localStorage.getItem('dinoBest')}catch(e){return null}})()||0);
+document.getElementById('best').textContent=best;loop();
+</script>
+</body>
+</html>

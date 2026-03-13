@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Tetris – DuckMath</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center}
+.topbar{width:100%;background:#13131f;border-bottom:1px solid #2a2a45;padding:10px 20px;display:flex;align-items:center;gap:12px}
+.back{color:#9898b8;text-decoration:none;font-size:0.85rem}.back:hover{color:#e8e8f0}
+.game-title{font-weight:800;font-size:1rem}.spacer{flex:1}
+.badge{background:#1e1e30;border:1px solid #2a2a45;border-radius:20px;padding:4px 14px;font-size:0.85rem;font-weight:700}
+.layout{display:flex;gap:20px;padding:20px;align-items:flex-start;flex-wrap:wrap;justify-content:center}
+canvas{border:2px solid #6c63ff;border-radius:4px;background:#0a0a14}
+.panel{width:140px;display:flex;flex-direction:column;gap:12px}
+.panel-box{background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;padding:12px}
+.panel-box h3{font-size:0.75rem;color:#9898b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px}
+.panel-box .val{font-size:1.3rem;font-weight:800;color:#ffd93d}
+.next-canvas{border:1px solid #2a2a45;border-radius:4px;background:#13131f}
+.btn{background:#1e1e30;border:1px solid #2a2a45;color:#e8e8f0;border-radius:8px;padding:8px;font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.2s;width:100%}
+.btn:hover,.btn-primary{background:#6c63ff;border-color:#6c63ff}
+.controls-info{font-size:0.72rem;color:#9898b8;line-height:1.8}
+.mobile-btns{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(2,52px);gap:4px;margin-top:8px}
+.mb{background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.mb:active{background:#6c63ff}
+</style>
+</head>
+<body>
+<script>
+// Polyfill: ctx.roundRect (Chrome 99+, Firefox 112+, Safari 15.4+ only)
+(function(){
+  var p = CanvasRenderingContext2D.prototype;
+  if (!p.roundRect) {
+    p.roundRect = function(x, y, w, h, r) {
+      if (typeof r === 'object') r = r[0];
+      r = Math.min(r || 0, Math.abs(w)/2, Math.abs(h)/2);
+      this.moveTo(x + r, y);
+      this.arcTo(x + w, y,     x + w, y + h, r);
+      this.arcTo(x + w, y + h, x,     y + h, r);
+      this.arcTo(x,     y + h, x,     y,     r);
+      this.arcTo(x,     y,     x + w, y,     r);
+      this.closePath();
+    };
+  }
+})();
+// Safe localStorage (fails silently in restricted file:// contexts)
+var safeStorage = {
+  getItem:  function(k)  { try { return (function(){try{return localStorage.getItem(k)}catch(e){return null}})();  } catch(e) { return null; } },
+  setItem:  function(k,v){ try { (function(){try{localStorage.setItem(k,v)}catch(e){}})();        } catch(e) {} }
+};
+</script>
+
+<div class="topbar">
+  <a class="back" href="../index.html">← Back</a>
+  <span class="game-title">🟦 Tetris</span>
+  <div class="spacer"></div>
+  <div class="badge" style="color:#ffd93d">Score: <span id="score">0</span></div>
+  <div class="badge" style="color:#60a5fa">Lines: <span id="lines">0</span></div>
+</div>
+
+<div class="layout">
+  <canvas id="c" width="200" height="400"></canvas>
+  <div class="panel">
+    <div class="panel-box">
+      <h3>Next</h3>
+      <canvas id="next" class="next-canvas" width="80" height="80"></canvas>
+    </div>
+    <div class="panel-box"><h3>Score</h3><div class="val" id="score2">0</div></div>
+    <div class="panel-box"><h3>Level</h3><div class="val" id="level">1</div></div>
+    <div class="panel-box"><h3>Lines</h3><div class="val" id="lines2">0</div></div>
+    <button class="btn btn-primary" id="startBtn" onclick="startGame()">▶ Start</button>
+    <div class="controls-info">
+      ← → Move<br/>
+      ↑ Rotate<br/>
+      ↓ Soft drop<br/>
+      Space Hard drop<br/>
+      P Pause
+    </div>
+    <div class="mobile-btns">
+      <div></div><div class="mb" onpointerdown="rotate()">↺</div><div></div>
+      <div class="mb" onpointerdown="moveX(-1)">◄</div>
+      <div class="mb" onpointerdown="hardDrop()">⬇</div>
+      <div class="mb" onpointerdown="moveX(1)">►</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLS=10, ROWS=20, CELL=20;
+const c = document.getElementById('c');
+const ctx = c.getContext('2d');
+const nc = document.getElementById('next');
+const nctx = nc.getContext('2d');
+
+const PIECES = [
+  {shape:[[1,1,1,1]],color:'#00f5ff'},           // I
+  {shape:[[1,1],[1,1]],color:'#ffd93d'},          // O
+  {shape:[[0,1,0],[1,1,1]],color:'#a855f7'},      // T
+  {shape:[[1,0,0],[1,1,1]],color:'#3b82f6'},      // J
+  {shape:[[0,0,1],[1,1,1]],color:'#fb923c'},      // L
+  {shape:[[0,1,1],[1,1,0]],color:'#4ade80'},      // S
+  {shape:[[1,1,0],[0,1,1]],color:'#ef4444'},      // Z
+];
+
+let board, piece, next, score, lines, level, gameLoop, paused, running;
+
+function initBoard(){board=Array.from({length:ROWS},()=>Array(COLS).fill(0));}
+function newPiece(){piece={...next||randPiece(), x:3, y:0};next=randPiece();}
+function randPiece(){const p=PIECES[Math.floor(Math.random()*PIECES.length)];return{shape:p.shape.map(r=>[...r]),color:p.color};}
+
+function valid(s,ox,oy){
+  return s.every((row,r)=>row.every((v,c)=>!v||((piece.y+oy+r>=0)&&(piece.y+oy+r<ROWS)&&(piece.x+ox+c>=0)&&(piece.x+ox+c<COLS)&&!board[piece.y+oy+r][piece.x+ox+c])));
+}
+
+function place(){
+  piece.shape.forEach((row,r)=>row.forEach((v,c)=>{if(v)board[piece.y+r][piece.x+c]=piece.color;}));
+  clearLines(); newPiece();
+  if(!valid(piece.shape,0,0)){gameOver();}
+}
+
+function clearLines(){
+  let cleared=0;
+  for(let r=ROWS-1;r>=0;r--){
+    if(board[r].every(v=>v)){board.splice(r,1);board.unshift(Array(COLS).fill(0));cleared++;r++;}
+  }
+  if(cleared){
+    const pts=[0,100,300,500,800];
+    score+=pts[cleared]*level;lines+=cleared;
+    level=Math.floor(lines/10)+1;
+    updateUI();
+  }
+}
+
+function moveX(d){if(valid(piece.shape,d,0))piece.x+=d;draw();}
+
+function rotate(){
+  const rot=piece.shape[0].map((_,i)=>piece.shape.map(r=>r[i]).reverse());
+  if(valid(rot,0,0)){piece.shape=rot;}
+  else if(valid(rot,1,0)){piece.shape=rot;piece.x++;}
+  else if(valid(rot,-1,0)){piece.shape=rot;piece.x--;}
+  draw();
+}
+
+function hardDrop(){while(valid(piece.shape,0,1)){piece.y++;}place();draw();}
+
+function step(){
+  if(!valid(piece.shape,0,1)){place();}else{piece.y++;}
+  draw();
+}
+
+function draw(){
+  ctx.fillStyle='#0a0a14';ctx.fillRect(0,0,c.width,c.height);
+  // Grid
+  ctx.strokeStyle='#1a1a2e';ctx.lineWidth=0.5;
+  for(let x=0;x<COLS;x++){ctx.beginPath();ctx.moveTo(x*CELL,0);ctx.lineTo(x*CELL,c.height);ctx.stroke();}
+  for(let y=0;y<ROWS;y++){ctx.beginPath();ctx.moveTo(0,y*CELL);ctx.lineTo(c.width,y*CELL);ctx.stroke();}
+  // Board
+  board.forEach((row,r)=>row.forEach((v,c2)=>{if(v){drawCell(ctx,c2,r,v);}}));
+  // Ghost
+  let gy=piece.y;
+  while(valid(piece.shape,0,gy-piece.y+1))gy++;
+  piece.shape.forEach((row,r)=>row.forEach((v,c2)=>{
+    if(v){ctx.globalAlpha=0.25;drawCell(ctx,piece.x+c2,gy+r,piece.color);ctx.globalAlpha=1;}
+  }));
+  // Current
+  piece.shape.forEach((row,r)=>row.forEach((v,c2)=>{if(v)drawCell(ctx,piece.x+c2,piece.y+r,piece.color);}));
+  // Next preview
+  nctx.fillStyle='#13131f';nctx.fillRect(0,0,80,80);
+  const os=(4-next.shape[0].length)*10, or=(4-next.shape.length)*10;
+  next.shape.forEach((row,r)=>row.forEach((v,c2)=>{if(v){nctx.fillStyle=next.color;nctx.fillRect(os+c2*16+1,or+r*16+1,14,14);}}));
+}
+
+function drawCell(c2,x,y,color){
+  c2.fillStyle=color;
+  c2.fillRect(x*CELL+1,y*CELL+1,CELL-2,CELL-2);
+  c2.fillStyle='rgba(255,255,255,0.2)';
+  c2.fillRect(x*CELL+1,y*CELL+1,CELL-2,3);
+  c2.fillStyle='rgba(0,0,0,0.3)';
+  c2.fillRect(x*CELL+1,y*CELL+CELL-4,CELL-2,3);
+}
+
+function updateUI(){
+  ['score','score2'].forEach(id=>document.getElementById(id).textContent=score);
+  ['lines','lines2'].forEach(id=>document.getElementById(id).textContent=lines);
+  document.getElementById('level').textContent=level;
+}
+
+function gameOver(){
+  clearInterval(gameLoop);running=false;
+  ctx.fillStyle='rgba(13,13,20,0.8)';ctx.fillRect(0,0,c.width,c.height);
+  ctx.fillStyle='#e8e8f0';ctx.font='bold 22px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Game Over!',c.width/2,c.height/2-20);
+  ctx.fillStyle='#ffd93d';ctx.font='16px Segoe UI';
+  ctx.fillText('Score: '+score,c.width/2,c.height/2+10);
+  document.getElementById('startBtn').textContent='🔄 Retry';
+}
+
+function startGame(){
+  clearInterval(gameLoop);
+  initBoard();score=0;lines=0;level=1;paused=false;running=true;
+  next=randPiece();newPiece();updateUI();
+  gameLoop=setInterval(step,Math.max(100,500-level*40));
+  draw();
+  document.getElementById('startBtn').textContent='🔄 Restart';
+}
+
+document.addEventListener('keydown',e=>{
+  if(!running)return;
+  if(e.key==='ArrowLeft'){e.preventDefault();moveX(-1);}
+  if(e.key==='ArrowRight'){e.preventDefault();moveX(1);}
+  if(e.key==='ArrowDown'){e.preventDefault();if(valid(piece.shape,0,1))piece.y++;draw();}
+  if(e.key==='ArrowUp'){e.preventDefault();rotate();}
+  if(e.key===' '){e.preventDefault();hardDrop();}
+  if(e.key==='p'||e.key==='P'){paused=!paused;paused?clearInterval(gameLoop):gameLoop=setInterval(step,Math.max(100,500-level*40));}
+});
+
+// Init
+initBoard();next=randPiece();newPiece();draw();
+</script>
+</body>
+</html>

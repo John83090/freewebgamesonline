@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Connect 4 – DuckMath</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.topbar{width:100%;background:#13131f;border-bottom:1px solid #2a2a45;padding:10px 20px;display:flex;align-items:center;gap:12px}
+.back{color:#9898b8;text-decoration:none;font-size:0.85rem}.back:hover{color:#e8e8f0}
+.game-title{font-weight:800;font-size:1rem}.spacer{flex:1}
+.area{display:flex;flex-direction:column;align-items:center;padding:20px;gap:14px;max-width:500px;margin:0 auto;width:100%}
+.score-row{display:flex;gap:12px;width:100%}
+.score-box{flex:1;background:#1e1e30;border:1px solid #2a2a45;border-radius:10px;padding:10px;text-align:center}
+.score-box label{font-size:0.7rem;color:#9898b8;display:block;margin-bottom:2px;text-transform:uppercase}
+.score-box span{font-size:1.3rem;font-weight:900}
+.status{background:#1e1e30;border:1px solid #6c63ff;border-radius:10px;padding:10px 20px;font-size:1rem;font-weight:700;text-align:center;width:100%}
+.board-wrap{position:relative;background:#1a1a6a;border-radius:12px;padding:10px;border:3px solid #2a2a9a;width:100%}
+.col-btns{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
+.col-btn{background:transparent;border:none;font-size:1.5rem;cursor:pointer;padding:4px;border-radius:6px;transition:background 0.15s;display:flex;align-items:center;justify-content:center}
+.col-btn:hover{background:rgba(255,255,255,0.1)}
+.board-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.slot{aspect-ratio:1;background:#0d0d14;border-radius:50%;transition:background 0.2s;position:relative;overflow:hidden}
+.slot.p1{background:radial-gradient(circle at 35% 35%,#ff6b6b,#ef4444)}
+.slot.p2{background:radial-gradient(circle at 35% 35%,#fde68a,#fbbf24)}
+.slot.win{animation:winpulse 0.4s infinite alternate}
+@keyframes winpulse{to{transform:scale(1.1);box-shadow:0 0 12px currentColor}}
+.btn{background:#6c63ff;border:none;color:#fff;border-radius:8px;padding:10px 24px;font-size:0.9rem;font-weight:700;cursor:pointer}
+.mode-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.mode-btn{background:#1e1e30;border:1px solid #2a2a45;color:#9898b8;border-radius:8px;padding:6px 14px;font-size:0.8rem;font-weight:600;cursor:pointer}
+.mode-btn.active{background:#6c63ff;border-color:#6c63ff;color:#fff}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back" href="../index.html">← Back</a>
+  <span class="game-title">🔴 Connect 4</span>
+  <div class="spacer"></div>
+</div>
+<div class="area">
+  <div class="mode-row">
+    <button class="mode-btn active" onclick="setMode('pvp',this)">👥 2 Players</button>
+    <button class="mode-btn" onclick="setMode('ai',this)">🤖 vs AI</button>
+  </div>
+  <div class="score-row">
+    <div class="score-box" style="border-color:#ef4444"><label>🔴 Red</label><span id="sr" style="color:#ef4444">0</span></div>
+    <div class="score-box"><label>🤝 Draws</label><span id="sd">0</span></div>
+    <div class="score-box" style="border-color:#fbbf24"><label>🟡 Yellow</label><span id="sy" style="color:#fbbf24">0</span></div>
+  </div>
+  <div class="status" id="status">🔴 Red's turn</div>
+  <div class="board-wrap">
+    <div class="col-btns" id="col-btns"></div>
+    <div class="board-grid" id="board-grid"></div>
+  </div>
+  <button class="btn" onclick="newGame()">🔄 New Game</button>
+</div>
+<script>
+const ROWS=6,COLS=7;
+let grid,turn,gameOver,mode,scores={r:0,y:0,d:0};
+function setMode(m,btn){mode=m;document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');newGame();}
+function newGame(){grid=Array.from({length:ROWS},()=>Array(COLS).fill(0));turn=1;gameOver=false;render();setStatus('🔴 Red\'s turn');}
+function setStatus(s){document.getElementById('status').textContent=s;}
+function dropInCol(col){
+  if(gameOver||grid[0][col])return;
+  for(let r=ROWS-1;r>=0;r--){if(!grid[r][col]){grid[r][col]=turn;break;}}
+  const wins=checkWins();
+  if(wins.length){gameOver=true;scores[turn===1?'r':'y']++;updateScores();render(wins);setStatus((turn===1?'🔴 Red':'🟡 Yellow')+' wins! 🎉');return;}
+  if(grid[0].every(v=>v)){gameOver=true;scores.d++;updateScores();render();setStatus('🤝 Draw!');return;}
+  turn=turn===1?2:1;
+  render();setStatus((turn===1?'🔴 Red':'🟡 Yellow')+"'s turn");
+  if(mode==='ai'&&turn===2&&!gameOver)setTimeout(aiDrop,400);
+}
+function checkWins(){
+  const wins=[];
+  const check=(r,c,dr,dc)=>{
+    const cells=[];let nr=r,nc=c;
+    for(let i=0;i<4;i++){if(nr<0||nr>=ROWS||nc<0||nc>=COLS)return;cells.push([nr,nc]);nr+=dr;nc+=dc;}
+    const p=grid[cells[0][0]][cells[0][1]];
+    if(p&&cells.every(([r2,c2])=>grid[r2][c2]===p))wins.push(...cells);
+  };
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){check(r,c,0,1);check(r,c,1,0);check(r,c,1,1);check(r,c,1,-1);}
+  return wins;
+}
+function aiDrop(){
+  // Check win, then block, then center, then random
+  for(const p of[2,1]){for(let c=0;c<COLS;c++){if(!grid[0][c]){const g=grid.map(r=>[...r]);for(let r=ROWS-1;r>=0;r--){if(!g[r][c]){g[r][c]=p;break;}}const tr=turn;grid.forEach((row,ri)=>row.forEach((v,ci)=>{grid[ri][ci]=g[ri][ci];}));if(checkWins().length){newGame();return;};grid=grid.map(r=>[...r]);}}}
+  // Simple: prefer center
+  const order=[3,2,4,1,5,0,6];
+  for(const c of order){if(!grid[0][c]){dropInCol(c);return;}}
+}
+function updateScores(){document.getElementById('sr').textContent=scores.r;document.getElementById('sy').textContent=scores.y;document.getElementById('sd').textContent=scores.d;}
+function render(wins){
+  // Col buttons
+  const cb=document.getElementById('col-btns');cb.innerHTML='';
+  for(let c=0;c<COLS;c++){const b=document.createElement('button');b.className='col-btn';b.textContent=turn===1?'🔴':'🟡';b.onclick=()=>dropInCol(c);cb.appendChild(b);}
+  // Grid
+  const el=document.getElementById('board-grid');el.innerHTML='';
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    const d=document.createElement('div');d.className='slot'+(grid[r][c]===1?' p1':grid[r][c]===2?' p2':'');
+    if(wins&&wins.some(([wr,wc])=>wr===r&&wc===c))d.classList.add('win');
+    el.appendChild(d);
+  }
+}
+mode='pvp';newGame();
+</script>
+</body>
+</html>

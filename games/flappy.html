@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Flappy Duck – DuckMath</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.topbar{width:100%;background:#13131f;border-bottom:1px solid #2a2a45;padding:10px 20px;display:flex;align-items:center;gap:12px}
+.back{color:#9898b8;text-decoration:none;font-size:0.85rem}.back:hover{color:#e8e8f0}
+.game-title{font-weight:800;font-size:1rem}.spacer{flex:1}
+.badge{background:#1e1e30;border:1px solid #2a2a45;border-radius:20px;padding:4px 14px;font-size:0.85rem;font-weight:700;color:#ffd93d}
+.area{display:flex;flex-direction:column;align-items:center;padding:20px;gap:12px}
+canvas{border:2px solid #6c63ff;border-radius:8px;cursor:pointer;max-width:100%}
+.info{font-size:0.8rem;color:#9898b8}
+</style>
+</head>
+<body>
+<script>
+// Polyfill: ctx.roundRect (Chrome 99+, Firefox 112+, Safari 15.4+ only)
+(function(){
+  var p = CanvasRenderingContext2D.prototype;
+  if (!p.roundRect) {
+    p.roundRect = function(x, y, w, h, r) {
+      if (typeof r === 'object') r = r[0];
+      r = Math.min(r || 0, Math.abs(w)/2, Math.abs(h)/2);
+      this.moveTo(x + r, y);
+      this.arcTo(x + w, y,     x + w, y + h, r);
+      this.arcTo(x + w, y + h, x,     y + h, r);
+      this.arcTo(x,     y + h, x,     y,     r);
+      this.arcTo(x,     y,     x + w, y,     r);
+      this.closePath();
+    };
+  }
+})();
+// Safe localStorage (fails silently in restricted file:// contexts)
+var safeStorage = {
+  getItem:  function(k)  { try { return (function(){try{return localStorage.getItem(k)}catch(e){return null}})();  } catch(e) { return null; } },
+  setItem:  function(k,v){ try { (function(){try{localStorage.setItem(k,v)}catch(e){}})();        } catch(e) {} }
+};
+</script>
+
+<div class="topbar">
+  <a class="back" href="../index.html">← Back</a>
+  <span class="game-title">🦆 Flappy Duck</span>
+  <div class="spacer"></div>
+  <div class="badge">Score: <span id="score">0</span></div>
+  <div class="badge" style="color:#60a5fa">Best: <span id="best">0</span></div>
+</div>
+<div class="area">
+  <canvas id="c" width="340" height="500"></canvas>
+  <div class="info">Click / Tap / Space to flap!</div>
+</div>
+<script>
+const c=document.getElementById('c'),ctx=c.getContext('2d');
+const W=340,H=500;
+let duck,pipes,score,best,running,gameOver,bgX=0;
+const GRAVITY=0.5,FLAP=-9,GAP=130,PIPE_W=52,PIPE_SPEED=2.8;
+let bgOffset=0,groundOffset=0,duckAngle=0;
+function init(){
+  duck={x:80,y:H/2,vy:0,w:36,h:28,flap:0};
+  pipes=[{x:W+100,top:randomTop(),scored:false}];
+  score=0;running=false;gameOver=false;
+}
+function randomTop(){return 60+Math.random()*(H-GAP-120);}
+function flap(){
+  if(gameOver){init();running=true;return;}
+  if(!running){running=true;}
+  duck.vy=FLAP;duck.flap=8;
+}
+function step(){
+  bgOffset-=0.5;groundOffset-=PIPE_SPEED;
+  if(!running)return;
+  duck.vy+=GRAVITY;duck.y+=duck.vy;
+  if(duck.flap>0)duck.flap--;
+  duckAngle=Math.min(Math.PI/4,Math.max(-Math.PI/4,duck.vy*0.04));
+  // Pipes
+  pipes.forEach(p=>{
+    p.x-=PIPE_SPEED;
+    if(!p.scored&&p.x+PIPE_W<duck.x){p.scored=true;score++;document.getElementById('score').textContent=score;
+      best=Math.max(score,parseInt((function(){try{return localStorage.getItem('flappyBest')}catch(e){return null}})()||0));
+      (function(){try{localStorage.setItem('flappyBest',best)}catch(e){}})();
+      document.getElementById('best').textContent=best;
+    }
+  });
+  if(pipes[pipes.length-1].x<W-200)pipes.push({x:W+50,top:randomTop(),scored:false});
+  pipes=pipes.filter(p=>p.x>-PIPE_W-10);
+  // Collision
+  if(duck.y+duck.h/2>H-40||duck.y-duck.h/2<0){die();return;}
+  for(let p of pipes){
+    if(duck.x+duck.w/2>p.x&&duck.x-duck.w/2<p.x+PIPE_W){
+      if(duck.y-duck.h/2<p.top||duck.y+duck.h/2>p.top+GAP){die();return;}
+    }
+  }
+}
+function die(){gameOver=true;running=false;}
+function draw(){
+  // Sky gradient
+  const sky=ctx.createLinearGradient(0,0,0,H-40);
+  sky.addColorStop(0,'#1a2a6a');sky.addColorStop(1,'#2a5a8a');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,W,H-40);
+  // Clouds
+  ctx.fillStyle='rgba(255,255,255,0.15)';
+  [[50+(bgOffset%W+W)%W,80,60,20],[180+(bgOffset*0.7%W+W)%W,130,80,25],[300+(bgOffset*0.5%W+W)%W,60,70,22]].forEach(([x,y,w,h])=>{
+    ctx.beginPath();ctx.ellipse(x,y,w,h,0,0,Math.PI*2);ctx.fill();
+  });
+  // Pipes
+  const ptop=ctx.createLinearGradient(0,0,PIPE_W,0);
+  ptop.addColorStop(0,'#166534');ptop.addColorStop(0.5,'#4ade80');ptop.addColorStop(1,'#166534');
+  pipes.forEach(p=>{
+    ctx.fillStyle=ptop;
+    // Top pipe
+    ctx.fillRect(p.x,0,PIPE_W,p.top);
+    ctx.beginPath();ctx.roundRect(p.x-4,p.top-16,PIPE_W+8,16,4);ctx.fill();
+    // Bottom pipe
+    ctx.fillRect(p.x,p.top+GAP,PIPE_W,H-40-(p.top+GAP));
+    ctx.beginPath();ctx.roundRect(p.x-4,p.top+GAP,PIPE_W+8,16,4);ctx.fill();
+  });
+  // Ground
+  ctx.fillStyle='#4a7c59';ctx.fillRect(0,H-40,W,40);
+  ctx.fillStyle='#5a9c69';ctx.fillRect(0,H-40,W,8);
+  // Ground stripes
+  ctx.fillStyle='#3a6a49';
+  for(let i=0;i<8;i++){ctx.fillRect(((i*50)+(groundOffset%50+50))%W,H-38,30,6);}
+  // Duck
+  ctx.save();ctx.translate(duck.x,duck.y);ctx.rotate(duckAngle);
+  // Body
+  ctx.fillStyle='#ffd93d';ctx.beginPath();ctx.ellipse(0,0,duck.w/2,duck.h/2,0,0,Math.PI*2);ctx.fill();
+  // Head
+  ctx.beginPath();ctx.arc(duck.w/3,-(duck.h/2),duck.h/2,0,Math.PI*2);ctx.fill();
+  // Beak
+  ctx.fillStyle='#fb923c';ctx.beginPath();ctx.moveTo(duck.w/3+duck.h/2,-duck.h/2);ctx.lineTo(duck.w/3+duck.h/2+12,-duck.h/2+3);ctx.lineTo(duck.w/3+duck.h/2,-(duck.h/2)+7);ctx.fill();
+  // Eye
+  ctx.fillStyle='#1a1a2e';ctx.beginPath();ctx.arc(duck.w/3+duck.h/4,-(duck.h/2)-2,3,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='white';ctx.beginPath();ctx.arc(duck.w/3+duck.h/4+1,-(duck.h/2)-3,1,0,Math.PI*2);ctx.fill();
+  // Wing flap
+  const wingY=duck.flap>0?-8:2;
+  ctx.fillStyle='#f59e0b';ctx.beginPath();ctx.ellipse(-2,wingY,10,6,0.3,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+  // Score
+  ctx.fillStyle='white';ctx.font='bold 32px Segoe UI';ctx.textAlign='center';
+  ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=4;
+  ctx.fillText(score,W/2,50);ctx.shadowBlur=0;
+  // Overlays
+  if(!running&&!gameOver){
+    ctx.fillStyle='rgba(13,13,20,0.7)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='white';ctx.font='bold 28px Segoe UI';ctx.textAlign='center';
+    ctx.fillText('🦆 Flappy Duck',W/2,H/2-50);
+    ctx.font='16px Segoe UI';ctx.fillStyle='rgba(255,255,255,0.7)';
+    ctx.fillText('Tap / Click / Space to start',W/2,H/2);
+  }
+  if(gameOver){
+    ctx.fillStyle='rgba(13,13,20,0.75)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='white';ctx.font='bold 28px Segoe UI';ctx.textAlign='center';
+    ctx.fillText('Game Over!',W/2,H/2-40);
+    ctx.fillStyle='#ffd93d';ctx.font='20px Segoe UI';ctx.fillText('Score: '+score,W/2,H/2);
+    ctx.fillStyle='#60a5fa';ctx.font='16px Segoe UI';ctx.fillText('Best: '+best,W/2,H/2+30);
+    ctx.fillStyle='rgba(255,255,255,0.6)';ctx.font='14px Segoe UI';ctx.fillText('Tap to retry',W/2,H/2+70);
+  }
+}
+function loop(){step();draw();requestAnimationFrame(loop);}
+c.addEventListener('click',flap);
+document.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();flap();}});
+c.addEventListener('touchstart',e=>{e.preventDefault();flap();},{passive:false});
+init();best=parseInt((function(){try{return localStorage.getItem('flappyBest')}catch(e){return null}})()||0);document.getElementById('best').textContent=best;
+loop();
+</script>
+</body>
+</html>

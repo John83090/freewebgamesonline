@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Math Duck – DuckMath</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.topbar{width:100%;background:#13131f;border-bottom:1px solid #2a2a45;padding:10px 20px;display:flex;align-items:center;gap:12px}
+.back{color:#9898b8;text-decoration:none;font-size:0.85rem}.back:hover{color:#e8e8f0}
+.game-title{font-weight:800;font-size:1rem}.spacer{flex:1}
+.badge{background:#1e1e30;border:1px solid #2a2a45;border-radius:20px;padding:4px 14px;font-size:0.85rem;font-weight:700}
+.game-area{width:100%;max-width:680px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.hud{display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:center}
+.hud-item{background:#1e1e30;border:1px solid #2a2a45;border-radius:10px;padding:8px 16px;text-align:center}
+.hud-item label{font-size:0.7rem;color:#9898b8;display:block;text-transform:uppercase}
+.hud-item span{font-size:1.1rem;font-weight:800;color:#ffd93d}
+.timer-bar{width:100%;height:8px;background:#1e1e30;border-radius:4px;overflow:hidden}
+.timer-fill{height:100%;background:linear-gradient(90deg,#6c63ff,#ef4444);border-radius:4px;transition:width 0.1s linear}
+canvas{border:2px solid #6c63ff;border-radius:8px;background:#1a3a2a;cursor:pointer;max-width:100%}
+.question-box{background:#1e1e30;border:2px solid #6c63ff;border-radius:12px;padding:16px 24px;text-align:center;width:100%}
+.question-box .eq{font-size:1.8rem;font-weight:900;margin-bottom:12px;color:#e8e8f0}
+.answer-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ans-btn{background:#13131f;border:2px solid #2a2a45;border-radius:8px;padding:12px 8px;font-size:1.1rem;font-weight:700;cursor:pointer;transition:all 0.2s;color:#e8e8f0}
+.ans-btn:hover{border-color:#6c63ff;background:#1e1e30}
+.ans-btn.correct{background:#10b981;border-color:#10b981;animation:bounce 0.3s}
+.ans-btn.wrong{background:#ef4444;border-color:#ef4444;animation:shake 0.3s}
+@keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.level-badge{background:linear-gradient(135deg,#6c63ff,#a855f7);border-radius:20px;padding:4px 16px;font-size:0.85rem;font-weight:700}
+.start-overlay{text-align:center;padding:24px;background:#1e1e30;border:1px solid #6c63ff;border-radius:16px;max-width:400px;width:100%}
+.start-overlay h2{font-size:1.5rem;margin-bottom:8px}
+.start-overlay p{color:#9898b8;margin-bottom:20px;font-size:0.9rem;line-height:1.6}
+.btn{background:#6c63ff;border:none;color:#fff;border-radius:10px;padding:12px 28px;font-size:1rem;font-weight:700;cursor:pointer;transition:opacity 0.2s}
+.btn:hover{opacity:0.85}
+.btn-outline{background:transparent;border:1px solid #6c63ff;color:#6c63ff}
+.result-overlay{display:none;text-align:center;padding:24px;background:#1e1e30;border:1px solid #6c63ff;border-radius:16px;max-width:400px;width:100%}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back" href="../index.html">← Back</a>
+  <span class="game-title">🦆 Math Duck</span>
+  <div class="spacer"></div>
+  <div class="badge" style="color:#ffd93d">Score: <span id="score-top">0</span></div>
+  <div class="badge" style="color:#4ade80">Level: <span id="lvl-top">1</span></div>
+</div>
+
+<div class="game-area">
+
+  <!-- START SCREEN -->
+  <div class="start-overlay" id="start-screen">
+    <h2>🦆 Math Duck</h2>
+    <p>Solve math problems to help the duck collect keys and escape! Answer within the time limit to keep your streak and earn bonus points.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:16px">
+      <button class="btn btn-outline" onclick="startGame('+')">➕ Addition</button>
+      <button class="btn btn-outline" onclick="startGame('-')">➖ Subtraction</button>
+      <button class="btn btn-outline" onclick="startGame('×')">✖️ Multiply</button>
+      <button class="btn btn-outline" onclick="startGame('÷')">➗ Division</button>
+    </div>
+    <button class="btn" onclick="startGame('mixed')" style="width:100%">🎲 Mixed Mode</button>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="game-screen" style="display:none;width:100%;display:none;flex-direction:column;align-items:center;gap:14px">
+    <div class="hud">
+      <div class="hud-item"><label>Score</label><span id="score">0</span></div>
+      <div class="hud-item"><label>Streak</label><span id="streak">0</span>🔥</div>
+      <div class="hud-item"><label>Lives</label><span id="lives">❤️❤️❤️</span></div>
+      <div class="hud-item"><label>Level</label><span id="level">1</span></div>
+    </div>
+    <div class="timer-bar"><div class="timer-fill" id="timer-fill" style="width:100%"></div></div>
+
+    <!-- Duck Canvas -->
+    <canvas id="duck-canvas" width="320" height="200"></canvas>
+
+    <!-- Question -->
+    <div class="question-box">
+      <div class="eq" id="equation">? + ? = ?</div>
+      <div class="answer-grid" id="answer-grid"></div>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div class="result-overlay" id="result-screen">
+    <div style="font-size:3rem;margin-bottom:8px" id="result-emoji">🏆</div>
+    <h2 id="result-title">Great Job!</h2>
+    <p id="result-msg" style="color:#9898b8;margin:8px 0 20px"></p>
+    <button class="btn" onclick="showStart()" style="width:100%;margin-bottom:8px">🔄 Play Again</button>
+    <a href="../index.html" style="color:#6c63ff;font-size:0.85rem;text-decoration:none">← Back to Games</a>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('duck-canvas');
+const ctx = canvas.getContext('2d');
+
+let score, streak, lives, level, mode, timer, timerInterval, questionTimer;
+let duckX = 60, duckY = 120, hasKey = false, correct = 0;
+let duckAnim = 0;
+
+function drawScene() {
+  // Background
+  const grad = ctx.createLinearGradient(0,0,0,200);
+  grad.addColorStop(0,'#1a3a5a'); grad.addColorStop(1,'#1a4a2a');
+  ctx.fillStyle = grad; ctx.fillRect(0,0,320,200);
+  // Floor
+  ctx.fillStyle='#2d5a3d'; ctx.fillRect(0,160,320,40);
+  ctx.fillStyle='#3d7a4d'; ctx.fillRect(0,158,320,6);
+  // Walls
+  for(let i=0;i<4;i++){
+    ctx.fillStyle=i%2?'#2a3a5a':'#243252';
+    ctx.fillRect(i*80,0,80,160);
+  }
+  // Door
+  ctx.fillStyle='#8b6914'; ctx.fillRect(270,100,40,60);
+  ctx.fillStyle='#5a4010'; ctx.fillRect(270,100,40,4);
+  ctx.fillStyle='#ffd93d'; ctx.beginPath(); ctx.arc(275,132,4,0,Math.PI*2); ctx.fill();
+  // Key
+  if(!hasKey){
+    ctx.fillStyle='#ffd93d';
+    ctx.save(); ctx.translate(160,80);
+    ctx.beginPath(); ctx.arc(0,0,10,0,Math.PI*2); ctx.fill();
+    ctx.fillRect(8,-3,20,6); ctx.fillRect(18,-6,4,6); ctx.fillRect(24,-6,4,6);
+    ctx.restore();
+  }
+  // Duck
+  ctx.save(); ctx.translate(duckX, duckY + Math.sin(duckAnim)*3);
+  // Body
+  ctx.fillStyle='#ffd93d'; ctx.beginPath(); ctx.ellipse(0,0,22,16,0,0,Math.PI*2); ctx.fill();
+  // Head
+  ctx.beginPath(); ctx.arc(20,-10,12,0,Math.PI*2); ctx.fill();
+  // Beak
+  ctx.fillStyle='#fb923c'; ctx.beginPath(); ctx.moveTo(30,-10); ctx.lineTo(40,-7); ctx.lineTo(30,-6); ctx.fill();
+  // Eye
+  ctx.fillStyle='#1a1a2e'; ctx.beginPath(); ctx.arc(24,-13,3,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='white'; ctx.beginPath(); ctx.arc(25,-14,1,0,Math.PI*2); ctx.fill();
+  // Wing
+  ctx.fillStyle='#f59e0b'; ctx.beginPath(); ctx.ellipse(0,-5,14,8,-0.5,0,Math.PI*2); ctx.fill();
+  // Hat if has key
+  if(hasKey){ctx.fillStyle='#6c63ff'; ctx.fillRect(10,-24,20,4); ctx.fillRect(14,-36,12,14);}
+  ctx.restore();
+  duckAnim += 0.08;
+}
+
+function genQuestion() {
+  const ops = mode==='mixed' ? ['+','-','×','÷'] : [mode];
+  const op = ops[Math.floor(Math.random()*ops.length)];
+  let a,b,answer;
+  const max = 5 + level*3;
+  if(op==='+'){a=Math.floor(Math.random()*max)+1;b=Math.floor(Math.random()*max)+1;answer=a+b;}
+  else if(op==='-'){a=Math.floor(Math.random()*max)+1;b=Math.floor(Math.random()*a)+1;answer=a-b;}
+  else if(op==='×'){a=Math.floor(Math.random()*10)+1;b=Math.floor(Math.random()*10)+1;answer=a*b;}
+  else{b=Math.floor(Math.random()*9)+1;answer=Math.floor(Math.random()*10)+1;a=b*answer;}
+  return {eq:`${a} ${op} ${b} = ?`, answer};
+}
+
+let currentAnswer;
+function showQuestion() {
+  clearInterval(questionTimer);
+  const {eq, answer} = genQuestion();
+  currentAnswer = answer;
+  document.getElementById('equation').textContent = eq;
+  // Generate wrong answers
+  const wrongs = new Set();
+  while(wrongs.size < 3) {
+    let w = answer + Math.floor(Math.random()*10)-5;
+    if(w!==answer && w>=0) wrongs.add(w);
+  }
+  const opts = [...wrongs, answer].sort(()=>Math.random()-0.5);
+  const grid = document.getElementById('answer-grid');
+  grid.innerHTML = '';
+  opts.forEach(o=>{
+    const btn = document.createElement('button');
+    btn.className='ans-btn'; btn.textContent=o;
+    btn.onclick=()=>checkAnswer(o,btn);
+    grid.appendChild(btn);
+  });
+  // Timer
+  let t=10;
+  document.getElementById('timer-fill').style.width='100%';
+  questionTimer = setInterval(()=>{
+    t-=0.1;
+    document.getElementById('timer-fill').style.width=(t/10*100)+'%';
+    if(t<=3) document.getElementById('timer-fill').style.background='linear-gradient(90deg,#ef4444,#dc2626)';
+    if(t<=0){clearInterval(questionTimer);loseLife();showQuestion();}
+  },100);
+}
+
+function checkAnswer(v, btn) {
+  clearInterval(questionTimer);
+  document.querySelectorAll('.ans-btn').forEach(b=>b.disabled=true);
+  if(v===currentAnswer){
+    btn.classList.add('correct');
+    streak++; score+=10*level+(streak>2?streak*2:0);
+    if(correct%5===0 && correct>0){level++;showToastMsg('⬆️ Level Up!');}
+    correct++;
+    if(!hasKey){hasKey=true;duckX=180;}
+    else{duckX=270;}
+    setTimeout(()=>{
+      if(duckX>=260){hasKey=false;duckX=60;showToastMsg('🚪 Escaped! +50 bonus');score+=50;}
+      updateHUD();showQuestion();
+      document.querySelectorAll('.ans-btn').forEach(b=>{b.classList.remove('correct','wrong');b.disabled=false;});
+    },600);
+  } else {
+    btn.classList.add('wrong');
+    streak=0; loseLife();
+    setTimeout(()=>{
+      updateHUD();showQuestion();
+      document.querySelectorAll('.ans-btn').forEach(b=>{b.classList.remove('correct','wrong');b.disabled=false;});
+    },600);
+  }
+  updateHUD();
+}
+
+function loseLife(){
+  lives--;
+  if(lives<=0){endGame();}
+}
+
+function updateHUD(){
+  document.getElementById('score').textContent=score;
+  document.getElementById('score-top').textContent=score;
+  document.getElementById('streak').textContent=streak;
+  document.getElementById('level').textContent=level;
+  document.getElementById('lvl-top').textContent=level;
+  document.getElementById('lives').textContent='❤️'.repeat(Math.max(0,lives))+'🖤'.repeat(Math.max(0,3-lives));
+}
+
+function startGame(m){
+  mode=m; score=0; streak=0; lives=3; level=1; correct=0; hasKey=false; duckX=60;
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('result-screen').style.display='none';
+  const gs=document.getElementById('game-screen'); gs.style.display='flex';
+  updateHUD(); showQuestion();
+  const animLoop=setInterval(()=>{
+    drawScene();
+    if(document.getElementById('game-screen').style.display==='none')clearInterval(animLoop);
+  },50);
+}
+
+function endGame(){
+  clearInterval(questionTimer);
+  document.getElementById('game-screen').style.display='none';
+  const rs=document.getElementById('result-screen'); rs.style.display='block';
+  const best=Math.max(score,parseInt((function(){try{return localStorage.getItem('mathduckBest')}catch(e){return null}})()||0));
+  (function(){try{localStorage.setItem('mathduckBest',best)}catch(e){}})();
+  document.getElementById('result-emoji').textContent=score>200?'🏆':score>100?'🌟':'🦆';
+  document.getElementById('result-title').textContent=score>200?'Amazing!':score>100?'Great Job!':'Keep Practicing!';
+  document.getElementById('result-msg').textContent=`Score: ${score} · Level: ${level} · Best: ${best}`;
+}
+
+function showStart(){
+  document.getElementById('result-screen').style.display='none';
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('start-screen').style.display='block';
+}
+
+function showToastMsg(msg){
+  // Simple inline feedback
+  const eq=document.getElementById('equation');
+  const old=eq.textContent;
+  eq.textContent=msg; eq.style.color='#4ade80';
+  setTimeout(()=>{eq.style.color='';},600);
+}
+
+// Initial canvas draw
+drawScene();
+</script>
+</body>
+</html>

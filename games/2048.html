@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>2048 – DuckMath</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.topbar{width:100%;background:#13131f;border-bottom:1px solid #2a2a45;padding:10px 20px;display:flex;align-items:center;gap:12px}
+.back{color:#9898b8;text-decoration:none;font-size:0.85rem}.back:hover{color:#e8e8f0}
+.game-title{font-weight:800;font-size:1rem}.spacer{flex:1}
+.badge{background:#1e1e30;border:1px solid #2a2a45;border-radius:20px;padding:4px 14px;font-size:0.85rem;font-weight:700;color:#ffd93d}
+.game-area{padding:20px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.score-row{display:flex;gap:12px}
+.score-box{background:#1e1e30;border:1px solid #2a2a45;border-radius:10px;padding:10px 20px;text-align:center;min-width:90px}
+.score-box label{font-size:0.7rem;color:#9898b8;text-transform:uppercase;letter-spacing:0.05em;display:block}
+.score-box span{font-size:1.3rem;font-weight:800;color:#ffd93d}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:#1a1a2e;padding:10px;border-radius:10px;width:min(360px,90vw)}
+.tile{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(1rem,4vw,1.6rem);transition:all 0.12s;position:relative}
+.t0{background:#1e1e30}
+.t2{background:#3a3a6a;color:#e8e8f0}
+.t4{background:#4a4a8a;color:#e8e8f0}
+.t8{background:#6c63ff;color:#fff}
+.t16{background:#7c73ff;color:#fff}
+.t32{background:#ef4444;color:#fff}
+.t64{background:#dc2626;color:#fff}
+.t128{background:#f59e0b;color:#fff}
+.t256{background:#d97706;color:#fff}
+.t512{background:#10b981;color:#fff}
+.t1024{background:#059669;color:#fff;font-size:clamp(0.7rem,3vw,1.1rem)}
+.t2048{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-size:clamp(0.7rem,3vw,1.1rem);box-shadow:0 0 20px rgba(239,68,68,0.6);animation:glow 1s infinite alternate}
+.tbig{background:linear-gradient(135deg,#6c63ff,#a855f7);color:#fff;font-size:clamp(0.6rem,2.5vw,0.9rem)}
+@keyframes glow{to{box-shadow:0 0 30px rgba(239,68,68,0.9)}}
+.btn{background:#1e1e30;border:1px solid #2a2a45;color:#e8e8f0;border-radius:8px;padding:10px 22px;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.2s}
+.btn:hover{background:#6c63ff;border-color:#6c63ff}
+.btn-row{display:flex;gap:10px}
+.info{font-size:0.8rem;color:#9898b8;text-align:center}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:10;display:none}
+.overlay-box{background:#1e1e30;border:1px solid #6c63ff;border-radius:16px;padding:32px;text-align:center;max-width:300px}
+.overlay-box h2{font-size:1.5rem;margin-bottom:8px}
+.overlay-box p{color:#9898b8;margin-bottom:20px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back" href="../index.html">← Back</a>
+  <span class="game-title">🔢 2048</span>
+  <div class="spacer"></div>
+  <div class="badge">Score: <span id="score-top">0</span></div>
+</div>
+
+<div class="game-area">
+  <div class="score-row">
+    <div class="score-box"><label>Score</label><span id="score">0</span></div>
+    <div class="score-box"><label>Best</label><span id="best">0</span></div>
+    <div class="score-box"><label>Moves</label><span id="moves">0</span></div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="btn-row">
+    <button class="btn" onclick="newGame()">🔄 New Game</button>
+    <button class="btn" onclick="undo()">↩ Undo</button>
+  </div>
+  <div class="info">Swipe or use arrow keys to merge tiles.<br/>Reach 2048 to win!</div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-box">
+    <h2 id="overlay-title">🎉 You Won!</h2>
+    <p id="overlay-msg">You reached 2048! Keep going?</p>
+    <button class="btn" onclick="closeOverlay()" style="width:100%;background:#6c63ff;border-color:#6c63ff;margin-bottom:8px">Continue Playing</button>
+    <button class="btn" onclick="newGame();closeOverlay()" style="width:100%">New Game</button>
+  </div>
+</div>
+
+<script>
+let board, score, moves, prev, prevScore, won, over;
+
+function initBoard(){
+  board=Array.from({length:4},()=>Array(4).fill(0));
+  score=0;moves=0;won=false;over=false;
+  addTile();addTile();
+  render();
+}
+
+function addTile(){
+  const empty=[];
+  board.forEach((row,r)=>row.forEach((v,c)=>{if(!v)empty.push([r,c]);}));
+  if(!empty.length)return;
+  const[r,c]=empty[Math.floor(Math.random()*empty.length)];
+  board[r][c]=Math.random()<0.9?2:4;
+}
+
+function clone(){return board.map(r=>[...r]);}
+
+function move(dir){
+  prev=clone();prevScore=score;
+  let changed=false;
+  const rotate90=(b)=>b[0].map((_,i)=>b.map(r=>r[i]).reverse());
+  const slideLeft=(b)=>{
+    return b.map(row=>{
+      const filtered=row.filter(v=>v);
+      for(let i=0;i<filtered.length-1;i++){
+        if(filtered[i]===filtered[i+1]){filtered[i]*=2;score+=filtered[i];filtered.splice(i+1,1);}
+      }
+      while(filtered.length<4)filtered.push(0);
+      return filtered;
+    });
+  };
+  let b=clone();
+  if(dir==='right'){b=b.map(r=>[...r].reverse());b=slideLeft(b);b=b.map(r=>[...r].reverse());}
+  else if(dir==='left'){b=slideLeft(b);}
+  else if(dir==='up'){b=rotate90(rotate90(rotate90(b)));b=slideLeft(b);b=rotate90(b);}
+  else if(dir==='down'){b=rotate90(b);b=slideLeft(b);b=rotate90(rotate90(rotate90(b)));}
+  if(JSON.stringify(b)!==JSON.stringify(board)){board=b;changed=true;moves++;addTile();}
+  if(changed){
+    const max=Math.max(...board.flat());
+    const best=Math.max(score,parseInt((function(){try{return localStorage.getItem('2048best')}catch(e){return null}})()||0));
+    (function(){try{localStorage.setItem('2048best',best)}catch(e){}})();
+    if(max>=2048&&!won){won=true;showOverlay('🎉 You Win!','You reached 2048! Keep going or start fresh.');}
+    if(!canMove())showOverlay('😢 Game Over','No more moves! Final score: '+score);
+    render();
+  }
+}
+
+function canMove(){
+  for(let r=0;r<4;r++)for(let c=0;c<4;c++){
+    if(!board[r][c])return true;
+    if(c<3&&board[r][c]===board[r][c+1])return true;
+    if(r<3&&board[r][c]===board[r+1][c])return true;
+  }return false;
+}
+
+function undo(){if(prev){board=prev;score=prevScore;prev=null;render();}}
+
+function render(){
+  const g=document.getElementById('grid');
+  g.innerHTML='';
+  board.forEach(row=>row.forEach(v=>{
+    const d=document.createElement('div');
+    d.className='tile '+(v?'t'+Math.min(v,2048):'t0');
+    if(v>2048)d.className='tile tbig';
+    d.textContent=v||'';
+    g.appendChild(d);
+  }));
+  document.getElementById('score').textContent=score;
+  document.getElementById('score-top').textContent=score;
+  document.getElementById('moves').textContent=moves;
+  document.getElementById('best').textContent=Math.max(score,parseInt((function(){try{return localStorage.getItem('2048best')}catch(e){return null}})()||0));
+}
+
+function newGame(){initBoard();}
+function showOverlay(title,msg){
+  document.getElementById('overlay-title').textContent=title;
+  document.getElementById('overlay-msg').textContent=msg;
+  document.getElementById('overlay').style.display='flex';
+}
+function closeOverlay(){document.getElementById('overlay').style.display='none';}
+
+// Keyboard
+document.addEventListener('keydown',e=>{
+  const map={'ArrowLeft':'left','ArrowRight':'right','ArrowUp':'up','ArrowDown':'down','a':'left','d':'right','w':'up','s':'down'};
+  if(map[e.key]){e.preventDefault();move(map[e.key]);}
+});
+
+// Touch swipe
+let tx,ty;
+document.getElementById('grid').addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;},{passive:true});
+document.getElementById('grid').addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>20)move(dx>0?'right':'left');
+  else if(Math.abs(dy)>20)move(dy>0?'down':'up');
+},{passive:true});
+
+initBoard();
+</script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Cookie Clicker – DuckMath</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.topbar{width:100%;background:#13131f;border-bottom:1px solid #2a2a45;padding:10px 20px;display:flex;align-items:center;gap:12px}
+.back{color:#9898b8;text-decoration:none;font-size:0.85rem}.back:hover{color:#e8e8f0}
+.game-title{font-weight:800;font-size:1rem}.spacer{flex:1}
+.badge{background:#1e1e30;border:1px solid #2a2a45;border-radius:20px;padding:4px 14px;font-size:0.85rem;font-weight:700;color:#ffd93d}
+.layout{display:grid;grid-template-columns:1fr 280px;gap:20px;padding:20px;max-width:900px;width:100%;margin:0 auto}
+@media(max-width:640px){.layout{grid-template-columns:1fr}}
+.left{display:flex;flex-direction:column;align-items:center;gap:12px}
+.count-area{text-align:center}
+.big-count{font-size:2.2rem;font-weight:900;color:#ffd93d}
+.cps{font-size:0.9rem;color:#9898b8}
+.cookie{font-size:6rem;cursor:pointer;user-select:none;transition:transform 0.08s;display:inline-block;filter:drop-shadow(0 4px 12px rgba(255,217,61,0.3))}
+.cookie:active{transform:scale(0.9)}
+.cookie-wrap{position:relative;width:140px;height:140px;display:flex;align-items:center;justify-content:center}
+.float{position:absolute;font-size:1rem;font-weight:800;color:#ffd93d;pointer-events:none;animation:floatUp 1s forwards}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-60px)}}
+.upgrades{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+.upg-btn{background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;padding:10px;cursor:pointer;transition:all 0.2s;text-align:center}
+.upg-btn:hover:not(:disabled){background:#2a2a45;border-color:#6c63ff}
+.upg-btn:disabled{opacity:0.4;cursor:not-allowed}
+.upg-btn.owned{border-color:#4ade80}
+.upg-icon{font-size:1.5rem;display:block;margin-bottom:4px}
+.upg-name{font-size:0.75rem;font-weight:700}
+.upg-cost{font-size:0.7rem;color:#9898b8}
+.right{display:flex;flex-direction:column;gap:10px}
+.right h3{font-size:0.85rem;color:#9898b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px}
+.shop-item{background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all 0.2s}
+.shop-item:hover:not(.disabled){border-color:#6c63ff;background:#252540}
+.shop-item.disabled{opacity:0.45;cursor:not-allowed}
+.shop-icon{font-size:1.6rem;flex-shrink:0}
+.shop-info{flex:1}
+.shop-name{font-size:0.85rem;font-weight:700}
+.shop-desc{font-size:0.7rem;color:#9898b8}
+.shop-right{text-align:right}
+.shop-cost{font-size:0.85rem;font-weight:700;color:#ffd93d}
+.shop-owned{font-size:0.7rem;color:#9898b8}
+.achievement{background:linear-gradient(135deg,#1a1a3a,#2a1a4a);border:1px solid #6c63ff;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ach-icon{font-size:1.2rem}
+.ach-name{font-size:0.8rem;font-weight:700;color:#6c63ff}
+.ach-desc{font-size:0.7rem;color:#9898b8}
+.milestone{background:#1e1e30;border:1px solid #ffd93d;border-radius:8px;padding:8px 12px;font-size:0.8rem;margin-bottom:6px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back" href="../index.html">← Back</a>
+  <span class="game-title">🍪 Cookie Clicker</span>
+  <div class="spacer"></div>
+  <div class="badge">🍪 <span id="total-top">0</span> total</div>
+</div>
+<div class="layout">
+  <div class="left">
+    <div class="count-area">
+      <div class="big-count"><span id="count">0</span> 🍪</div>
+      <div class="cps">per second: <b id="cps">0</b> · per click: <b id="cpc">1</b></div>
+    </div>
+    <div class="cookie-wrap">
+      <div class="cookie" id="cookie" onclick="clickCookie(event)">🍪</div>
+    </div>
+    <div style="width:100%"><div style="font-size:0.8rem;color:#9898b8;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em">⬆️ Click Upgrades</div>
+    <div class="upgrades" id="upgrades"></div></div>
+  </div>
+  <div class="right">
+    <h3>🏪 Shop – Auto Bakers</h3>
+    <div id="shop"></div>
+    <h3 style="margin-top:8px">🏆 Achievements</h3>
+    <div id="achievements"></div>
+  </div>
+</div>
+<script>
+let cookies=0,total=0,cpc=1,cps=0;
+const SHOP=[
+  {id:'cursor',icon:'👆',name:'Auto Cursor',desc:'Clicks for you',base:15,cps:0.1,owned:0},
+  {id:'grandma',icon:'👵',name:'Grandma',desc:'Bakes cookies with love',base:100,cps:0.5,owned:0},
+  {id:'farm',icon:'🌾',name:'Cookie Farm',desc:'Grows cookie plants',base:1100,cps:4,owned:0},
+  {id:'mine',icon:'⛏️',name:'Cookie Mine',desc:'Mines raw dough',base:12000,cps:10,owned:0},
+  {id:'factory',icon:'🏭',name:'Factory',desc:'Mass production!',base:130000,cps:40,owned:0},
+  {id:'bank',icon:'🏦',name:'Cookie Bank',desc:'Invests in cookies',base:1400000,cps:100,owned:0},
+  {id:'temple',icon:'⛩️',name:'Cookie Temple',desc:'Divine cookie blessing',base:20000000,cps:400,owned:0},
+];
+const UPGRADES=[
+  {id:'u1',icon:'🖱️',name:'Better Mouse',desc:'×2 per click',cost:100,mult:2,cpcAdd:1},
+  {id:'u2',icon:'🤜',name:'Power Click',desc:'×5 per click',cost:5000,mult:5,cpcAdd:4},
+  {id:'u3',icon:'⚡',name:'Lightning',desc:'×10 per click',cost:50000,mult:10,cpcAdd:5},
+  {id:'u4',icon:'🔥',name:'Inferno',desc:'×25 per click',cost:500000,mult:25,cpcAdd:10},
+  {id:'u5',icon:'💎',name:'Diamond Click',desc:'×100 per click',cost:10000000,mult:100,cpcAdd:50},
+  {id:'u6',icon:'✨',name:'Cosmic',desc:'×500 per click',cost:1000000000,mult:500,cpcAdd:200},
+];
+const ACHIEVEMENTS=[
+  {icon:'🍪',name:'First Cookie!',desc:'Bake 1 cookie',check:()=>total>=1},
+  {icon:'💯',name:'Century',desc:'Bake 100 cookies',check:()=>total>=100},
+  {icon:'📦',name:'Thousands',desc:'Bake 1,000 cookies',check:()=>total>=1000},
+  {icon:'💰',name:'Millionaire',desc:'Bake 1,000,000 cookies',check:()=>total>=1000000},
+  {icon:'🏭',name:'Industrialist',desc:'Own a Factory',check:()=>SHOP[4].owned>0},
+  {icon:'👵',name:'Grandma Army',desc:'Own 10 Grandmas',check:()=>SHOP[1].owned>=10},
+];
+let upgBought=new Set();
+function fmt(n){
+  if(n>=1e12)return(n/1e12).toFixed(2)+'T';
+  if(n>=1e9)return(n/1e9).toFixed(2)+'B';
+  if(n>=1e6)return(n/1e6).toFixed(2)+'M';
+  if(n>=1e3)return(n/1e3).toFixed(2)+'K';
+  return Math.floor(n)+'';
+}
+function clickCookie(e){
+  cookies+=cpc; total+=cpc;
+  updateUI();
+  const f=document.createElement('div');f.className='float';f.textContent='+'+cpc;
+  const wrap=document.querySelector('.cookie-wrap');
+  f.style.left=(e.offsetX||60)+'px';f.style.top=(e.offsetY||60)+'px';
+  wrap.appendChild(f);setTimeout(()=>f.remove(),1000);
+}
+function calcCPS(){cps=SHOP.reduce((s,item)=>s+item.cps*item.owned,0);}
+function shopCost(item){return Math.floor(item.base*Math.pow(1.15,item.owned));}
+function buyShop(i){
+  const item=SHOP[i];const cost=shopCost(item);
+  if(cookies<cost)return;
+  cookies-=cost;item.owned++;calcCPS();updateUI();
+}
+function buyUpgrade(i){
+  const u=UPGRADES[i];if(upgBought.has(u.id)||cookies<u.cost)return;
+  cookies-=u.cost;upgBought.add(u.id);cpc*=u.mult;updateUI();
+}
+function updateUI(){
+  document.getElementById('count').textContent=fmt(cookies);
+  document.getElementById('total-top').textContent=fmt(total);
+  document.getElementById('cps').textContent=fmt(cps);
+  document.getElementById('cpc').textContent=fmt(cpc);
+  // Shop
+  const shopEl=document.getElementById('shop');shopEl.innerHTML='';
+  SHOP.forEach((item,i)=>{
+    const cost=shopCost(item);
+    const d=document.createElement('div');d.className='shop-item'+(cookies<cost?' disabled':'');
+    d.innerHTML=`<div class="shop-icon">${item.icon}</div><div class="shop-info"><div class="shop-name">${item.name}</div><div class="shop-desc">${item.desc} (+${item.cps} CPS)</div></div><div class="shop-right"><div class="shop-cost">🍪 ${fmt(cost)}</div><div class="shop-owned">owned: ${item.owned}</div></div>`;
+    d.onclick=()=>buyShop(i);shopEl.appendChild(d);
+  });
+  // Upgrades
+  const upgEl=document.getElementById('upgrades');upgEl.innerHTML='';
+  UPGRADES.forEach((u,i)=>{
+    const bought=upgBought.has(u.id);
+    const d=document.createElement('button');d.className='upg-btn'+(bought?' owned':'');
+    d.disabled=bought||cookies<u.cost;
+    d.innerHTML=`<span class="upg-icon">${u.icon}</span><div class="upg-name">${u.name}</div><div class="upg-cost">${bought?'✅':('🍪 '+fmt(u.cost))}</div>`;
+    d.onclick=()=>buyUpgrade(i);upgEl.appendChild(d);
+  });
+  // Achievements
+  const achEl=document.getElementById('achievements');achEl.innerHTML='';
+  ACHIEVEMENTS.forEach(a=>{
+    if(a.check()){const d=document.createElement('div');d.className='achievement';d.innerHTML=`<span class="ach-icon">${a.icon}</span><div><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>`;achEl.appendChild(d);}
+  });
+}
+// Auto CPS
+setInterval(()=>{
+  if(cps>0){cookies+=cps/10;total+=cps/10;updateUI();}
+},100);
+// Save/load
+function save(){(function(){try{localStorage.setItem('cookie_save',JSON.stringify({cookies,total,cpc,SHOP,upgBought:[...upgBought]})}catch(e){}})());}
+function load(){try{const s=JSON.parse((function(){try{return localStorage.getItem('cookie_save')}catch(e){return null}})()||'{}');if(s.cookies){cookies=s.cookies;total=s.total;cpc=s.cpc;upgBought=new Set(s.upgBought);s.SHOP.forEach((item,i)=>{SHOP[i].owned=item.owned;});calcCPS();}}catch(e){}}
+load();setInterval(save,5000);
+calcCPS();updateUI();
+</script>
+</body>
+</html>

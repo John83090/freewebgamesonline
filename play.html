@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Play – FreeWebGamesOnline</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9483059588332842" crossorigin="anonymous"></script>
+<style>
+:root{--bg:#0d0d14;--bg2:#13131f;--border:#2a2a45;--accent:#6c63ff;--text:#e8e8f0;--text2:#9898b8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;gap:12px;height:52px;flex-shrink:0}
+.back{color:var(--text2);text-decoration:none;font-size:0.85rem;white-space:nowrap}.back:hover{color:var(--text)}
+.game-title{font-weight:800;font-size:1rem;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fullscreen-btn{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 12px;font-size:0.8rem;cursor:pointer;white-space:nowrap}
+.fullscreen-btn:hover{border-color:var(--accent)}
+.new-tab-btn{background:var(--accent);border:none;color:#fff;border-radius:6px;padding:5px 12px;font-size:0.8rem;cursor:pointer;white-space:nowrap}
+.frame-wrap{flex:1;position:relative;background:#000}
+#game-frame{width:100%;height:100%;border:none;display:block}
+.error-screen{display:none;position:absolute;inset:0;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px}
+.error-screen h2{font-size:1.3rem}
+.error-screen p{color:var(--text2);font-size:0.9rem;max-width:420px;line-height:1.6}
+.btn-play{background:var(--accent);border:none;color:#fff;border-radius:10px;padding:14px 32px;font-size:1rem;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;margin-top:4px}
+.btn-play:hover{opacity:0.85}
+.loading{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.spinner{width:48px;height:48px;border:4px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading p{color:var(--text2);font-size:0.9rem}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back" href="index.html">← Back</a>
+  <span class="game-title" id="game-title">Loading...</span>
+  <button class="fullscreen-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+  <button class="new-tab-btn" id="new-tab-btn">↗ Open Tab</button>
+</div>
+<div class="frame-wrap">
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p id="loading-text">Loading game...</p>
+  </div>
+  <iframe id="game-frame" allowfullscreen allow="fullscreen; autoplay; gamepad" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock allow-top-navigation-by-user-activation"></iframe>
+  <div class="error-screen" id="error-screen">
+    <div style="font-size:3.5rem">🔒</div>
+    <h2>This game blocks embedding</h2>
+    <p>Many game sites block being embedded — that's okay! Click the button below to play it directly. It works perfectly in a new tab!</p>
+    <a id="external-link" class="btn-play" href="#" target="_blank" rel="noopener">▶ Play Now — Open in New Tab</a>
+    <p style="font-size:0.78rem;margin-top:8px;color:#555">Tip: bookmark it or press Ctrl+W to come back here when done.</p>
+  </div>
+</div>
+<script>
+const params = new URLSearchParams(window.location.search);
+const name = params.get('name') || 'Game';
+const url  = params.get('url')  || '';
+const ext  = params.get('ext')  || url;
+
+document.getElementById('game-title').textContent = name;
+document.title = name + ' – FreeWebGamesOnline';
+document.getElementById('external-link').href = ext || url;
+document.getElementById('new-tab-btn').onclick = () => window.open(ext || url, '_blank');
+
+const frame = document.getElementById('game-frame');
+const loading = document.getElementById('loading');
+const errorScreen = document.getElementById('error-screen');
+
+function showError() {
+  loading.style.display = 'none';
+  frame.style.display = 'none';
+  errorScreen.style.display = 'flex';
+}
+
+function showGame() {
+  loading.style.display = 'none';
+}
+
+if (!url) {
+  showError();
+} else {
+  frame.src = url;
+
+  frame.onload = () => {
+    // Try to detect if the iframe actually loaded content
+    // If X-Frame-Options blocked it, the iframe body will be empty
+    try {
+      const doc = frame.contentDocument || frame.contentWindow.document;
+      if (doc && doc.body && doc.body.innerHTML.trim() === '') {
+        showError(); return;
+      }
+    } catch(e) {
+      // Cross-origin error = site loaded fine (security restriction, not an error)
+    }
+    showGame();
+  };
+
+  frame.onerror = showError;
+
+  // Fast fallback: if still loading after 4 seconds, show error
+  const timeout = setTimeout(() => {
+    if (loading.style.display !== 'none') showError();
+  }, 4000);
+
+  frame.onload = () => {
+    clearTimeout(timeout);
+    try {
+      const doc = frame.contentDocument || frame.contentWindow.document;
+      if (doc && doc.body && doc.body.innerHTML.trim() === '') {
+        showError(); return;
+      }
+    } catch(e) {}
+    showGame();
+  };
+}
+
+function toggleFullscreen() {
+  const fw = document.querySelector('.frame-wrap');
+  if (!document.fullscreenElement) {
+    fw.requestFullscreen?.() || fw.webkitRequestFullscreen?.();
+  } else {
+    document.exitFullscreen?.() || document.webkitExitFullscreen?.();
+  }
+}
+</script>
+</body>
+</html>

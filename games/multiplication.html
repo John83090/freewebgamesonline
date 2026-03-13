@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Times Tables – DuckMath</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.topbar{width:100%;background:#13131f;border-bottom:1px solid #2a2a45;padding:10px 20px;display:flex;align-items:center;gap:12px}
+.back{color:#9898b8;text-decoration:none;font-size:0.85rem}.back:hover{color:#e8e8f0}
+.game-title{font-weight:800;font-size:1rem}.spacer{flex:1}
+.area{display:flex;flex-direction:column;align-items:center;padding:24px 16px;gap:20px;max-width:500px;width:100%;margin:0 auto}
+.table-picker{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;width:100%}
+.tbl-btn{background:#1e1e30;border:2px solid #2a2a45;border-radius:8px;padding:8px;font-size:0.9rem;font-weight:700;cursor:pointer;text-align:center;transition:all 0.2s}
+.tbl-btn:hover{border-color:#6c63ff}
+.tbl-btn.selected{background:#6c63ff;border-color:#6c63ff;color:#fff}
+.tbl-btn.mastered{background:rgba(74,222,128,0.2);border-color:#4ade80}
+.btn{background:#6c63ff;border:none;color:#fff;border-radius:10px;padding:12px 28px;font-size:1rem;font-weight:700;cursor:pointer;width:100%}
+.question-box{background:#1e1e30;border:2px solid #6c63ff;border-radius:16px;padding:28px;text-align:center;width:100%}
+.eq{font-size:3rem;font-weight:900;margin-bottom:20px;letter-spacing:0.05em}
+.ans-input{background:#13131f;border:2px solid #2a2a45;border-radius:10px;padding:14px 20px;font-size:2rem;font-weight:800;text-align:center;color:#e8e8f0;width:100%;outline:none;margin-bottom:14px}
+.ans-input:focus{border-color:#6c63ff}
+.submit-btn{background:#6c63ff;border:none;color:#fff;border-radius:10px;padding:14px;font-size:1.1rem;font-weight:700;cursor:pointer;width:100%;transition:opacity 0.2s}
+.submit-btn:hover{opacity:0.85}
+.feedback{font-size:1.2rem;font-weight:700;min-height:32px;text-align:center}
+.progress-bar{height:8px;background:#1a1a2e;border-radius:4px;overflow:hidden;width:100%}
+.progress-fill{height:100%;background:linear-gradient(90deg,#6c63ff,#4ade80);border-radius:4px;transition:width 0.3s}
+.stats{display:flex;gap:12px;width:100%}
+.stat{flex:1;background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;padding:10px;text-align:center}
+.stat label{font-size:0.7rem;color:#9898b8;display:block}
+.stat span{font-size:1.1rem;font-weight:800;color:#ffd93d}
+.table-display{background:#1e1e30;border:1px solid #2a2a45;border-radius:10px;padding:14px;width:100%}
+.table-display h3{font-size:0.85rem;color:#9898b8;margin-bottom:10px;text-transform:uppercase}
+.table-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.table-cell{background:#13131f;border-radius:4px;padding:6px;text-align:center;font-size:0.75rem}
+.table-cell.correct{background:rgba(74,222,128,0.2);color:#4ade80}
+.table-cell.wrong{background:rgba(239,68,68,0.2);color:#ef4444}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back" href="../index.html">← Back</a>
+  <span class="game-title">✖️ Times Tables</span>
+  <div class="spacer"></div>
+</div>
+<div class="area">
+  <div id="picker-screen" style="width:100%;display:flex;flex-direction:column;gap:14px">
+    <div style="text-align:center">
+      <h2 style="font-size:1.3rem;margin-bottom:6px">✖️ Times Tables Practice</h2>
+      <p style="color:#9898b8;font-size:0.9rem">Choose tables to practice, then answer as fast as you can!</p>
+    </div>
+    <div>
+      <div style="font-size:0.8rem;color:#9898b8;margin-bottom:8px">Select tables (tap to toggle):</div>
+      <div class="table-picker" id="table-picker"></div>
+    </div>
+    <button class="btn" onclick="startPractice()">🚀 Start Practice</button>
+  </div>
+  <div id="practice-screen" style="display:none;width:100%;flex-direction:column;align-items:center;gap:14px">
+    <div class="stats">
+      <div class="stat"><label>Correct</label><span id="correct">0</span></div>
+      <div class="stat"><label>Wrong</label><span id="wrong">0</span></div>
+      <div class="stat"><label>Streak</label><span id="streak">0</span>🔥</div>
+      <div class="stat"><label>Remaining</label><span id="remaining">30</span></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="question-box">
+      <div class="eq" id="equation">? × ? = ?</div>
+      <input class="ans-input" id="answer-input" type="number" placeholder="?" autocomplete="off" onkeydown="if(event.key==='Enter')checkAnswer()"/>
+      <div class="feedback" id="feedback"></div>
+      <button class="submit-btn" onclick="checkAnswer()">Check ✓</button>
+    </div>
+    <div class="table-display">
+      <h3>Progress This Session</h3>
+      <div class="table-grid" id="session-grid"></div>
+    </div>
+    <button class="btn" style="background:transparent;border:1px solid #6c63ff;color:#6c63ff" onclick="endPractice()">← Back to Menu</button>
+  </div>
+</div>
+<script>
+let selectedTables=new Set([2,5,10]);
+let questions=[],qIdx=0,correct=0,wrong=0,streak=0;
+let sessionResults=[];
+// Build picker
+for(let i=1;i<=12;i++){
+  const b=document.createElement('button');b.className='tbl-btn'+(selectedTables.has(i)?' selected':'');
+  b.textContent=i+'×';b.onclick=()=>{selectedTables.has(i)?selectedTables.delete(i):selectedTables.add(i);b.classList.toggle('selected',selectedTables.has(i));};
+  document.getElementById('table-picker').appendChild(b);
+}
+function generateQuestions(){
+  const qs=[];
+  selectedTables.forEach(t=>{for(let i=1;i<=12;i++)qs.push({a:t,b:i,answer:t*i,result:null});});
+  return qs.sort(()=>Math.random()-0.5).slice(0,30);
+}
+function startPractice(){
+  if(selectedTables.size===0){alert('Select at least one table!');return;}
+  questions=generateQuestions();qIdx=0;correct=0;wrong=0;streak=0;sessionResults=[];
+  document.getElementById('picker-screen').style.display='none';
+  const ps=document.getElementById('practice-screen');ps.style.display='flex';
+  updateStats();showQuestion();
+}
+function showQuestion(){
+  if(qIdx>=questions.length){endPractice();return;}
+  const q=questions[qIdx];
+  document.getElementById('equation').textContent=`${q.a} × ${q.b} = ?`;
+  document.getElementById('answer-input').value='';document.getElementById('feedback').textContent='';
+  document.getElementById('remaining').textContent=questions.length-qIdx;
+  document.getElementById('progress-fill').style.width=((qIdx/questions.length)*100)+'%';
+  document.getElementById('answer-input').focus();
+}
+function checkAnswer(){
+  const input=document.getElementById('answer-input');
+  const val=parseInt(input.value);if(isNaN(val))return;
+  const q=questions[qIdx];
+  if(val===q.answer){
+    correct++;streak++;q.result='correct';
+    document.getElementById('feedback').innerHTML=`<span style="color:#4ade80">✅ Correct! ${q.a}×${q.b}=${q.answer}</span>`;
+  } else {
+    wrong++;streak=0;q.result='wrong';
+    document.getElementById('feedback').innerHTML=`<span style="color:#ef4444">❌ Wrong! Answer: ${q.answer}</span>`;
+  }
+  sessionResults.push(q);updateStats();renderSessionGrid();
+  qIdx++;setTimeout(showQuestion,800);
+}
+function updateStats(){
+  document.getElementById('correct').textContent=correct;
+  document.getElementById('wrong').textContent=wrong;
+  document.getElementById('streak').textContent=streak;
+}
+function renderSessionGrid(){
+  const g=document.getElementById('session-grid');g.innerHTML='';
+  sessionResults.slice(-12).forEach(r=>{
+    const d=document.createElement('div');d.className='table-cell '+(r.result||'');
+    d.textContent=`${r.a}×${r.b}`;g.appendChild(d);
+  });
+}
+function endPractice(){
+  document.getElementById('practice-screen').style.display='none';
+  document.getElementById('picker-screen').style.display='flex';
+  const pct=questions.length>0?Math.round((correct/Math.max(1,correct+wrong))*100):0;
+  if(correct+wrong>0)setTimeout(()=>alert(`Session complete! ✅ ${correct} correct · ❌ ${wrong} wrong · ${pct}% accuracy`),100);
+}
+</script>
+</body>
+</html>

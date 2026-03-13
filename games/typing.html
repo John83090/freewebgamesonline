@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Typing – DuckMath</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.topbar{width:100%;background:#13131f;border-bottom:1px solid #2a2a45;padding:10px 20px;display:flex;align-items:center;gap:12px}
+.back{color:#9898b8;text-decoration:none;font-size:0.85rem}.back:hover{color:#e8e8f0}
+.game-title{font-weight:800}
+.area{display:flex;flex-direction:column;align-items:center;padding:40px 20px;gap:20px;text-align:center}
+canvas{border:2px solid #6c63ff;border-radius:8px;background:#0a0a14;max-width:100%}
+.btn{background:#6c63ff;border:none;color:#fff;border-radius:10px;padding:12px 28px;font-size:1rem;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="topbar"><a class="back" href="../index.html">← Back</a><span class="game-title" style="margin-left:8px">🎮 Typing</span></div>
+<div class="area">
+<canvas id="c" width="480" height="360"></canvas>
+<button class="btn" onclick="startGame()">▶ Start Game</button>
+<p style="color:#9898b8;font-size:0.9rem">Use keyboard/mouse to play!</p>
+</div>
+<script>
+const c=document.getElementById('c'),ctx=c.getContext('2d');
+ctx.fillStyle='#0a0a14';ctx.fillRect(0,0,480,360);
+ctx.fillStyle='#6c63ff';ctx.font='bold 24px Segoe UI';ctx.textAlign='center';
+ctx.fillText('Typing',240,160);
+ctx.fillStyle='#9898b8';ctx.font='16px Segoe UI';
+ctx.fillText('Press Start to play!',240,200);
+function startGame(){
+  ctx.fillStyle='#0a0a14';ctx.fillRect(0,0,480,360);
+  ctx.fillStyle='#ffd93d';ctx.font='20px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Game Loading...',240,180);
+  // Game logic would go here
+}
+</script>
+</body>
+</html>

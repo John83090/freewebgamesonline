@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Memory Match – DuckMath</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.topbar{width:100%;background:#13131f;border-bottom:1px solid #2a2a45;padding:10px 20px;display:flex;align-items:center;gap:12px}
+.back{color:#9898b8;text-decoration:none;font-size:0.85rem}.back:hover{color:#e8e8f0}
+.game-title{font-weight:800;font-size:1rem}.spacer{flex:1}
+.area{display:flex;flex-direction:column;align-items:center;padding:20px;gap:14px;max-width:500px;width:100%;margin:0 auto}
+.stats{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.stat{background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;padding:8px 16px;text-align:center;min-width:80px}
+.stat label{font-size:0.7rem;color:#9898b8;display:block}
+.stat span{font-size:1.1rem;font-weight:800;color:#ffd93d}
+.grid{display:grid;gap:8px;width:100%}
+.card{aspect-ratio:1;background:#1e1e30;border:2px solid #2a2a45;border-radius:10px;cursor:pointer;transition:all 0.3s;transform-style:preserve-3d;position:relative;display:flex;align-items:center;justify-content:center}
+.card.flipped{transform:rotateY(180deg)}
+.card.matched{border-color:#4ade80;background:rgba(74,222,128,0.1);cursor:default;animation:matchPop 0.4s}
+.card.shake{animation:shake 0.3s}
+@keyframes matchPop{0%{transform:scale(1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.card-front{position:absolute;font-size:2rem;opacity:0;transition:opacity 0.15s;backface-visibility:hidden}
+.card.flipped .card-front,.card.matched .card-front{opacity:1}
+.card-back{font-size:1.5rem;transition:opacity 0.15s}
+.card.flipped .card-back,.card.matched .card-back{opacity:0}
+.btn{background:#6c63ff;border:none;color:#fff;border-radius:8px;padding:10px 24px;font-size:0.9rem;font-weight:700;cursor:pointer}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.diff-btn{background:#1e1e30;border:1px solid #2a2a45;color:#9898b8;border-radius:8px;padding:6px 14px;font-size:0.8rem;font-weight:600;cursor:pointer}
+.diff-btn.active{background:#6c63ff;border-color:#6c63ff;color:#fff}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back" href="../index.html">← Back</a>
+  <span class="game-title">🃏 Memory Match</span>
+  <div class="spacer"></div>
+</div>
+<div class="area">
+  <div class="btn-row">
+    <button class="diff-btn active" onclick="setSize(4,4,this)">4×4 Easy</button>
+    <button class="diff-btn" onclick="setSize(4,6,this)">4×6 Medium</button>
+    <button class="diff-btn" onclick="setSize(6,6,this)">6×6 Hard</button>
+  </div>
+  <div class="stats">
+    <div class="stat"><label>Moves</label><span id="moves">0</span></div>
+    <div class="stat"><label>Pairs Found</label><span id="pairs">0</span></div>
+    <div class="stat"><label>Time</label><span id="time">0s</span></div>
+    <div class="stat"><label>Best Moves</label><span id="best">—</span></div>
+  </div>
+  <div class="grid" id="grid"></div>
+  <button class="btn" onclick="newGame()">🔄 New Game</button>
+</div>
+<script>
+const EMOJIS=['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🦁','🐯','🦝','🐮','🐷','🐸','🐙','🦋','🐝','🌸','⭐','🍕','🎮','🚀','🎸','🏆','🎨','🎭','💎','🔮','🌈','⚡','🎯'];
+let cards,flipped,matched,moves,pairs,rows,cols,timerInt,timeElapsed,canFlip;
+function setSize(r,c,btn){rows=r;cols=c;document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');newGame();}
+function newGame(){
+  clearInterval(timerInt);timeElapsed=0;moves=0;pairs=0;flipped=[];matched=new Set();canFlip=false;
+  const total=(rows*cols);
+  const emojis=EMOJIS.slice(0,total/2);
+  cards=[...emojis,...emojis].sort(()=>Math.random()-0.5);
+  document.getElementById('moves').textContent=0;
+  document.getElementById('pairs').textContent=0;
+  document.getElementById('time').textContent='0s';
+  render();
+  // Brief preview
+  const cellEls=document.querySelectorAll('.card');
+  cellEls.forEach(c=>c.classList.add('flipped'));
+  setTimeout(()=>{cellEls.forEach(c=>c.classList.remove('flipped'));canFlip=true;timerInt=setInterval(()=>{timeElapsed++;document.getElementById('time').textContent=timeElapsed+'s';},1000);},1500);
+}
+function render(){
+  const g=document.getElementById('grid');
+  g.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+  g.innerHTML='';
+  cards.forEach((em,i)=>{
+    const d=document.createElement('div');d.className='card';
+    if(matched.has(i)){d.classList.add('matched');}
+    d.innerHTML=`<span class="card-back">🔷</span><span class="card-front">${em}</span>`;
+    d.onclick=()=>flipCard(i,d);
+    if(flipped.includes(i))d.classList.add('flipped');
+    g.appendChild(d);
+  });
+}
+function flipCard(idx,el){
+  if(!canFlip||flipped.includes(idx)||matched.has(idx)||flipped.length>=2)return;
+  flipped.push(idx);el.classList.add('flipped');
+  if(flipped.length===2){
+    canFlip=false;moves++;document.getElementById('moves').textContent=moves;
+    if(cards[flipped[0]]===cards[flipped[1]]){
+      matched.add(flipped[0]);matched.add(flipped[1]);pairs++;
+      document.getElementById('pairs').textContent=pairs;
+      document.querySelectorAll('.card')[flipped[0]].classList.add('matched');
+      document.querySelectorAll('.card')[flipped[1]].classList.add('matched');
+      flipped=[];canFlip=true;
+      if(matched.size===cards.length){clearInterval(timerInt);endGame();}
+    } else {
+      const [a,b]=[flipped[0],flipped[1]];
+      setTimeout(()=>{
+        const els=document.querySelectorAll('.card');
+        els[a].classList.add('shake');els[b].classList.add('shake');
+        setTimeout(()=>{els[a].classList.remove('flipped','shake');els[b].classList.remove('flipped','shake');flipped=[];canFlip=true;},400);
+      },700);
+    }
+  }
+}
+function endGame(){
+  const key=`memory_best_${rows}x${cols}`;
+  const best=parseInt((function(){try{return localStorage.getItem(key)}catch(e){return null}})()||9999);
+  const newBest=Math.min(moves,best);(function(){try{localStorage.setItem(key,newBest)}catch(e){}})();
+  document.getElementById('best').textContent=newBest;
+  setTimeout(()=>alert(`🎉 You won in ${moves} moves and ${timeElapsed}s!${newBest===moves?' 🏆 New Best!':''}`),200);
+}
+rows=4;cols=4;
+const bestKey=`memory_best_4x4`;
+document.getElementById('best').textContent=(function(){try{return localStorage.getItem(bestKey)}catch(e){return null}})()||'—';
+newGame();
+</script>
+</body>
+</html>

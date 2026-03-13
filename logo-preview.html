@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreeWebGamesOnline – Logo Kit</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0d0e1a;
+    color: #fff;
+    padding: 40px 20px;
+  }
+  h1 { text-align: center; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: #666; margin-bottom: 50px; }
+  .section { margin-bottom: 60px; }
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #555;
+    margin-bottom: 20px;
+    padding-left: 4px;
+    border-left: 3px solid #7c3aed;
+    padding-left: 12px;
+  }
+  .preview-box {
+    border-radius: 16px;
+    padding: 50px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+  .preview-dark { background: #1a1b2e; }
+  .preview-purple { background: linear-gradient(135deg, #4c1d95, #1e40af); }
+  .preview-white { background: #ffffff; }
+  .preview-light { background: #f0f0f5; }
+  .row { display: flex; gap: 20px; }
+  .row .preview-box { flex: 1; }
+  .note { font-size: 11px; color: #444; margin-top: 6px; }
+
+  /* ===================== LOGO DEFINITIONS ===================== */
+</style>
+</head>
+<body>
+
+<h1>FreeWebGamesOnline · Logo Kit</h1>
+
+<!-- ─────────────────────────────────────────
+     PRIMARY LOGO: Horizontal (Dark bg)
+───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">Primary Logo · Dark Background</div>
+  <div class="preview-box preview-dark">
+
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 90" width="520" height="90">
+      <defs>
+        <linearGradient id="iconGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#a855f7"/>
+          <stop offset="100%" stop-color="#3b82f6"/>
+        </linearGradient>
+        <linearGradient id="nameGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="60%" stop-color="#e0d7ff"/>
+        </linearGradient>
+        <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#a855f7"/>
+          <stop offset="100%" stop-color="#06b6d4"/>
+        </linearGradient>
+      </defs>
+
+      <!-- ── Icon: Rounded square ── -->
+      <rect x="0" y="5" width="80" height="80" rx="22" fill="url(#iconGrad)"/>
+
+      <!-- Controller body (main rectangle) -->
+      <rect x="12" y="28" width="56" height="38" rx="11" fill="white"/>
+
+      <!-- Left grip -->
+      <rect x="12" y="50" width="19" height="18" rx="0 0 9 0" fill="white"/>
+      <!-- Right grip -->
+      <rect x="49" y="50" width="19" height="18" rx="0 0 0 9" fill="white"/>
+
+      <!-- Shoulder bumper L -->
+      <rect x="14" y="22" width="20" height="8" rx="4" fill="#c4b5fd"/>
+      <!-- Shoulder bumper R -->
+      <rect x="46" y="22" width="20" height="8" rx="4" fill="#c4b5fd"/>
+
+      <!-- D-pad vertical -->
+      <rect x="25.5" y="34" width="5" height="16" rx="2.5" fill="url(#iconGrad)"/>
+      <!-- D-pad horizontal -->
+      <rect x="21" y="38.5" width="14" height="5" rx="2.5" fill="url(#iconGrad)"/>
+
+      <!-- 4 action buttons (ABXY pattern) -->
+      <circle cx="57"  cy="37" r="3.8" fill="url(#iconGrad)"/>
+      <circle cx="64"  cy="44" r="3.8" fill="url(#iconGrad)"/>
+      <circle cx="57"  cy="51" r="3.8" fill="url(#iconGrad)"/>
+      <circle cx="50"  cy="44" r="3.8" fill="url(#iconGrad)"/>
+
+      <!-- Center / home button -->
+      <circle cx="40" cy="36" r="4.5" fill="#ddd6fe" opacity="0.85"/>
+      <circle cx="40" cy="36" r="2.5" fill="#7c3aed" opacity="0.7"/>
+
+      <!-- Analog sticks -->
+      <circle cx="24" cy="57" r="5.5" fill="#e0d7ff" opacity="0.6"/>
+      <circle cx="56" cy="57" r="5.5" fill="#e0d7ff" opacity="0.6"/>
+
+      <!-- ── Wordmark ── -->
+      <!-- "Free" -->
+      <text x="98" y="48"
+        font-family="'SF Pro Display','Segoe UI',Arial Black,sans-serif"
+        font-weight="900" font-size="34" fill="url(#nameGrad)" letter-spacing="-0.5">Free</text>
+
+      <!-- "Web" in accent -->
+      <text x="182" y="48"
+        font-family="'SF Pro Display','Segoe UI',Arial Black,sans-serif"
+        font-weight="900" font-size="34" fill="url(#accentGrad)" letter-spacing="-0.5">Web</text>
+
+      <!-- "Games" -->
+      <text x="258" y="48"
+        font-family="'SF Pro Display','Segoe UI',Arial Black,sans-serif"
+        font-weight="900" font-size="34" fill="url(#nameGrad)" letter-spacing="-0.5">Games</text>
+
+      <!-- "ONLINE" small label -->
+      <text x="101" y="70"
+        font-family="'SF Pro Display','Segoe UI',Arial,sans-serif"
+        font-weight="600" font-size="13" fill="#7c3aed" letter-spacing="7">ONLINE</text>
+
+      <!-- Dot separator -->
+      <circle cx="92" cy="64" r="2.5" fill="#7c3aed" opacity="0.6"/>
+
+    </svg>
+
+  </div>
+  <p class="note">Primary usage · website header, email, documents</p>
+</div>
+
+<!-- ─────────────────────────────────────────
+     PRIMARY LOGO: On gradient bg (like banners)
+───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">Primary Logo · Gradient Background</div>
+  <div class="preview-box preview-purple">
+
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 90" width="520" height="90">
+      <defs>
+        <linearGradient id="ig2" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0.1"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Icon bg: frosted glass effect on gradient -->
+      <rect x="0" y="5" width="80" height="80" rx="22" fill="url(#ig2)" stroke="white" stroke-width="1" stroke-opacity="0.3"/>
+
+      <!-- Controller body -->
+      <rect x="12" y="28" width="56" height="38" rx="11" fill="white" opacity="0.95"/>
+      <rect x="12" y="50" width="19" height="18" rx="0 0 9 0" fill="white" opacity="0.95"/>
+      <rect x="49" y="50" width="19" height="18" rx="0 0 0 9" fill="white" opacity="0.95"/>
+      <rect x="14" y="22" width="20" height="8" rx="4" fill="white" opacity="0.5"/>
+      <rect x="46" y="22" width="20" height="8" rx="4" fill="white" opacity="0.5"/>
+      <rect x="25.5" y="34" width="5" height="16" rx="2.5" fill="#7c3aed"/>
+      <rect x="21" y="38.5" width="14" height="5" rx="2.5" fill="#7c3aed"/>
+      <circle cx="57" cy="37" r="3.8" fill="#7c3aed"/>
+      <circle cx="64" cy="44" r="3.8" fill="#3b82f6"/>
+      <circle cx="57" cy="51" r="3.8" fill="#06b6d4"/>
+      <circle cx="50" cy="44" r="3.8" fill="#a855f7"/>
+      <circle cx="40" cy="36" r="4.5" fill="#ddd6fe"/>
+      <circle cx="40" cy="36" r="2.5" fill="#6d28d9"/>
+      <circle cx="24" cy="57" r="5.5" fill="#e0d7ff" opacity="0.5"/>
+      <circle cx="56" cy="57" r="5.5" fill="#e0d7ff" opacity="0.5"/>
+
+      <!-- Wordmark white on gradient -->
+      <text x="98" y="48"
+        font-family="'SF Pro Display','Segoe UI',Arial Black,sans-serif"
+        font-weight="900" font-size="34" fill="white" letter-spacing="-0.5">FreeWebGames</text>
+      <text x="101" y="70"
+        font-family="'SF Pro Display','Segoe UI',Arial,sans-serif"
+        font-weight="600" font-size="13" fill="white" opacity="0.75" letter-spacing="7">ONLINE</text>
+      <circle cx="92" cy="64" r="2.5" fill="white" opacity="0.5"/>
+    </svg>
+
+  </div>
+  <p class="note">Banners, social media headers, ads</p>
+</div>
+
+<!-- ─────────────────────────────────────────
+     ICON ONLY (Favicon / App icon)
+───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">Icon Only · Favicon &amp; App Icon</div>
+  <div class="row">
+
+    <!-- Large -->
+    <div class="preview-box preview-dark" style="flex:0 0 auto; padding:30px; width:160px;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="120" height="120">
+        <defs>
+          <linearGradient id="ig3" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#a855f7"/>
+            <stop offset="100%" stop-color="#3b82f6"/>
+          </linearGradient>
+        </defs>
+        <rect width="80" height="80" rx="22" fill="url(#ig3)"/>
+        <rect x="12" y="23" width="56" height="38" rx="11" fill="white"/>
+        <rect x="12" y="45" width="19" height="18" rx="0 0 9 0" fill="white"/>
+        <rect x="49" y="45" width="19" height="18" rx="0 0 0 9" fill="white"/>
+        <rect x="14" y="17" width="20" height="8" rx="4" fill="#c4b5fd"/>
+        <rect x="46" y="17" width="20" height="8" rx="4" fill="#c4b5fd"/>
+        <rect x="25.5" y="29" width="5" height="16" rx="2.5" fill="url(#ig3)"/>
+        <rect x="21" y="33.5" width="14" height="5" rx="2.5" fill="url(#ig3)"/>
+        <circle cx="57" cy="32" r="3.8" fill="url(#ig3)"/>
+        <circle cx="64" cy="39" r="3.8" fill="url(#ig3)"/>
+        <circle cx="57" cy="46" r="3.8" fill="url(#ig3)"/>
+        <circle cx="50" cy="39" r="3.8" fill="url(#ig3)"/>
+        <circle cx="40" cy="31" r="4.5" fill="#ddd6fe" opacity="0.85"/>
+        <circle cx="40" cy="31" r="2.5" fill="#7c3aed" opacity="0.7"/>
+        <circle cx="24" cy="52" r="5.5" fill="#e0d7ff" opacity="0.55"/>
+        <circle cx="56" cy="52" r="5.5" fill="#e0d7ff" opacity="0.55"/>
+      </svg>
+    </div>
+
+    <!-- Medium 48px -->
+    <div class="preview-box preview-dark" style="flex:0 0 auto; padding:30px; width:120px;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="64" height="64">
+        <defs>
+          <linearGradient id="ig4" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#a855f7"/>
+            <stop offset="100%" stop-color="#3b82f6"/>
+          </linearGradient>
+        </defs>
+        <rect width="80" height="80" rx="22" fill="url(#ig4)"/>
+        <rect x="12" y="23" width="56" height="38" rx="11" fill="white"/>
+        <rect x="12" y="45" width="19" height="18" rx="0 0 9 0" fill="white"/>
+        <rect x="49" y="45" width="19" height="18" rx="0 0 0 9" fill="white"/>
+        <rect x="14" y="17" width="20" height="8" rx="4" fill="#c4b5fd"/>
+        <rect x="46" y="17" width="20" height="8" rx="4" fill="#c4b5fd"/>
+        <rect x="25.5" y="29" width="5" height="16" rx="2.5" fill="url(#ig4)"/>
+        <rect x="21" y="33.5" width="14" height="5" rx="2.5" fill="url(#ig4)"/>
+        <circle cx="57" cy="32" r="3.8" fill="url(#ig4)"/>
+        <circle cx="64" cy="39" r="3.8" fill="url(#ig4)"/>
+        <circle cx="57" cy="46" r="3.8" fill="url(#ig4)"/>
+        <circle cx="50" cy="39" r="3.8" fill="url(#ig4)"/>
+        <circle cx="40" cy="31" r="4.5" fill="#ddd6fe" opacity="0.85"/>
+        <circle cx="40" cy="31" r="2.5" fill="#7c3aed" opacity="0.7"/>
+      </svg>
+    </div>
+
+    <!-- Favicon 32px -->
+    <div class="preview-box preview-dark" style="flex:0 0 auto; padding:30px; width:100px;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="32" height="32">
+        <defs>
+          <linearGradient id="ig5" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#a855f7"/>
+            <stop offset="100%" stop-color="#3b82f6"/>
+          </linearGradient>
+        </defs>
+        <rect width="80" height="80" rx="22" fill="url(#ig5)"/>
+        <rect x="12" y="23" width="56" height="38" rx="11" fill="white"/>
+        <rect x="12" y="45" width="19" height="18" rx="0 0 9 0" fill="white"/>
+        <rect x="49" y="45" width="19" height="18" rx="0 0 0 9" fill="white"/>
+        <rect x="25.5" y="29" width="5" height="16" rx="2.5" fill="url(#ig5)"/>
+        <rect x="21" y="33.5" width="14" height="5" rx="2.5" fill="url(#ig5)"/>
+        <circle cx="57" cy="32" r="3.8" fill="url(#ig5)"/>
+        <circle cx="64" cy="39" r="3.8" fill="url(#ig5)"/>
+        <circle cx="57" cy="46" r="3.8" fill="url(#ig5)"/>
+        <circle cx="50" cy="39" r="3.8" fill="url(#ig5)"/>
+      </svg>
+    </div>
+
+    <!-- On white bg -->
+    <div class="preview-box preview-white" style="flex:0 0 auto; padding:30px; width:160px;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="120" height="120">
+        <defs>
+          <linearGradient id="ig6" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#a855f7"/>
+            <stop offset="100%" stop-color="#3b82f6"/>
+          </linearGradient>
+        </defs>
+        <rect width="80" height="80" rx="22" fill="url(#ig6)"/>
+        <rect x="12" y="23" width="56" height="38" rx="11" fill="white"/>
+        <rect x="12" y="45" width="19" height="18" rx="0 0 9 0" fill="white"/>
+        <rect x="49" y="45" width="19" height="18" rx="0 0 0 9" fill="white"/>
+        <rect x="14" y="17" width="20" height="8" rx="4" fill="#c4b5fd"/>
+        <rect x="46" y="17" width="20" height="8" rx="4" fill="#c4b5fd"/>
+        <rect x="25.5" y="29" width="5" height="16" rx="2.5" fill="url(#ig6)"/>
+        <rect x="21" y="33.5" width="14" height="5" rx="2.5" fill="url(#ig6)"/>
+        <circle cx="57" cy="32" r="3.8" fill="url(#ig6)"/>
+        <circle cx="64" cy="39" r="3.8" fill="url(#ig6)"/>
+        <circle cx="57" cy="46" r="3.8" fill="url(#ig6)"/>
+        <circle cx="50" cy="39" r="3.8" fill="url(#ig6)"/>
+        <circle cx="40" cy="31" r="4.5" fill="#ddd6fe" opacity="0.85"/>
+        <circle cx="40" cy="31" r="2.5" fill="#7c3aed" opacity="0.7"/>
+        <circle cx="24" cy="52" r="5.5" fill="#e0d7ff" opacity="0.55"/>
+        <circle cx="56" cy="52" r="5.5" fill="#e0d7ff" opacity="0.55"/>
+      </svg>
+    </div>
+
+  </div>
+  <p class="note">Left to right: 120px · 64px · 32px (favicon) · on white background</p>
+</div>
+
+
+<!-- ─────────────────────────────────────────
+     LIGHT / WHITE BACKGROUND VERSION
+───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">Primary Logo · Light Background</div>
+  <div class="preview-box preview-light">
+
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 90" width="520" height="90">
+      <defs>
+        <linearGradient id="ig7" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#a855f7"/>
+          <stop offset="100%" stop-color="#3b82f6"/>
+        </linearGradient>
+        <linearGradient id="ag7" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#7c3aed"/>
+          <stop offset="100%" stop-color="#0284c7"/>
+        </linearGradient>
+      </defs>
+      <rect x="0" y="5" width="80" height="80" rx="22" fill="url(#ig7)"/>
+      <rect x="12" y="28" width="56" height="38" rx="11" fill="white"/>
+      <rect x="12" y="50" width="19" height="18" rx="0 0 9 0" fill="white"/>
+      <rect x="49" y="50" width="19" height="18" rx="0 0 0 9" fill="white"/>
+      <rect x="14" y="22" width="20" height="8" rx="4" fill="#c4b5fd"/>
+      <rect x="46" y="22" width="20" height="8" rx="4" fill="#c4b5fd"/>
+      <rect x="25.5" y="34" width="5" height="16" rx="2.5" fill="url(#ig7)"/>
+      <rect x="21" y="38.5" width="14" height="5" rx="2.5" fill="url(#ig7)"/>
+      <circle cx="57" cy="37" r="3.8" fill="url(#ig7)"/>
+      <circle cx="64" cy="44" r="3.8" fill="url(#ig7)"/>
+      <circle cx="57" cy="51" r="3.8" fill="url(#ig7)"/>
+      <circle cx="50" cy="44" r="3.8" fill="url(#ig7)"/>
+      <circle cx="40" cy="36" r="4.5" fill="#ddd6fe" opacity="0.85"/>
+      <circle cx="40" cy="36" r="2.5" fill="#7c3aed" opacity="0.7"/>
+      <circle cx="24" cy="57" r="5.5" fill="#e0d7ff" opacity="0.55"/>
+      <circle cx="56" cy="57" r="5.5" fill="#e0d7ff" opacity="0.55"/>
+
+      <!-- Dark text on light bg -->
+      <text x="98" y="48"
+        font-family="'SF Pro Display','Segoe UI',Arial Black,sans-serif"
+        font-weight="900" font-size="34" fill="#1a1b2e" letter-spacing="-0.5">Free</text>
+      <text x="182" y="48"
+        font-family="'SF Pro Display','Segoe UI',Arial Black,sans-serif"
+        font-weight="900" font-size="34" fill="url(#ag7)" letter-spacing="-0.5">Web</text>
+      <text x="258" y="48"
+        font-family="'SF Pro Display','Segoe UI',Arial Black,sans-serif"
+        font-weight="900" font-size="34" fill="#1a1b2e" letter-spacing="-0.5">Games</text>
+      <text x="101" y="70"
+        font-family="'SF Pro Display','Segoe UI',Arial,sans-serif"
+        font-weight="600" font-size="13" fill="#7c3aed" letter-spacing="7">ONLINE</text>
+      <circle cx="92" cy="64" r="2.5" fill="#7c3aed" opacity="0.6"/>
+    </svg>
+
+  </div>
+  <p class="note">Use on white/light backgrounds (emails, invoices, print)</p>
+</div>
+
+
+<!-- ─────────────────────────────────────────
+     BRAND COLORS
+───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">Brand Color System</div>
+  <div style="display:flex; gap:16px; flex-wrap:wrap;">
+
+    <div style="text-align:center;">
+      <div style="width:90px;height:90px;border-radius:16px;background:#a855f7;margin-bottom:8px;"></div>
+      <div style="font-size:12px;color:#aaa;">Primary</div>
+      <div style="font-size:12px;color:#666;">#a855f7</div>
+    </div>
+
+    <div style="text-align:center;">
+      <div style="width:90px;height:90px;border-radius:16px;background:#3b82f6;margin-bottom:8px;"></div>
+      <div style="font-size:12px;color:#aaa;">Secondary</div>
+      <div style="font-size:12px;color:#666;">#3b82f6</div>
+    </div>
+
+    <div style="text-align:center;">
+      <div style="width:90px;height:90px;border-radius:16px;background:#06b6d4;margin-bottom:8px;"></div>
+      <div style="font-size:12px;color:#aaa;">Accent</div>
+      <div style="font-size:12px;color:#666;">#06b6d4</div>
+    </div>
+
+    <div style="text-align:center;">
+      <div style="width:90px;height:90px;border-radius:16px;background:#1a1b2e;margin-bottom:8px;border:1px solid #333;"></div>
+      <div style="font-size:12px;color:#aaa;">Dark BG</div>
+      <div style="font-size:12px;color:#666;">#1a1b2e</div>
+    </div>
+
+    <div style="text-align:center;">
+      <div style="width:90px;height:90px;border-radius:16px;background:#ddd6fe;margin-bottom:8px;"></div>
+      <div style="font-size:12px;color:#aaa;">Light</div>
+      <div style="font-size:12px;color:#666;">#ddd6fe</div>
+    </div>
+
+    <div style="text-align:center;">
+      <div style="width:90px;height:90px;border-radius:16px;background:linear-gradient(135deg,#a855f7,#3b82f6);margin-bottom:8px;"></div>
+      <div style="font-size:12px;color:#aaa;">Gradient</div>
+      <div style="font-size:12px;color:#666;">Purple→Blue</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────
+     WHAT MAKES THIS COMPETITIVE
+───────────────────────────────────────── -->
+<div class="section" style="background:#1a1b2e;border-radius:16px;padding:30px;">
+  <div class="section-label" style="margin-bottom:20px;">Design Rationale · Why This Ranks</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:13px;color:#aaa;line-height:1.7;">
+    <div>
+      <div style="color:#a855f7;font-weight:700;margin-bottom:6px;">✦ Bold Wordmark (Roblox strategy)</div>
+      The name IS the logo. Heavy 900-weight type is instantly readable at any size, matching Roblox's approach of letting the name carry the brand.
+    </div>
+    <div>
+      <div style="color:#3b82f6;font-weight:700;margin-bottom:6px;">✦ Distinctive Icon (CrazyGames strategy)</div>
+      A clean game controller in a gradient rounded square — immediately signals "games" without ambiguity. Works as favicon, app icon, and avatar.
+    </div>
+    <div>
+      <div style="color:#06b6d4;font-weight:700;margin-bottom:6px;">✦ Color Split (Poki strategy)</div>
+      "Web" in purple/blue gradient pops out — the eye reads "Free•Web•Games" in a rhythm. Creates visual hierarchy without extra design elements.
+    </div>
+    <div>
+      <div style="color:#c4b5fd;font-weight:700;margin-bottom:6px;">✦ "ONLINE" label (differentiator)</div>
+      Spaced-out caps below the main name — like a product line label. Signals this is the online/web version. Borrowed from premium brand typography.
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
