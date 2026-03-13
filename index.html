@@ -746,7 +746,7 @@ function buildCard(g){
     ${badgeHtml}
     <span class="card-bg-grad">${g.emoji}</span>
     <img class="card-img"
-         src="${g.thumb}"
+         src="/img/covers/${g.id}.jpg"
          alt="${g.name}"
          loading="lazy"
          onerror="this.onerror=null;this.src='https://image.thum.io/get/width/300/crop/300/'+encodeURIComponent(${JSON.stringify(g.url)})"
@@ -888,28 +888,22 @@ function openPopup(cardEl, g){
   clearTimeout(hideTimer);
   clearTimeout(popTimer);
 
-  /* ── Try real animated GIF from CrazyGames CDN ── */
+  /* ── Load self-hosted GIF preview ── */
   ppImg.classList.remove('kb');
   const gifLabel = document.getElementById('pp-gif-label');
 
-  if(g.thumb && g.thumb.includes('crazygames.com/auto-covers/')){
-    // CrazyGames stores animated GIFs at _16x9.gif
-    const gifUrl = g.thumb.replace('_1x1.png','_16x9.gif');
-    ppImg.src = '';              // reset so animation restarts
-    ppImg.src = gifUrl;
-    gifLabel.textContent = '▶ PREVIEW';
-    ppImg.onerror = () => {
-      // GIF not found — fall back to static image + Ken Burns
-      ppImg.src = g.thumb;
-      ppImg.classList.add('kb');
-      gifLabel.textContent = '📷 PREVIEW';
-      ppImg.onerror = null;
-    };
-  } else {
+  // Self-hosted GIF from /img/gifs/{id}.gif (downloaded from Tenor)
+  const selfGif = '/img/gifs/' + g.id + '.gif';
+  ppImg.src = '';
+  ppImg.src = selfGif;
+  gifLabel.textContent = '▶ PREVIEW';
+  ppImg.onerror = () => {
+    // Fallback to self-hosted cover or original thumb + Ken Burns
     ppImg.src = g.thumb;
-    ppImg.classList.add('kb');   // non-CrazyGames thumb — use Ken Burns
+    ppImg.classList.add('kb');
     gifLabel.textContent = '📷 PREVIEW';
-  }
+    ppImg.onerror = null;
+  };
 
   ppImg.alt = g.name;
   ppName.textContent = g.name;
