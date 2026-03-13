@@ -749,7 +749,7 @@ function buildCard(g){
          src="${g.thumb}"
          alt="${g.name}"
          loading="lazy"
-         onerror="this.style.display='none'"
+         onerror="this.onerror=null;this.src='https://image.thum.io/get/width/300/crop/300/'+encodeURIComponent(${JSON.stringify(g.url)})"
     />
     <!-- Always-visible name bar -->
     <div class="card-name-bar">
