@@ -73,9 +73,46 @@ header{
 nav{display:flex;gap:2px}
 nav a{color:var(--text2);text-decoration:none;padding:5px 10px;border-radius:8px;font-size:.82rem;font-weight:600;transition:all .18s;white-space:nowrap}
 nav a:hover{color:var(--text);background:var(--bg3)}
-.coins-badge{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 11px;font-size:.82rem;font-weight:700;color:var(--gold);cursor:pointer;white-space:nowrap}
-.btn-login{background:var(--accent);border:none;color:#fff;border-radius:8px;padding:6px 16px;font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap}
-.btn-login:hover{background:var(--accent-h)}
+.stats-badge{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:5px 13px;font-size:.82rem;font-weight:700;color:var(--text);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px;transition:border-color .18s}
+.stats-badge:hover{border-color:var(--accent);color:var(--accent)}
+.stats-badge .sb-count{color:var(--accent);font-size:.88rem}
+
+/* ── PROGRESS MODAL ── */
+.prog-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:900;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.prog-overlay.open{display:flex}
+.prog-modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:100%;max-width:480px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.7)}
+.prog-header{padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.prog-header h2{margin:0;font-size:1.05rem;font-weight:800;flex:1}
+.prog-close{background:none;border:none;color:var(--text2);font-size:1.3rem;cursor:pointer;padding:2px 8px;border-radius:6px;line-height:1}
+.prog-close:hover{color:var(--text);background:var(--bg3)}
+.prog-body{overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:18px}
+.prog-stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.prog-stat{background:var(--bg3);border-radius:10px;padding:12px;text-align:center}
+.prog-stat-num{font-size:1.5rem;font-weight:900;color:var(--accent)}
+.prog-stat-lbl{font-size:.72rem;color:var(--text2);margin-top:2px}
+.prog-section-title{font-size:.78rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.prog-game-list{display:flex;flex-direction:column;gap:6px}
+.prog-game-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg3);border-radius:8px;text-decoration:none;color:var(--text);border:1px solid transparent;transition:border-color .15s}
+.prog-game-row:hover{border-color:var(--accent)}
+.prog-game-thumb{width:40px;height:30px;border-radius:5px;object-fit:cover;flex-shrink:0;background:var(--bg)}
+.prog-game-info{flex:1;min-width:0}
+.prog-game-name{font-size:.84rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prog-game-meta{font-size:.72rem;color:var(--text2);margin-top:1px}
+.prog-game-count{font-size:.75rem;color:var(--accent);font-weight:700;white-space:nowrap}
+.prog-empty{text-align:center;padding:28px 16px;color:var(--text2);font-size:.88rem;line-height:1.8}
+.prog-clear{background:none;border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:7px 14px;font-size:.78rem;cursor:pointer;width:100%;margin-top:4px;transition:all .18s}
+.prog-clear:hover{border-color:#ef4444;color:#ef4444}
+
+/* ── RECENTLY PLAYED SECTION ── */
+.sec-recent{display:none}
+.recent-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.recent-scroll::-webkit-scrollbar{display:none}
+.recent-card{flex:0 0 auto;width:100px;text-decoration:none;color:var(--text);position:relative}
+.recent-card img{width:100px;height:70px;border-radius:8px;object-fit:cover;display:block;background:var(--bg3)}
+.recent-card-name{font-size:.72rem;font-weight:600;margin-top:4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recent-badge{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);color:#fff;font-size:.65rem;border-radius:4px;padding:1px 4px}
+/* Badge on game cards for played indicator */
+.card-played-dot{position:absolute;bottom:34px;left:6px;background:var(--accent);width:8px;height:8px;border-radius:50%;border:2px solid var(--bg2);z-index:5}
 
 /* ── HERO ── */
 .hero{
@@ -435,8 +472,9 @@ footer a:hover{color:var(--text)}
         <a href="leaderboard.html">🏆 Leaderboard</a>
         <a href="about.html">About</a>
       </nav>
-      <div class="coins-badge">🪙 <span id="coin-count">0</span></div>
-      <button class="btn-login">Log In</button>
+      <button class="stats-badge" onclick="openProgressModal()" id="stats-badge" title="Your Progress">
+        🎮 <span id="stats-badge-text">My Progress</span>
+      </button>
     </div>
   </header>
 
@@ -463,6 +501,12 @@ footer a:hover{color:var(--text)}
            data-ad-client="ca-pub-9483059588332842"
            data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins>
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+    <!-- RECENTLY PLAYED -->
+    <div class="section sec-recent" id="sec-recent">
+      <div class="section-title">🕐 Recently Played</div>
+      <div class="recent-scroll" id="recent-scroll"></div>
     </div>
 
     <!-- HOT GAMES -->
@@ -510,6 +554,20 @@ footer a:hover{color:var(--text)}
   </div>
 </div>
 
+<!-- PROGRESS MODAL -->
+<div class="prog-overlay" id="prog-overlay" onclick="if(event.target===this)closeProgressModal()">
+  <div class="prog-modal">
+    <div class="prog-header">
+      <span style="font-size:1.3rem">🎮</span>
+      <h2>My Progress</h2>
+      <button class="prog-close" onclick="closeProgressModal()">✕</button>
+    </div>
+    <div class="prog-body" id="prog-body">
+      <div class="prog-empty">Loading…</div>
+    </div>
+  </div>
+</div>
+
 <footer>
   <a href="about.html">About</a>
   <a href="leaderboard.html">Leaderboard</a>
@@ -519,9 +577,139 @@ footer a:hover{color:var(--text)}
 </footer>
 
 <script>
-/* ── COINS ── */
-let coins=0;try{coins=parseInt(localStorage.getItem('dm_coins')||0);}catch(e){}
-document.getElementById('coin-count').textContent=coins;
+/* ── PROGRESS TRACKING ── */
+const PROG_KEY = 'fwgo_progress';
+
+function getProgress(){
+  try{ return JSON.parse(localStorage.getItem(PROG_KEY)||'{"history":[],"totalPlays":0}'); }
+  catch{ return {history:[],totalPlays:0}; }
+}
+
+function timeAgo(ts){
+  const s = Math.floor((Date.now()-ts)/1000);
+  if(s < 60) return 'just now';
+  if(s < 3600) return Math.floor(s/60)+'m ago';
+  if(s < 86400) return Math.floor(s/3600)+'h ago';
+  if(s < 604800) return Math.floor(s/86400)+'d ago';
+  return new Date(ts).toLocaleDateString();
+}
+
+function renderRecentSection(){
+  const prog = getProgress();
+  const recent = prog.history || [];
+  const sec = document.getElementById('sec-recent');
+  const scroll = document.getElementById('recent-scroll');
+  if(!sec || !scroll) return;
+  if(recent.length === 0){ sec.style.display='none'; return; }
+  sec.style.display='';
+  scroll.innerHTML='';
+  recent.slice(0,12).forEach(g=>{
+    const gameData = GAMES.find(x=>x.id===g.id);
+    if(!gameData) return;
+    const a = document.createElement('a');
+    a.className='recent-card';
+    const playUrl = `play.html?id=${encodeURIComponent(g.id)}&name=${encodeURIComponent(g.name)}&url=${encodeURIComponent(gameData.url)}&ext=${encodeURIComponent(gameData.ext||gameData.url)}&cat=${encodeURIComponent(g.cat||gameData.cat)}`;
+    a.href=playUrl;
+    a.innerHTML=`<img src="/img/covers/${g.id}.jpg" alt="${g.name}" onerror="this.style.display='none'"/>
+      <div class="recent-badge">${g.playCount>1?'×'+g.playCount:timeAgo(g.lastPlayed)}</div>
+      <div class="recent-card-name">${g.name}</div>`;
+    scroll.appendChild(a);
+  });
+}
+
+function updateStatsBadge(){
+  const prog = getProgress();
+  const count = (prog.history||[]).length;
+  const el = document.getElementById('stats-badge-text');
+  if(el) el.textContent = count > 0 ? count+' Played' : 'My Progress';
+}
+
+function openProgressModal(){
+  document.getElementById('prog-overlay').classList.add('open');
+  renderProgressModal();
+}
+function closeProgressModal(){
+  document.getElementById('prog-overlay').classList.remove('open');
+}
+
+function renderProgressModal(){
+  const prog = getProgress();
+  const history = prog.history || [];
+  const body = document.getElementById('prog-body');
+  if(!body) return;
+
+  if(history.length === 0){
+    body.innerHTML=`<div class="prog-empty">🎮 You haven't played any games yet!<br><br>Click on any game below to get started.<br>Your progress is saved automatically.</div>`;
+    return;
+  }
+
+  const totalPlays = prog.totalPlays || history.length;
+  const uniqueGames = history.length;
+  const topGame = history.slice().sort((a,b)=>(b.playCount||1)-(a.playCount||1))[0];
+
+  body.innerHTML=`
+    <div>
+      <div class="prog-stats-row">
+        <div class="prog-stat">
+          <div class="prog-stat-num">${totalPlays}</div>
+          <div class="prog-stat-lbl">Total Plays</div>
+        </div>
+        <div class="prog-stat">
+          <div class="prog-stat-num">${uniqueGames}</div>
+          <div class="prog-stat-lbl">Games Tried</div>
+        </div>
+        <div class="prog-stat">
+          <div class="prog-stat-num">${topGame?(topGame.playCount||1):0}</div>
+          <div class="prog-stat-lbl">Most Replayed</div>
+        </div>
+      </div>
+    </div>
+    ${topGame?`<div>
+      <div class="prog-section-title">⭐ Favorite Game</div>
+      <a class="prog-game-row" href="${buildPlayUrl(topGame)}">
+        <img class="prog-game-thumb" src="/img/covers/${topGame.id}.jpg" alt="${topGame.name}" onerror="this.style.display='none'"/>
+        <div class="prog-game-info">
+          <div class="prog-game-name">${topGame.emoji||'🎮'} ${topGame.name}</div>
+          <div class="prog-game-meta">Last played ${timeAgo(topGame.lastPlayed)}</div>
+        </div>
+        <div class="prog-game-count">×${topGame.playCount||1}</div>
+      </a>
+    </div>`:''}
+    <div>
+      <div class="prog-section-title">🕐 Recently Played</div>
+      <div class="prog-game-list">
+        ${history.slice(0,10).map(g=>`
+          <a class="prog-game-row" href="${buildPlayUrl(g)}">
+            <img class="prog-game-thumb" src="/img/covers/${g.id}.jpg" alt="${g.name}" onerror="this.style.display='none'"/>
+            <div class="prog-game-info">
+              <div class="prog-game-name">${g.emoji||'🎮'} ${g.name}</div>
+              <div class="prog-game-meta">${timeAgo(g.lastPlayed)}${g.playCount>1?' · played '+g.playCount+'×':''}</div>
+            </div>
+          </a>`).join('')}
+      </div>
+    </div>
+    <button class="prog-clear" onclick="clearProgress()">🗑️ Clear my progress</button>
+  `;
+}
+
+function buildPlayUrl(g){
+  const gd = GAMES.find(x=>x.id===g.id);
+  if(!gd) return '#';
+  return `play.html?id=${encodeURIComponent(g.id)}&name=${encodeURIComponent(g.name)}&url=${encodeURIComponent(gd.url)}&ext=${encodeURIComponent(gd.ext||gd.url)}&cat=${encodeURIComponent(gd.cat)}`;
+}
+
+function clearProgress(){
+  if(!confirm('Clear all your game progress?')) return;
+  try{ localStorage.removeItem(PROG_KEY); }catch{}
+  closeProgressModal();
+  updateStatsBadge();
+  renderRecentSection();
+}
+
+// Keyboard shortcut
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape') closeProgressModal();
+});
 
 /* ── GRADIENT FALLBACKS ── */
 const GRAD={
@@ -1423,6 +1611,10 @@ function buildCard(g){
   const c=GRAD[g.cat]||['#1e2040','#7c3aed'];
   a.style.background=`linear-gradient(135deg,${c[0]} 0%,${c[1]} 100%)`;
 
+  // Check if user has played this game
+  const prog = getProgress();
+  const played = prog.history && prog.history.find(h=>h.id===g.id);
+
   // Badge HTML
   const badgeHtml = g.badge==='hot'        ? '<span class="game-badge badge-hot">🔥 Hot</span>'
                   : g.badge==='new'        ? '<span class="game-badge badge-new">✨ New</span>'
@@ -1434,6 +1626,7 @@ function buildCard(g){
 
   a.innerHTML=`
     ${badgeHtml}
+    ${played?'<span class="card-played-dot" title="You played this"></span>':''}
     <span class="card-bg-grad">${g.emoji}</span>
     <img class="card-img"
          src="/img/covers/${g.id}.jpg"
@@ -1449,7 +1642,7 @@ function buildCard(g){
     <!-- Hover slide-up overlay -->
     <div class="card-overlay">
       <span class="card-name">${g.name}</span>
-      <span class="card-cat">${g.cat}</span>
+      <span class="card-cat">${played?'✅ Played · '+g.cat:g.cat}</span>
       <span class="card-play-hint">▶ Click to play</span>
     </div>
   `;
@@ -1683,6 +1876,8 @@ window.addEventListener('scroll', () => { if(popup.classList.contains('show')) p
 
 /* ── INIT ── */
 renderAll();
+updateStatsBadge();
+renderRecentSection();
 
 /* ── CLOSE MOBILE SEARCH ON OUTSIDE TAP ── */
 document.addEventListener('click', function(e){

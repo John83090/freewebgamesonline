@@ -515,6 +515,47 @@ const CAT_DESC = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// PROGRESS TRACKING — save game to history on every play
+// ─────────────────────────────────────────────────────────────────────────────
+(function saveProgress(){
+  if(!GAME_ID || !GAME_NAME) return;
+  try{
+    const PROG_KEY = 'fwgo_progress';
+    let prog = {};
+    try{ prog = JSON.parse(localStorage.getItem(PROG_KEY)||'{}'); }catch{}
+    if(!prog.history) prog.history = [];
+    if(!prog.totalPlays) prog.totalPlays = 0;
+    prog.totalPlays++;
+
+    // Find existing entry
+    const idx = prog.history.findIndex(h=>h.id===GAME_ID);
+    if(idx >= 0){
+      const entry = prog.history[idx];
+      entry.lastPlayed = Date.now();
+      entry.playCount = (entry.playCount||1) + 1;
+      // Move to front (most recently played)
+      prog.history.splice(idx,1);
+      prog.history.unshift(entry);
+    } else {
+      // New game — find emoji from GAMES_LIST if available
+      const gl = typeof GAMES_LIST !== 'undefined' ? GAMES_LIST : [];
+      const gd = gl.find(g=>g.id===GAME_ID);
+      prog.history.unshift({
+        id: GAME_ID,
+        name: GAME_NAME,
+        cat: GAME_CAT || '',
+        emoji: gd ? gd.emoji : '🎮',
+        lastPlayed: Date.now(),
+        playCount: 1
+      });
+      // Keep history to last 50 games
+      if(prog.history.length > 50) prog.history = prog.history.slice(0,50);
+    }
+    localStorage.setItem(PROG_KEY, JSON.stringify(prog));
+  }catch(e){}
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
 // DOM REFS
 // ─────────────────────────────────────────────────────────────────────────────
 const frame     = document.getElementById('game-frame');
