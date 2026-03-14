@@ -9,6 +9,18 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
+<script>
+// Force-reload if browser has old cached version
+(function(){
+  var V='fwgo_v5';
+  if(localStorage.getItem('fwgo_ver')!==V){
+    localStorage.setItem('fwgo_ver',V);
+    if(navigator.serviceWorker){navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(w){w.unregister()})}).catch(function(){});}
+    if(window.caches){caches.keys().then(function(k){k.forEach(function(n){caches.delete(n)})}).catch(function(){});}
+    location.reload(true);
+  }
+})();
+</script>
 <!-- Google AdSense -->
 <link rel="preconnect" href="https://classroomlesson.github.io"/>
 <link rel="dns-prefetch" href="https://maddox05.github.io"/>
