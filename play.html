@@ -340,18 +340,18 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
           <a id="ext-link" class="btn-play" href="#" target="_blank" rel="noopener noreferrer">▶ Play Now — Open in New Tab</a>
           <p style="font-size:.73rem;margin-top:8px;color:var(--text2)">Press the back button to return here.</p>
         </div>
-        <!-- Desktop-only screen (shown on mobile for heavy Unity WebGL games) -->
+        <!-- Desktop-only screen (shown on mobile for Flash/keyboard-only games) -->
         <div class="desktop-screen" id="desktop-screen">
-          <div class="desktop-icon">💻</div>
-          <h2>Desktop Game</h2>
+          <div class="desktop-icon" id="desktop-icon">⌨️</div>
+          <h2 id="desktop-headline">Keyboard Game</h2>
           <p id="desktop-game-name" style="font-size:1rem;font-weight:700;color:var(--text)"></p>
           <div class="desktop-badge-strip">
             <span style="font-size:1.2rem">⚠️</span>
-            <span>This game needs <b style="color:var(--text)">26MB+ of memory</b> to load. Mobile browsers can't run it inside a page — but it works great on desktop or if you open it directly.</span>
+            <span id="desktop-reason">This game requires a <b style="color:var(--text)">keyboard &amp; mouse</b> to play — it's a classic Flash game that doesn't support touch controls.</span>
           </div>
-          <a id="desktop-ext-link" class="btn-play" href="#" target="_blank" rel="noopener noreferrer">↗ Open in New Tab — Play Now</a>
-          <a class="back-btn" href="/index.html" style="margin-top:2px;color:var(--text2);font-size:.82rem">← Pick a mobile-friendly game</a>
-          <button class="btn-try-anyway" onclick="tryDesktopGameAnyway()">Try loading anyway</button>
+          <a id="desktop-ext-link" class="btn-play" href="#" target="_blank" rel="noopener noreferrer">↗ Open on Desktop — Play Now</a>
+          <a class="back-btn" href="/index.html" style="margin-top:2px;color:var(--text2);font-size:.82rem">← Browse mobile-friendly games</a>
+          <button class="btn-try-anyway" onclick="tryDesktopGameAnyway()">Try anyway on mobile</button>
         </div>
         <!-- Newtab splash (for games that block iframe embedding, e.g. CrazyGames) -->
         <div class="newtab-screen" id="newtab-screen">
@@ -442,16 +442,37 @@ const GAME_EXT = (P.get('ext')  || GAME_URL).trim();
 const GAME_CAT = (P.get('cat')  || '').trim();
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DESKTOP-ONLY GAMES — reserved for future use (currently empty)
+// KEYBOARD-ONLY GAMES — Flash/Ruffle games that require keyboard & mouse
+// On mobile, show a "keyboard required" message with option to try anyway
 // ─────────────────────────────────────────────────────────────────────────────
-const DESKTOP_ONLY_IDS = new Set([]);
+const KEYBOARD_ONLY_IDS = new Set([
+  'run3','basketleg','bloxorz','raftWars','potty_racers2','freeway_fury2',
+  'worlds_hardest','worlds_hardest2','impossible_quiz','impossible_quiz2',
+  'super_mario_def','escape_prison','fleeing_complex','infiltrating_air',
+  'stealing_diamond','duck_life2','duck_life3','duck_life5',
+  'papas_burgeria','papas_pizzeria','papas_freezeria','papas_tacomia','papalouie2',
+  'bloons_td5','bloons_td3','bloons_td2','bloons_td',
+  'storm_house','storm_house2','storm_house3',
+  'binding_isaac','meat_boy','electric_man2',
+  'awesome_tanks2','awesome_tanks','alien_hominid','jacksmith',
+  'fancy_pants1','fancy_pants2','fancy_pants3',
+  'learn_fly2','raft_wars2','orion_sandbox',
+  'swords_sandals2','gunball','tiny_castle','breaking_bank','sword_sandals2'
+]);
+
+// DESKTOP-ONLY GAMES — same as KEYBOARD_ONLY_IDS (all desktop-required games)
+// ─────────────────────────────────────────────────────────────────────────────
+const DESKTOP_ONLY_IDS = KEYBOARD_ONLY_IDS;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// NEWTAB GAMES — games that block iframe embedding (JS-detected, e.g. CrazyGames)
+// NEWTAB GAMES — games that block iframe embedding at the HTTP/JS level
 // These show a splash screen with a "Play Now" button that opens in a new tab
 // ─────────────────────────────────────────────────────────────────────────────
-// Leave empty — subway & temple use classroomlesson.github.io which embeds fine
-const NEWTAB_IDS = new Set([]);
+const NEWTAB_IDS = new Set([
+  'bullet',   // CrazyGames blocks iframe via X-Frame-Options
+  'gartic',   // gartic.io blocks iframe via X-Frame-Options
+  'wordle'    // NYTimes blocks iframe via X-Frame-Options
+]);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PORTRAIT GAMES — 9:16 layout
@@ -580,10 +601,19 @@ function showDesktopOnly(){
     if(nameEl) nameEl.textContent = GAME_NAME;
     const extLinkEl = document.getElementById('desktop-ext-link');
     if(extLinkEl) extLinkEl.href = extUrl;
-    // Update the warning text with actual size if known
-    const strip = ds.querySelector('.desktop-badge-strip span:last-child');
-    if(strip && GAME_ID === 'subway'){
-      strip.innerHTML = 'This game needs <b style="color:var(--text)">26MB of memory</b> to load. Mobile browsers can\'t run it inside a page — but it works great on desktop or if you open it directly.';
+    // Show appropriate message based on game type
+    const isKeyboardOnly = KEYBOARD_ONLY_IDS.has(GAME_ID);
+    const iconEl = document.getElementById('desktop-icon');
+    const headEl = document.getElementById('desktop-headline');
+    const reasonEl = document.getElementById('desktop-reason');
+    if(isKeyboardOnly){
+      if(iconEl) iconEl.textContent = '⌨️';
+      if(headEl) headEl.textContent = 'Keyboard Required';
+      if(reasonEl) reasonEl.innerHTML = 'This is a classic Flash game that requires a <b style="color:var(--text)">keyboard &amp; mouse</b>. Touch controls aren\'t supported — play it on a computer for the best experience.';
+    } else {
+      if(iconEl) iconEl.textContent = '💻';
+      if(headEl) headEl.textContent = 'Desktop Recommended';
+      if(reasonEl) reasonEl.innerHTML = 'This game is heavy and works best on desktop. You can still try it on mobile — tap the button below.';
     }
   }
 }
