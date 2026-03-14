@@ -574,10 +574,12 @@ document.getElementById('cat-badge').textContent  = CAT_LABEL[GAME_CAT] || 'Game
 document.getElementById('info-desc').textContent  = CAT_DESC[GAME_CAT]  || 'Enjoy this free browser game — no download needed!';
 
 const extUrl = GAME_EXT || GAME_URL || '#';
+// On mobile, all links should go to the direct game URL (not ext/CrazyGames)
+const mobileUrl = isMobileDevice ? (GAME_URL || extUrl) : extUrl;
 document.getElementById('nav-newtab').href  = extUrl;
 document.getElementById('ctrl-newtab').href = extUrl;
-document.getElementById('ext-link').href    = extUrl;
-document.getElementById('mob-newtab').href  = extUrl;
+document.getElementById('ext-link').href    = mobileUrl;
+document.getElementById('mob-newtab').href  = GAME_URL || extUrl;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // COVER IMAGE
@@ -682,12 +684,48 @@ function showNewtabSplash(){
     img.src = `/img/covers/${GAME_ID}.jpg`;
   }
 }
+function showMobileSplash(){
+  loadEl.style.display = 'none';
+  const ns = document.getElementById('newtab-screen');
+  if(!ns) return;
+  ns.classList.add('show');
+  // Title
+  const titleEl = document.getElementById('newtab-title');
+  if(titleEl) titleEl.textContent = GAME_NAME;
+  // Subtitle — different message for mobile
+  const subEl = document.getElementById('newtab-sub');
+  if(subEl) subEl.textContent = 'Tap Play to launch — the game opens full-screen for the best mobile experience';
+  // Play button → opens GAME_URL directly (not extUrl which might be CrazyGames)
+  const btn = document.getElementById('newtab-play-btn');
+  if(btn) btn.href = GAME_URL;
+  // Cover image
+  const coverWrap = document.getElementById('newtab-cover-wrap');
+  if(coverWrap && GAME_ID){
+    const img = new Image();
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block';
+    img.onload = () => { coverWrap.innerHTML=''; coverWrap.appendChild(img); };
+    img.onerror = () => {
+      const g = typeof GAMES_LIST!=='undefined' ? GAMES_LIST.find(x=>x.id===GAME_ID) : null;
+      coverWrap.innerHTML = `<div class="newtab-cover-emoji">${g?g.emoji:'🎮'}</div>`;
+    };
+    img.src = `/img/covers/${GAME_ID}.jpg`;
+  }
+  // Also update the hint text
+  const hint = document.querySelector('.newtab-hint');
+  if(hint) hint.textContent = 'Free · Full-screen · Opens directly';
+}
+
 function tryDesktopGameAnyway(){
+  if(isMobileDevice){
+    // On mobile, open directly instead of trying iframe (which won't work)
+    window.open(GAME_URL, '_blank');
+    return;
+  }
   const ds = document.getElementById('desktop-screen');
   if(ds) ds.classList.remove('show');
   loadEl.style.display = 'flex';
   loadEl.classList.remove('fade');
-  setLoadMsg('Loading… this may take a while on mobile');
+  setLoadMsg('Loading… this may take a while');
   frame.src = GAME_URL;
 }
 function showGame(){
@@ -700,37 +738,31 @@ function setLoadMsg(msg){ const p = loadEl.querySelector('p'); if(p) p.textConte
 
 if(!GAME_URL){
   showError();
+} else if(isMobileDevice){
+  // ─── MOBILE: open ALL games directly (no iframe) ───────────────────────────
+  // Mobile browsers can't reliably run Unity/WebGL/Flash games inside iframes
+  // due to memory limits, sandbox restrictions, and touch event issues.
+  // Instead, we open the game URL directly — giving it full browser resources
+  // and native touch support.
+
+  if(isDesktopOnly){
+    // Flash/Ruffle game that needs keyboard → show warning
+    showDesktopOnly();
+  } else {
+    // Show mobile splash → tapping "Play Now" opens game directly
+    showMobileSplash();
+  }
 } else if(NEWTAB_IDS.has(GAME_ID)){
-  // Game blocks iframe embedding (JS-detected) — show splash + open in new tab
+  // Desktop: game blocks iframe embedding — show splash + open in new tab
   showNewtabSplash();
-} else if(isMobileDevice && isDesktopOnly){
-  // Heavy Unity WebGL game — won't run in mobile iframe, show desktop-only screen immediately
-  showDesktopOnly();
 } else {
+  // ─── DESKTOP: embed in iframe normally ─────────────────────────────────────
   frame.src = GAME_URL;
 
-  // Mobile needs more time — heavy games (Subway Surfers etc.) can take 15–20s on mobile
-  // Desktop: 6s timeout. Mobile: no auto-error, just show a "still loading" message
   let slowTimer, giveUpTimer;
-
-  if(isMobileDevice){
-    // After 5s on mobile: update message to reassure user
-    slowTimer = setTimeout(()=>{ setLoadMsg('Still loading… heavy games take a moment on mobile'); }, 5000);
-    // After 20s: offer to open in new tab instead (but don't auto-error)
-    giveUpTimer = setTimeout(()=>{
-      setLoadMsg('Taking too long? Tap below to open in a new tab');
-      // Show a helpful link inside the loading overlay
-      const btn = document.createElement('a');
-      btn.href = extUrl; btn.target = '_blank'; btn.rel = 'noopener noreferrer';
-      btn.style.cssText = 'margin-top:12px;background:var(--accent);color:#fff;border-radius:8px;padding:10px 22px;font-size:.88rem;font-weight:700;text-decoration:none;display:inline-block';
-      btn.textContent = '↗ Open in New Tab';
-      loadEl.appendChild(btn);
-    }, 20000);
-  } else {
-    // Desktop: 6s hard timeout (most games load in <3s on desktop)
-    giveUpTimer = setTimeout(showError, 6000);
-    slowTimer = setTimeout(()=>{ setLoadMsg('Loading game…'); }, 3000);
-  }
+  // Desktop: 6s hard timeout (most games load in <3s on desktop)
+  giveUpTimer = setTimeout(showError, 6000);
+  slowTimer = setTimeout(()=>{ setLoadMsg('Loading game…'); }, 3000);
 
   frame.onload = () => {
     clearTimeout(slowTimer);
