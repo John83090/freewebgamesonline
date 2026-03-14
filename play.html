@@ -11,7 +11,7 @@
 <script>
 // Force-reload if browser has old cached version
 (function(){
-  var V='fwgo_v6';
+  var V='fwgo_v7';
   if(localStorage.getItem('fwgo_ver')!==V){
     localStorage.setItem('fwgo_ver',V);
     // Unregister any service workers that might cache old content
@@ -483,6 +483,27 @@ const KEYBOARD_ONLY_IDS = new Set([
 const DESKTOP_ONLY_IDS = KEYBOARD_ONLY_IDS;
 
 // ─────────────────────────────────────────────────────────────────────────────
+// UNITY HEAVY GAMES — Unity WebGL games that require too much RAM for mobile
+// iframes. Mobile browsers sandbox iframes and won't allocate enough memory
+// (500MB–1GB) for Unity to initialise. Opening in a new tab gives full memory.
+// ─────────────────────────────────────────────────────────────────────────────
+const UNITY_IDS = new Set([
+  // 3D mobile games ported to WebGL
+  'subway','temple','jetpack_joy','rodeo_stampede','crossyroad','animal_crossing',
+  // 3D multiplayer shooters
+  '1v1lol','venge','smashkarts','cs_online','warbrokers','deadshot',
+  'masked_forces','time_shooter2','time_shooter_s',
+  // Horror / indie Unity games
+  'fnaf','fnaf2','fnaf3','fnaf4','fnaf5','fnaf_pizzeria',
+  'baldis_basics','granny','backrooms_game','hollow_knight',
+  'ultrakill','buckshot','rainbow_friends',
+  // Heavy 3D racing / action
+  'snow_rider','cluster_rush','drive_mad','race_arena','cod_zombies',
+  // Misc heavy Unity
+  'tabs','solar_smash','super_mario64','clashroyale'
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
 // NEWTAB GAMES — games that block iframe embedding at the HTTP/JS level
 // These show a splash screen with a "Play Now" button that opens in a new tab
 // ─────────────────────────────────────────────────────────────────────────────
@@ -763,11 +784,12 @@ if(!GAME_URL){
   if(isDesktopOnly){
     // Flash/Ruffle game that needs keyboard → show warning
     showDesktopOnly();
-  } else if(NEWTAB_IDS.has(GAME_ID)){
-    // Game blocks iframe embedding → splash + open in new tab
-    showNewtabSplash();
+  } else if(NEWTAB_IDS.has(GAME_ID) || UNITY_IDS.has(GAME_ID)){
+    // Unity WebGL or iframe-blocked game → splash + open in new tab
+    // Unity needs 500MB–1GB RAM; mobile iframe sandboxes won't allocate enough
+    showMobileSplash();
   } else {
-    // Try iframe first — HTML5 games load fine on mobile in-page.
+    // HTML5 game — try iframe in-page first.
     // Fall back to splash screen if iframe doesn't load within 15s.
     frame.src = GAME_URL;
 
