@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <title>Play – FreeWebGamesOnline</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
 <!-- Performance: preconnect to common game hosts -->
 <link rel="preconnect" href="https://classroomlesson.github.io"/>
 <link rel="preconnect" href="https://maddox05.github.io"/>
@@ -760,9 +763,9 @@ if(!GAME_URL){
   frame.src = GAME_URL;
 
   let slowTimer, giveUpTimer;
-  // Desktop: 6s hard timeout (most games load in <3s on desktop)
-  giveUpTimer = setTimeout(showError, 6000);
-  slowTimer = setTimeout(()=>{ setLoadMsg('Loading game…'); }, 3000);
+  // Desktop: show slow message at 5s, give up at 30s
+  giveUpTimer = setTimeout(showError, 30000);
+  slowTimer = setTimeout(()=>{ setLoadMsg('Still loading… hang tight!'); }, 5000);
 
   frame.onload = () => {
     clearTimeout(slowTimer);

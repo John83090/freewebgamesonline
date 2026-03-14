@@ -1,0 +1,25 @@
+# Cloudflare Pages custom headers
+# Prevent caching of HTML pages so updates deploy instantly
+/*.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+
+/play.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+
+# JS data files - short cache
+/games-list.js
+  Cache-Control: public, max-age=300
+
+# Images can be cached longer
+/img/*
+  Cache-Control: public, max-age=86400
