@@ -577,6 +577,8 @@ document.getElementById('cat-badge').textContent  = CAT_LABEL[GAME_CAT] || 'Game
 document.getElementById('info-desc').textContent  = CAT_DESC[GAME_CAT]  || 'Enjoy this free browser game — no download needed!';
 
 const extUrl = GAME_EXT || GAME_URL || '#';
+// Detect mobile early — needed for link setup and game loading
+const isMobileDevice = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth <= 640;
 // On mobile, all links should go to the direct game URL (not ext/CrazyGames)
 const mobileUrl = isMobileDevice ? (GAME_URL || extUrl) : extUrl;
 document.getElementById('nav-newtab').href  = extUrl;
@@ -629,9 +631,8 @@ window.addEventListener('orientationchange', ()=>setTimeout(checkRotatePrompt,20
 checkRotatePrompt();
 
 // ─────────────────────────────────────────────────────────────────────────────
-// LOAD GAME — fast: set iframe src immediately
+// LOAD GAME — fast: set iframe src immediately (or mobile splash)
 // ─────────────────────────────────────────────────────────────────────────────
-const isMobileDevice = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth <= 640;
 const isDesktopOnly  = DESKTOP_ONLY_IDS.has(GAME_ID);
 
 function showError(){
