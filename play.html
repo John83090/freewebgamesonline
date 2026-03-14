@@ -11,7 +11,7 @@
 <script>
 // Force-reload if browser has old cached version
 (function(){
-  var V='fwgo_v5';
+  var V='fwgo_v6';
   if(localStorage.getItem('fwgo_ver')!==V){
     localStorage.setItem('fwgo_ver',V);
     // Unregister any service workers that might cache old content
@@ -759,18 +759,35 @@ function setLoadMsg(msg){ const p = loadEl.querySelector('p'); if(p) p.textConte
 if(!GAME_URL){
   showError();
 } else if(isMobileDevice){
-  // ─── MOBILE: open ALL games directly (no iframe) ───────────────────────────
-  // Mobile browsers can't reliably run Unity/WebGL/Flash games inside iframes
-  // due to memory limits, sandbox restrictions, and touch event issues.
-  // Instead, we open the game URL directly — giving it full browser resources
-  // and native touch support.
-
+  // ─── MOBILE ────────────────────────────────────────────────────────────────
   if(isDesktopOnly){
     // Flash/Ruffle game that needs keyboard → show warning
     showDesktopOnly();
+  } else if(NEWTAB_IDS.has(GAME_ID)){
+    // Game blocks iframe embedding → splash + open in new tab
+    showNewtabSplash();
   } else {
-    // Show mobile splash → tapping "Play Now" opens game directly
-    showMobileSplash();
+    // Try iframe first — HTML5 games load fine on mobile in-page.
+    // Fall back to splash screen if iframe doesn't load within 15s.
+    frame.src = GAME_URL;
+
+    let mobileSlowTimer = setTimeout(()=>{ setLoadMsg('Still loading… hang tight!'); }, 5000);
+    let mobileGiveUpTimer = setTimeout(()=>{
+      clearTimeout(mobileSlowTimer);
+      frame.src = '';
+      showMobileSplash();
+    }, 15000);
+
+    frame.onload = () => {
+      clearTimeout(mobileSlowTimer);
+      clearTimeout(mobileGiveUpTimer);
+      showGame();
+    };
+    frame.onerror = () => {
+      clearTimeout(mobileSlowTimer);
+      clearTimeout(mobileGiveUpTimer);
+      showMobileSplash();
+    };
   }
 } else if(NEWTAB_IDS.has(GAME_ID)){
   // Desktop: game blocks iframe embedding — show splash + open in new tab
