@@ -361,10 +361,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
           <div class="newtab-cover" id="newtab-cover-wrap"></div>
           <div>
             <div class="newtab-title" id="newtab-title"></div>
-            <div class="newtab-sub">This game opens in a new tab for the best experience</div>
+            <div class="newtab-sub" id="newtab-sub">This game opens in a new tab for the best experience</div>
           </div>
           <a class="btn-newtab-play" id="newtab-play-btn" href="#" target="_blank" rel="noopener noreferrer">▶&nbsp;Play Now</a>
-          <div class="newtab-hint">Free · No download needed · Opens in new tab</div>
+          <div class="newtab-hint" id="newtab-hint">Free · No download needed · Opens in new tab</div>
         </div>
         <!-- The iframe — src set by JS after preconnect warms up -->
         <iframe
@@ -612,7 +612,8 @@ gameOuter.classList.add(isPortrait ? 'portrait' : 'landscape');
 
 function checkRotatePrompt(){
   const isMobile = window.innerWidth <= 640;
-  if(!isMobile || isPortrait){ rotateEl.classList.remove('show'); return; }
+  // Don't show rotate prompt on mobile — we show splash screen instead of iframe
+  if(!isMobile || isPortrait || isMobileDevice){ rotateEl.classList.remove('show'); return; }
   rotateEl.classList.toggle('show', window.innerHeight > window.innerWidth);
 }
 function dismissRotate(){ rotateEl.classList.remove('show'); }
