@@ -393,162 +393,142 @@ const COLOR_VALS = Object.values(COLORS);
 function col(name) { return COLOR_KEYS.indexOf(name); }
 
 const LEVELS = [
-  // Level 1 — 5x5, 3 colors
+  // Level 1 — 5×5, 3 colors
   { size: 5, dots: [
-    [0,0,col('red')],   [4,4,col('red')],
-    [0,4,col('blue')],  [4,0,col('blue')],
-    [2,2,col('green')], [0,2,col('green')],
+    [0,0,col('red')], [3,4,col('red')],
+    [1,3,col('green')], [4,2,col('green')],
+    [2,3,col('blue')], [4,4,col('blue')],
   ]},
-
-  // Level 2 — 5x5, 4 colors
+  // Level 2 — 5×5, 4 colors
   { size: 5, dots: [
-    [0,0,col('red')],    [3,3,col('red')],
-    [0,4,col('blue')],   [4,1,col('blue')],
-    [1,1,col('green')],  [4,4,col('green')],
-    [0,2,col('yellow')], [3,0,col('yellow')],
+    [0,0,col('red')], [4,4,col('red')],
+    [0,1,col('green')], [3,4,col('green')],
+    [1,1,col('blue')], [3,3,col('blue')],
+    [1,2,col('yellow')], [2,2,col('yellow')],
   ]},
-
-  // Level 3 — 5x5, 5 colors
+  // Level 3 — 5×5, 5 colors
   { size: 5, dots: [
-    [0,0,col('red')],    [4,4,col('red')],
-    [0,4,col('blue')],   [4,0,col('blue')],
-    [0,2,col('green')],  [4,2,col('green')],
-    [2,0,col('yellow')], [2,4,col('yellow')],
-    [1,2,col('orange')], [3,2,col('orange')],
+    [0,0,col('red')], [0,4,col('red')],
+    [1,0,col('blue')], [4,1,col('blue')],
+    [1,1,col('yellow')], [3,1,col('yellow')],
+    [3,4,col('green')], [2,3,col('green')],
+    [4,4,col('orange')], [3,3,col('orange')],
   ]},
-
-  // Level 4 — 6x6, 5 colors
+  // Level 4 — 6×6, 4 colors
   { size: 6, dots: [
-    [0,0,col('red')],    [5,5,col('red')],
-    [0,5,col('blue')],   [5,0,col('blue')],
-    [0,2,col('green')],  [5,3,col('green')],
-    [1,1,col('yellow')], [4,4,col('yellow')],
-    [2,3,col('orange')], [3,2,col('orange')],
+    [0,0,col('red')], [2,2,col('red')],
+    [0,3,col('blue')], [2,5,col('blue')],
+    [3,0,col('green')], [5,2,col('green')],
+    [3,3,col('yellow')], [5,5,col('yellow')],
   ]},
-
-  // Level 5 — 6x6, 6 colors
+  // Level 5 — 6×6, 5 colors
   { size: 6, dots: [
-    [0,0,col('red')],    [5,5,col('red')],
-    [0,5,col('blue')],   [5,0,col('blue')],
-    [0,3,col('green')],  [3,5,col('green')],
-    [1,1,col('yellow')], [4,4,col('yellow')],
-    [2,0,col('orange')], [5,3,col('orange')],
-    [0,1,col('maroon')], [5,2,col('maroon')],
+    [0,0,col('red')], [5,4,col('red')],
+    [0,5,col('green')], [5,5,col('green')],
+    [1,0,col('yellow')], [3,2,col('yellow')],
+    [2,2,col('blue')], [4,3,col('blue')],
+    [4,0,col('orange')], [5,3,col('orange')],
   ]},
-
-  // Level 6 — 6x6, 6 colors (harder)
+  // Level 6 — 6×6, 6 colors
   { size: 6, dots: [
-    [0,0,col('red')],    [4,2,col('red')],
-    [0,5,col('blue')],   [5,1,col('blue')],
-    [1,0,col('green')],  [5,5,col('green')],
-    [0,3,col('yellow')], [3,5,col('yellow')],
-    [2,2,col('orange')], [4,4,col('orange')],
-    [1,4,col('pink')],   [5,3,col('pink')],
+    [0,0,col('red')], [0,5,col('red')],
+    [5,0,col('blue')], [5,5,col('blue')],
+    [1,0,col('green')], [4,2,col('green')],
+    [1,5,col('yellow')], [4,3,col('yellow')],
+    [1,1,col('orange')], [3,4,col('orange')],
+    [2,1,col('maroon')], [3,1,col('maroon')],
   ]},
-
-  // Level 7 — 7x7, 6 colors
+  // Level 7 — 7×7, 6 colors
   { size: 7, dots: [
-    [0,0,col('red')],    [6,6,col('red')],
-    [0,6,col('blue')],   [6,0,col('blue')],
-    [0,3,col('green')],  [6,3,col('green')],
-    [3,0,col('yellow')], [3,6,col('yellow')],
-    [1,1,col('orange')], [5,5,col('orange')],
-    [1,5,col('maroon')], [5,1,col('maroon')],
+    [0,0,col('red')], [0,6,col('red')],
+    [6,0,col('blue')], [6,6,col('blue')],
+    [1,0,col('green')], [5,4,col('green')],
+    [1,1,col('yellow')], [5,6,col('yellow')],
+    [2,1,col('orange')], [5,5,col('orange')],
+    [3,1,col('maroon')], [4,1,col('maroon')],
   ]},
-
-  // Level 8 — 7x7, 7 colors
+  // Level 8 — 7×7, 7 colors
   { size: 7, dots: [
-    [0,0,col('red')],    [6,6,col('red')],
-    [0,6,col('blue')],   [6,0,col('blue')],
-    [0,3,col('green')],  [3,6,col('green')],
-    [3,0,col('yellow')], [6,3,col('yellow')],
-    [1,2,col('orange')], [5,4,col('orange')],
-    [2,5,col('pink')],   [4,1,col('pink')],
-    [3,3,col('purple')], [0,5,col('purple')],
+    [0,0,col('red')], [0,6,col('red')],
+    [1,6,col('green')], [1,0,col('green')],
+    [2,0,col('blue')], [2,6,col('blue')],
+    [3,6,col('orange')], [3,0,col('orange')],
+    [4,0,col('yellow')], [4,6,col('yellow')],
+    [5,6,col('pink')], [5,0,col('pink')],
+    [6,0,col('maroon')], [6,6,col('maroon')],
   ]},
-
-  // Level 9 — 7x7, 7 colors (denser)
+  // Level 9 — 7×7, 7 colors
   { size: 7, dots: [
-    [0,0,col('red')],    [5,5,col('red')],
-    [0,6,col('blue')],   [6,1,col('blue')],
-    [1,0,col('green')],  [6,6,col('green')],
-    [0,4,col('yellow')], [4,0,col('yellow')],
-    [2,2,col('orange')], [5,3,col('orange')],
-    [1,5,col('maroon')], [4,6,col('maroon')],
-    [3,1,col('purple')], [6,4,col('purple')],
+    [0,6,col('red')], [1,0,col('red')],
+    [1,6,col('blue')], [6,4,col('blue')],
+    [6,3,col('yellow')], [2,0,col('yellow')],
+    [1,1,col('green')], [3,5,col('green')],
+    [4,5,col('orange')], [5,1,col('orange')],
+    [4,1,col('maroon')], [3,3,col('maroon')],
+    [2,4,col('pink')], [3,2,col('pink')],
   ]},
-
-  // Level 10 — 8x8, 7 colors
+  // Level 10 — 8×8, 6 colors
   { size: 8, dots: [
-    [0,0,col('red')],    [7,7,col('red')],
-    [0,7,col('blue')],   [7,0,col('blue')],
-    [0,3,col('green')],  [7,4,col('green')],
-    [3,0,col('yellow')], [4,7,col('yellow')],
-    [1,1,col('orange')], [6,6,col('orange')],
-    [1,6,col('pink')],   [6,1,col('pink')],
+    [0,0,col('red')], [1,0,col('red')],
+    [0,4,col('blue')], [1,4,col('blue')],
+    [2,0,col('green')], [3,0,col('green')],
+    [2,4,col('yellow')], [3,4,col('yellow')],
+    [4,0,col('orange')], [7,0,col('orange')],
+    [4,4,col('maroon')], [7,4,col('maroon')],
+  ]},
+  // Level 11 — 8×8, 7 colors
+  { size: 8, dots: [
+    [0,0,col('red')], [2,7,col('red')],
+    [3,7,col('blue')], [7,3,col('blue')],
+    [7,2,col('yellow')], [1,0,col('yellow')],
+    [1,1,col('green')], [4,6,col('green')],
+    [5,6,col('orange')], [4,1,col('orange')],
+    [2,1,col('maroon')], [5,4,col('maroon')],
+    [3,1,col('pink')], [5,3,col('pink')],
+  ]},
+  // Level 12 — 8×8, 8 colors
+  { size: 8, dots: [
+    [0,0,col('red')], [1,0,col('red')],
+    [0,4,col('blue')], [1,4,col('blue')],
+    [2,0,col('green')], [3,0,col('green')],
+    [2,4,col('yellow')], [3,4,col('yellow')],
+    [4,0,col('orange')], [5,0,col('orange')],
+    [4,4,col('maroon')], [5,4,col('maroon')],
+    [6,0,col('pink')], [7,0,col('pink')],
+    [6,4,col('purple')], [7,4,col('purple')],
+  ]},
+  // Level 13 — 9×9, 7 colors
+  { size: 9, dots: [
+    [0,0,col('red')], [2,8,col('red')],
+    [3,8,col('blue')], [8,3,col('blue')],
+    [8,2,col('yellow')], [1,0,col('yellow')],
+    [1,1,col('green')], [6,7,col('green')],
+    [2,1,col('orange')], [7,7,col('orange')],
+    [2,2,col('maroon')], [6,3,col('maroon')],
+    [6,2,col('pink')], [4,4,col('pink')],
+  ]},
+  // Level 14 — 9×9, 8 colors
+  { size: 9, dots: [
+    [0,0,col('red')], [2,8,col('red')],
+    [3,8,col('blue')], [8,3,col('blue')],
+    [8,2,col('yellow')], [1,0,col('yellow')],
+    [1,1,col('green')], [4,7,col('green')],
+    [2,1,col('orange')], [7,5,col('orange')],
+    [2,2,col('maroon')], [6,7,col('maroon')],
+    [7,7,col('pink')], [3,2,col('pink')],
     [3,3,col('purple')], [4,4,col('purple')],
   ]},
-
-  // Level 11 — 8x8, 8 colors
-  { size: 8, dots: [
-    [0,0,col('red')],    [7,7,col('red')],
-    [0,7,col('blue')],   [7,0,col('blue')],
-    [0,4,col('green')],  [4,7,col('green')],
-    [4,0,col('yellow')], [7,4,col('yellow')],
-    [1,2,col('orange')], [6,5,col('orange')],
-    [2,6,col('maroon')], [5,1,col('maroon')],
-    [1,5,col('pink')],   [5,2,col('pink')],
-    [3,3,col('cyan')],   [4,4,col('cyan')],
-  ]},
-
-  // Level 12 — 8x8, 8 colors (harder)
-  { size: 8, dots: [
-    [0,0,col('red')],    [6,3,col('red')],
-    [0,7,col('blue')],   [7,4,col('blue')],
-    [0,3,col('green')],  [5,7,col('green')],
-    [2,0,col('yellow')], [7,6,col('yellow')],
-    [0,5,col('orange')], [4,0,col('orange')],
-    [1,2,col('maroon')], [6,6,col('maroon')],
-    [3,4,col('pink')],   [7,1,col('pink')],
-    [2,7,col('purple')], [5,2,col('purple')],
-  ]},
-
-  // Level 13 — 9x9, 8 colors
+  // Level 15 — 9×9, 9 colors
   { size: 9, dots: [
-    [0,0,col('red')],    [8,8,col('red')],
-    [0,8,col('blue')],   [8,0,col('blue')],
-    [0,4,col('green')],  [8,4,col('green')],
-    [4,0,col('yellow')], [4,8,col('yellow')],
-    [1,1,col('orange')], [7,7,col('orange')],
-    [1,7,col('maroon')], [7,1,col('maroon')],
-    [2,4,col('pink')],   [6,4,col('pink')],
-    [4,2,col('purple')], [4,6,col('purple')],
-  ]},
-
-  // Level 14 — 9x9, 9 colors
-  { size: 9, dots: [
-    [0,0,col('red')],    [8,8,col('red')],
-    [0,8,col('blue')],   [8,0,col('blue')],
-    [0,4,col('green')],  [4,8,col('green')],
-    [4,0,col('yellow')], [8,4,col('yellow')],
-    [1,2,col('orange')], [7,6,col('orange')],
-    [2,7,col('maroon')], [6,1,col('maroon')],
-    [1,5,col('pink')],   [5,1,col('pink')],
-    [3,3,col('purple')], [5,7,col('purple')],
-    [4,4,col('cyan')],   [2,2,col('cyan')],
-  ]},
-
-  // Level 15 — 9x9, 9 colors (expert)
-  { size: 9, dots: [
-    [0,0,col('red')],    [7,5,col('red')],
-    [0,8,col('blue')],   [8,1,col('blue')],
-    [1,0,col('green')],  [8,8,col('green')],
-    [0,5,col('yellow')], [5,0,col('yellow')],
-    [0,3,col('orange')], [3,8,col('orange')],
-    [2,1,col('maroon')], [7,7,col('maroon')],
-    [1,6,col('pink')],   [6,0,col('pink')],
-    [3,3,col('purple')], [6,6,col('purple')],
-    [4,5,col('cyan')],   [8,3,col('cyan')],
+    [0,0,col('red')], [0,8,col('red')],
+    [1,8,col('blue')], [1,0,col('blue')],
+    [2,0,col('green')], [2,8,col('green')],
+    [3,8,col('yellow')], [3,0,col('yellow')],
+    [4,0,col('orange')], [4,8,col('orange')],
+    [5,8,col('maroon')], [5,0,col('maroon')],
+    [6,0,col('pink')], [6,8,col('pink')],
+    [7,8,col('purple')], [7,0,col('purple')],
+    [8,0,col('cyan')], [8,8,col('cyan')],
   ]},
 ];
 
