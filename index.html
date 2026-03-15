@@ -12,7 +12,7 @@
 <script>
 // Force-reload if browser has old cached version
 (function(){
-  var V='fwgo_v5';
+  var V='fwgo_v8';
   if(localStorage.getItem('fwgo_ver')!==V){
     localStorage.setItem('fwgo_ver',V);
     if(navigator.serviceWorker){navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(w){w.unregister()})}).catch(function(){});}
@@ -1587,6 +1587,21 @@ const GAMES=[
 {id:'xx142', name:'xx142-b2.exe', emoji:'⚡', cat:'action', badge:'new',
  thumb:'https://image.thum.io/get/width/300/crop/300/https://classroomlesson.github.io/basic-ruffle-player/html/xx142-b2.exe/index.html',
  url:'https://classroomlesson.github.io/basic-ruffle-player/html/xx142-b2.exe/index.html', ext:'https://classroomlesson.github.io/basic-ruffle-player/html/xx142-b2.exe/index.html'},
+{id:'leveldevil', name:'Level Devil', emoji:'😈', cat:'action', badge:'hot',
+ thumb:'/img/covers/leveldevil.jpg',
+ url:'https://leveldevil-2.github.io/', ext:'https://leveldevil-2.github.io/'},
+{id:'ludo', name:'Ludo', emoji:'🎲', cat:'misc', badge:'new',
+ thumb:'/img/covers/ludo.jpg',
+ url:'/games/ludo.html', ext:'/games/ludo.html'},
+{id:'snake_ladder', name:'Snakes & Ladders', emoji:'🐍', cat:'misc', badge:'new',
+ thumb:'/img/covers/snake_ladder.jpg',
+ url:'/games/snake_ladder.html', ext:'/games/snake_ladder.html'},
+{id:'blackjack', name:'Blackjack', emoji:'🃏', cat:'misc', badge:'new',
+ thumb:'/img/covers/blackjack.jpg',
+ url:'/games/blackjack.html', ext:'/games/blackjack.html'},
+{id:'freeflow', name:'Free Flow', emoji:'🔀', cat:'puzzle', badge:'new',
+ thumb:'/img/covers/freeflow.jpg',
+ url:'/games/freeflow.html', ext:'/games/freeflow.html'},
 ];
 
 /* ── HOT LIST ── */

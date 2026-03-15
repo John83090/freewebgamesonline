@@ -269,5 +269,10 @@ const GAMES_LIST=[
 {id:"pokemon_emerald",name:"Pokemon Emerald",emoji:"👾",cat:"retro",badge:"popular",url:"https://maddox05.github.io/gba_emu/launcher.html#pokemonemerald",ext:"https://maddox05.github.io/gba_emu/launcher.html#pokemonemerald"},
 {id:"pokemon_red",name:"Pokemon Red",emoji:"👾",cat:"retro",badge:"",url:"https://maddox05.github.io/gba_emu/launcher.html#pokemonred",ext:"https://maddox05.github.io/gba_emu/launcher.html#pokemonred"},
 {id:"where_water",name:"Where\'s My Water?",emoji:"🧩",cat:"puzzle",badge:"",url:"https://classroomlesson.github.io/basic-ruffle-player/html/where_is_the_water/index.html",ext:"https://classroomlesson.github.io/basic-ruffle-player/html/where_is_the_water/index.html"},
-{id:"xx142",name:"xx142-b2.exe",emoji:"⚡",cat:"action",badge:"new",url:"https://classroomlesson.github.io/basic-ruffle-player/html/xx142-b2.exe/index.html",ext:"https://classroomlesson.github.io/basic-ruffle-player/html/xx142-b2.exe/index.html"}
+{id:"xx142",name:"xx142-b2.exe",emoji:"⚡",cat:"action",badge:"new",url:"https://classroomlesson.github.io/basic-ruffle-player/html/xx142-b2.exe/index.html",ext:"https://classroomlesson.github.io/basic-ruffle-player/html/xx142-b2.exe/index.html"},
+{id:"leveldevil",name:"Level Devil",emoji:"😈",cat:"action",badge:"hot",url:"https://leveldevil-2.github.io/",ext:"https://leveldevil-2.github.io/"},
+{id:"ludo",name:"Ludo",emoji:"🎲",cat:"misc",badge:"new",url:"/games/ludo.html",ext:"/games/ludo.html"},
+{id:"snake_ladder",name:"Snakes & Ladders",emoji:"🐍",cat:"misc",badge:"new",url:"/games/snake_ladder.html",ext:"/games/snake_ladder.html"},
+{id:"blackjack",name:"Blackjack",emoji:"🃏",cat:"misc",badge:"new",url:"/games/blackjack.html",ext:"/games/blackjack.html"},
+{id:"freeflow",name:"Free Flow",emoji:"🔀",cat:"puzzle",badge:"new",url:"/games/freeflow.html",ext:"/games/freeflow.html"}
 ];

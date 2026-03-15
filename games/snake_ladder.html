@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"/>
+<title>Snakes &amp; Ladders – Free Web Games</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;overflow-x:hidden}
+
+/* TOP BAR */
+.topbar{width:100%;background:#13131f;border-bottom:1px solid #2a2a45;padding:10px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.back{color:#9898b8;text-decoration:none;font-size:0.85rem;white-space:nowrap}.back:hover{color:#e8e8f0}
+.game-title{font-weight:800;font-size:1rem;color:#e8e8f0}
+.spacer{flex:1}
+
+/* MAIN LAYOUT */
+.area{display:flex;flex-direction:column;align-items:center;padding:14px 10px 30px;gap:12px;width:100%;max-width:520px;margin:0 auto}
+
+/* PLAYER PANELS */
+.players-row{display:flex;gap:10px;width:100%}
+.player-card{flex:1;background:#1e1e30;border:2px solid #2a2a45;border-radius:12px;padding:10px 12px;text-align:center;transition:border-color 0.3s,box-shadow 0.3s}
+.player-card.active-turn{box-shadow:0 0 0 2px var(--pc),0 0 18px -4px var(--pc);border-color:var(--pc)}
+.player-card .p-name{font-size:0.7rem;color:#9898b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px}
+.player-card .p-pos{font-size:1.5rem;font-weight:900;color:var(--pc)}
+.player-card .p-label{font-size:0.65rem;color:#9898b8;margin-top:1px}
+
+/* STATUS BAR */
+.status-bar{width:100%;background:#1e1e30;border:1px solid #2a2a45;border-radius:10px;padding:9px 16px;text-align:center;font-size:0.88rem;font-weight:700;min-height:38px;display:flex;align-items:center;justify-content:center;gap:6px;transition:border-color 0.3s}
+.status-bar.snake-msg{border-color:#e05050;color:#ff8080}
+.status-bar.ladder-msg{border-color:#50c878;color:#7de8a0}
+.status-bar.win-msg{border-color:#ffd700;color:#ffd700;animation:winpulse 0.7s infinite alternate}
+@keyframes winpulse{to{box-shadow:0 0 20px rgba(255,215,0,0.4)}}
+
+/* BOARD WRAPPER */
+.board-wrap{position:relative;width:100%;aspect-ratio:1;background:#161626;border:2px solid #2a2a45;border-radius:14px;overflow:hidden}
+canvas#board{position:absolute;top:0;left:0;width:100%;height:100%;display:block}
+
+/* DICE AREA */
+.dice-area{display:flex;align-items:center;gap:18px;width:100%}
+.dice-btn{background:#6c63ff;border:none;color:#fff;border-radius:12px;padding:12px 28px;font-size:1rem;font-weight:800;cursor:pointer;transition:background 0.15s,transform 0.1s;flex:1}
+.dice-btn:hover:not(:disabled){background:#7d75ff}
+.dice-btn:active:not(:disabled){transform:scale(0.96)}
+.dice-btn:disabled{background:#2a2a45;color:#555;cursor:default}
+.dice-display{width:64px;height:64px;background:#1e1e30;border:2px solid #2a2a45;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.1s}
+.dice-display.rolling{animation:diceroll 0.5s linear}
+@keyframes diceroll{
+  0%{transform:rotate(0deg) scale(1)}
+  25%{transform:rotate(90deg) scale(1.1)}
+  50%{transform:rotate(180deg) scale(0.9)}
+  75%{transform:rotate(270deg) scale(1.1)}
+  100%{transform:rotate(360deg) scale(1)}
+}
+.dice-face{font-size:2.4rem;line-height:1;user-select:none}
+
+/* WIN OVERLAY */
+.win-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:200;align-items:center;justify-content:center;padding:20px}
+.win-overlay.show{display:flex}
+.win-box{background:#1e1e30;border:2px solid #ffd700;border-radius:20px;padding:36px 30px;text-align:center;max-width:340px;width:100%}
+.win-trophy{font-size:4rem;margin-bottom:8px}
+.win-title{font-size:1.6rem;font-weight:900;color:#ffd700;margin-bottom:6px}
+.win-sub{font-size:0.9rem;color:#9898b8;margin-bottom:24px}
+.play-again-btn{background:#6c63ff;border:none;color:#fff;border-radius:10px;padding:13px 32px;font-size:1rem;font-weight:800;cursor:pointer;width:100%}
+.play-again-btn:hover{background:#7d75ff}
+
+/* LEGEND */
+.legend{display:flex;gap:16px;font-size:0.72rem;color:#9898b8;flex-wrap:wrap;justify-content:center}
+.legend-item{display:flex;align-items:center;gap:5px}
+.legend-dot{width:10px;height:10px;border-radius:50%}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="/index.html">← All Games</a>
+  <span class="game-title">🐍 Snakes &amp; Ladders</span>
+  <div class="spacer"></div>
+</div>
+
+<div class="area">
+
+  <!-- Player cards -->
+  <div class="players-row">
+    <div class="player-card" id="card1" style="--pc:#a855f7">
+      <div class="p-name">Player 1</div>
+      <div class="p-pos" id="pos1">1</div>
+      <div class="p-label">Purple</div>
+    </div>
+    <div class="player-card" id="card2" style="--pc:#f97316">
+      <div class="p-name">Player 2</div>
+      <div class="p-pos" id="pos2">1</div>
+      <div class="p-label">Orange</div>
+    </div>
+  </div>
+
+  <!-- Status message -->
+  <div class="status-bar" id="statusBar">Player 1's turn — click Roll Dice!</div>
+
+  <!-- Board canvas -->
+  <div class="board-wrap">
+    <canvas id="board"></canvas>
+  </div>
+
+  <!-- Dice + Roll button -->
+  <div class="dice-area">
+    <div class="dice-display" id="diceDisplay"><span class="dice-face" id="diceFace">🎲</span></div>
+    <button class="dice-btn" id="rollBtn" onclick="rollDice()">Roll Dice</button>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#a855f7"></div>Player 1 (Purple)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f97316"></div>Player 2 (Orange)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e05050"></div>Snake (slides down)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#50c878"></div>Ladder (climbs up)</div>
+  </div>
+
+</div>
+
+<!-- Win overlay -->
+<div class="win-overlay" id="winOverlay">
+  <div class="win-box">
+    <div class="win-trophy">🏆</div>
+    <div class="win-title" id="winTitle">Player 1 Wins!</div>
+    <div class="win-sub" id="winSub">Reached square 100 exactly!</div>
+    <button class="play-again-btn" onclick="resetGame()">Play Again</button>
+  </div>
+</div>
+
+<script>
+// ─── GAME DATA ─────────────────────────────────────────────────────────────
+const SNAKES = {
+  99:78, 95:24, 87:24, 64:60, 62:19, 54:34, 49:11, 17:7
+};
+const LADDERS = {
+  4:14, 9:31, 20:38, 28:84, 40:59, 51:67, 63:81, 71:91
+};
+
+const DICE_FACES = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+const P_COLORS  = ['#a855f7','#f97316'];
+const P_NAMES   = ['Player 1','Player 2'];
+
+let positions  = [1, 1];
+let current    = 0; // 0 or 1
+let rolling    = false;
+let gameOver   = false;
+
+// ─── CANVAS SETUP ──────────────────────────────────────────────────────────
+const canvas = document.getElementById('board');
+const ctx    = canvas.getContext('2d');
+
+function resizeCanvas() {
+  const wrap = canvas.parentElement;
+  const sz   = wrap.clientWidth;
+  canvas.width  = sz;
+  canvas.height = sz;
+  drawBoard();
+}
+
+window.addEventListener('resize', resizeCanvas);
+
+// ─── COORDINATE HELPERS ────────────────────────────────────────────────────
+// Square numbering: 1 = bottom-left, snakes left↔right each row upwards
+function squareToRC(sq) {
+  // sq 1-100 => row 0 (bottom) to row 9 (top), col 0 (left) to 9 (right)
+  const idx  = sq - 1;           // 0-based
+  const row  = Math.floor(idx / 10); // 0 = bottom row
+  const posInRow = idx % 10;
+  // Even rows (0,2,4…) go left→right, odd rows go right→left
+  const col  = (row % 2 === 0) ? posInRow : (9 - posInRow);
+  return { row, col };
+}
+
+function squareToXY(sq, cellSize) {
+  const { row, col } = squareToRC(sq);
+  const drawRow = 9 - row; // flip: row 0 (bottom) → drawRow 9
+  const x = col * cellSize + cellSize / 2;
+  const y = drawRow * cellSize + cellSize / 2;
+  return { x, y };
+}
+
+// ─── DRAW BOARD ────────────────────────────────────────────────────────────
+function drawBoard() {
+  const sz   = canvas.width;
+  const cell = sz / 10;
+
+  // Background
+  ctx.fillStyle = '#0d0d1a';
+  ctx.fillRect(0, 0, sz, sz);
+
+  // Grid cells
+  for (let sq = 1; sq <= 100; sq++) {
+    const { row, col } = squareToRC(sq);
+    const drawRow = 9 - row;
+    const x = col * cell;
+    const y = drawRow * cell;
+
+    // Alternating cell colours
+    const light = (row + col) % 2 === 0;
+    ctx.fillStyle = light ? '#1a1a2e' : '#16213e';
+    ctx.fillRect(x + 1, y + 1, cell - 2, cell - 2);
+
+    // Square number
+    ctx.fillStyle = '#3a3a55';
+    ctx.font = `bold ${Math.max(8, cell * 0.22)}px 'Segoe UI',sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(sq, x + 4, y + 3);
+  }
+
+  // ── Draw Ladders ──────────────────────────────────────────────────────────
+  Object.entries(LADDERS).forEach(([from, to]) => {
+    from = parseInt(from);
+    to   = parseInt(to);
+    const p1 = squareToXY(from, cell);
+    const p2 = squareToXY(to,   cell);
+    drawLadder(p1, p2, cell);
+  });
+
+  // ── Draw Snakes ───────────────────────────────────────────────────────────
+  Object.entries(SNAKES).forEach(([from, to]) => {
+    from = parseInt(from);
+    to   = parseInt(to);
+    const p1 = squareToXY(from, cell);
+    const p2 = squareToXY(to,   cell);
+    drawSnake(p1, p2, cell);
+  });
+
+  // ── Grid lines over everything ────────────────────────────────────────────
+  ctx.strokeStyle = '#2a2a45';
+  ctx.lineWidth   = 1;
+  for (let i = 0; i <= 10; i++) {
+    ctx.beginPath();
+    ctx.moveTo(i * cell, 0);
+    ctx.lineTo(i * cell, sz);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, i * cell);
+    ctx.lineTo(sz, i * cell);
+    ctx.stroke();
+  }
+
+  // ── Draw player pieces ────────────────────────────────────────────────────
+  drawPieces(cell);
+}
+
+// ── Ladder drawing ────────────────────────────────────────────────────────
+function drawLadder(p1, p2, cell) {
+  const W    = cell * 0.12;
+  const dx   = p2.x - p1.x;
+  const dy   = p2.y - p1.y;
+  const len  = Math.sqrt(dx*dx + dy*dy);
+  const ux   = dx / len;
+  const uy   = dy / len;
+  const nx   = -uy;
+  const ny   =  ux;
+
+  // Two rails
+  const rColors = ['#50c878','#3ba35c'];
+  [-1, 1].forEach((side, i) => {
+    const ox = nx * W * side;
+    const oy = ny * W * side;
+    ctx.beginPath();
+    ctx.moveTo(p1.x + ox, p1.y + oy);
+    ctx.lineTo(p2.x + ox, p2.y + oy);
+    ctx.strokeStyle = rColors[i];
+    ctx.lineWidth   = Math.max(2, cell * 0.05);
+    ctx.lineCap     = 'round';
+    ctx.stroke();
+  });
+
+  // Rungs
+  const rungCount = Math.max(3, Math.floor(len / (cell * 0.4)));
+  ctx.strokeStyle = '#7ee8a2';
+  ctx.lineWidth   = Math.max(1.5, cell * 0.035);
+  for (let r = 0; r <= rungCount; r++) {
+    const t  = r / rungCount;
+    const cx = p1.x + dx * t;
+    const cy = p1.y + dy * t;
+    ctx.beginPath();
+    ctx.moveTo(cx - nx * W, cy - ny * W);
+    ctx.lineTo(cx + nx * W, cy + ny * W);
+    ctx.stroke();
+  }
+
+  // Emoji labels at top & bottom
+  const emojiSize = Math.max(10, cell * 0.32);
+  ctx.font = `${emojiSize}px sans-serif`;
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🪜', p2.x, p2.y);
+}
+
+// ── Snake drawing ─────────────────────────────────────────────────────────
+function drawSnake(p1, p2, cell) {
+  // Bezier curve for the snake body
+  const midX = (p1.x + p2.x) / 2 + (p2.y - p1.y) * 0.35;
+  const midY = (p1.y + p2.y) / 2 - (p2.x - p1.x) * 0.35;
+
+  // Shadow / glow
+  ctx.shadowColor = '#e0505088';
+  ctx.shadowBlur  = 6;
+
+  // Thick body
+  ctx.beginPath();
+  ctx.moveTo(p1.x, p1.y);
+  ctx.quadraticCurveTo(midX, midY, p2.x, p2.y);
+  ctx.strokeStyle = '#c03030';
+  ctx.lineWidth   = Math.max(4, cell * 0.13);
+  ctx.lineCap     = 'round';
+  ctx.stroke();
+
+  // Thin highlight
+  ctx.beginPath();
+  ctx.moveTo(p1.x, p1.y);
+  ctx.quadraticCurveTo(midX, midY, p2.x, p2.y);
+  ctx.strokeStyle = '#ff7070';
+  ctx.lineWidth   = Math.max(1.5, cell * 0.05);
+  ctx.stroke();
+
+  ctx.shadowBlur = 0;
+
+  // Snake head emoji at the top (p1 = higher square)
+  const emojiSize = Math.max(10, cell * 0.36);
+  ctx.font = `${emojiSize}px sans-serif`;
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🐍', p1.x, p1.y);
+}
+
+// ── Player pieces ─────────────────────────────────────────────────────────
+function drawPieces(cell) {
+  positions.forEach((sq, i) => {
+    const { x, y } = squareToXY(sq, cell);
+
+    // Offset pieces if on same square
+    const xOff = positions[0] === positions[1] ? (i === 0 ? -cell*0.15 : cell*0.15) : 0;
+
+    const r = cell * 0.22;
+    ctx.shadowColor = P_COLORS[i];
+    ctx.shadowBlur  = 10;
+
+    ctx.beginPath();
+    ctx.arc(x + xOff, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = P_COLORS[i];
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(x + xOff, y, r, 0, Math.PI * 2);
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth   = Math.max(1, cell * 0.04);
+    ctx.stroke();
+
+    // Player number label
+    ctx.fillStyle = '#fff';
+    ctx.font      = `bold ${Math.max(7, cell * 0.2)}px 'Segoe UI',sans-serif`;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(i + 1, x + xOff, y);
+
+    ctx.shadowBlur = 0;
+  });
+}
+
+// ─── UI HELPERS ────────────────────────────────────────────────────────────
+function updatePlayerCards() {
+  [0, 1].forEach(i => {
+    document.getElementById(`card${i+1}`).classList.toggle('active-turn', i === current && !gameOver);
+    document.getElementById(`pos${i+1}`).textContent = positions[i];
+  });
+}
+
+function setStatus(msg, type) {
+  const bar = document.getElementById('statusBar');
+  bar.textContent = msg;
+  bar.className   = 'status-bar' + (type ? ' ' + type : '');
+}
+
+// ─── ROLL DICE ─────────────────────────────────────────────────────────────
+function rollDice() {
+  if (rolling || gameOver) return;
+  rolling = true;
+
+  const btn  = document.getElementById('rollBtn');
+  const disp = document.getElementById('diceDisplay');
+  const face = document.getElementById('diceFace');
+
+  btn.disabled = true;
+  disp.classList.add('rolling');
+
+  let ticks   = 0;
+  const total = 12;
+  const id    = setInterval(() => {
+    face.textContent = DICE_FACES[Math.floor(Math.random() * 6)];
+    ticks++;
+    if (ticks >= total) {
+      clearInterval(id);
+      disp.classList.remove('rolling');
+      const roll = Math.floor(Math.random() * 6) + 1;
+      face.textContent = DICE_FACES[roll - 1];
+      resolveRoll(roll);
+    }
+  }, 50);
+}
+
+// ─── RESOLVE ROLL ──────────────────────────────────────────────────────────
+function resolveRoll(roll) {
+  const name = P_NAMES[current];
+  let pos    = positions[current];
+  const newPos = pos + roll;
+
+  // Must land exactly on 100
+  if (newPos > 100) {
+    setStatus(`${name} rolled ${roll} — needs ${100 - pos} to win. Turn skipped!`);
+    endTurn();
+    return;
+  }
+
+  pos = newPos;
+
+  // Check snake
+  if (SNAKES[pos] !== undefined) {
+    const dest = SNAKES[pos];
+    positions[current] = dest;
+    drawBoard();
+    updatePlayerCards();
+    setTimeout(() => {
+      setStatus(`🐍 Snake! ${name} slides down to ${dest}`, 'snake-msg');
+      endTurn();
+    }, 300);
+    return;
+  }
+
+  // Check ladder
+  if (LADDERS[pos] !== undefined) {
+    const dest = LADDERS[pos];
+    positions[current] = dest;
+    drawBoard();
+    updatePlayerCards();
+    setTimeout(() => {
+      setStatus(`🪜 Ladder! ${name} climbs up to ${dest}`, 'ladder-msg');
+      if (dest === 100) { winGame(); return; }
+      endTurn();
+    }, 300);
+    return;
+  }
+
+  // Normal move
+  positions[current] = pos;
+  drawBoard();
+  updatePlayerCards();
+
+  if (pos === 100) {
+    winGame();
+    return;
+  }
+
+  setStatus(`${name} rolled ${roll} — moved to square ${pos}.`);
+  endTurn();
+}
+
+function endTurn() {
+  rolling = false;
+  current = 1 - current;
+  updatePlayerCards();
+  if (!gameOver) {
+    document.getElementById('rollBtn').disabled = false;
+    if (!document.querySelector('.status-bar.snake-msg') &&
+        !document.querySelector('.status-bar.ladder-msg')) {
+      setStatus(`${P_NAMES[current]}'s turn — click Roll Dice!`);
+    } else {
+      // Brief delay then update turn message
+      setTimeout(() => {
+        if (!gameOver) setStatus(`${P_NAMES[current]}'s turn — click Roll Dice!`);
+      }, 1400);
+    }
+  }
+}
+
+function winGame() {
+  gameOver = true;
+  rolling  = false;
+  const name = P_NAMES[current];
+  setStatus(`🏆 ${name} wins! Reached square 100!`, 'win-msg');
+  document.getElementById('rollBtn').disabled = true;
+  document.getElementById('winTitle').textContent = `${name} Wins!`;
+  document.getElementById('winSub').textContent   = `Reached square 100 exactly! 🎉`;
+  setTimeout(() => document.getElementById('winOverlay').classList.add('show'), 800);
+}
+
+// ─── RESET ─────────────────────────────────────────────────────────────────
+function resetGame() {
+  positions = [1, 1];
+  current   = 0;
+  rolling   = false;
+  gameOver  = false;
+  document.getElementById('winOverlay').classList.remove('show');
+  document.getElementById('rollBtn').disabled = false;
+  document.getElementById('diceFace').textContent = '🎲';
+  updatePlayerCards();
+  setStatus(`Player 1's turn — click Roll Dice!`);
+  drawBoard();
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────────
+resizeCanvas();
+updatePlayerCards();
+</script>
+</body>
+</html>
