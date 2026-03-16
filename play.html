@@ -792,15 +792,17 @@ if(!GAME_URL){
     showMobileSplash();
   } else {
     // HTML5 game — try iframe in-page first.
-    // Fall back to splash screen if iframe doesn't load within 15s.
+    // Fall back to splash screen if iframe doesn't load within 90s.
+    // Large games (e.g. Temple Run 2's 11.7 MB bundle) can take >15s on
+    // slower mobile connections, so we give them 90 seconds before giving up.
     frame.src = GAME_URL;
 
-    let mobileSlowTimer = setTimeout(()=>{ setLoadMsg('Still loading… hang tight!'); }, 5000);
+    let mobileSlowTimer = setTimeout(()=>{ setLoadMsg('Still loading… hang tight!'); }, 8000);
     let mobileGiveUpTimer = setTimeout(()=>{
       clearTimeout(mobileSlowTimer);
       frame.src = '';
       showMobileSplash();
-    }, 15000);
+    }, 90000);
 
     frame.onload = () => {
       clearTimeout(mobileSlowTimer);
