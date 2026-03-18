@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Word Search – FreeWebGamesOnline</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
+#topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 18px;display:flex;align-items:center;gap:14px}
+#topbar a{color:#9898b8;text-decoration:none;font-size:20px}#topbar a:hover{color:#6c63ff}
+#topbar h1{font-size:18px;flex:1}
+#score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:700}
+#main{display:flex;flex-wrap:wrap;justify-content:center;padding:16px;gap:20px}
+#grid-wrap{background:#1e1e30;border:1px solid #2a2a45;border-radius:10px;padding:12px;user-select:none}
+#grid{display:grid;gap:2px}
+.cell{width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border-radius:4px;cursor:pointer;color:#e8e8f0;background:#0d0d14;transition:.1s}
+.cell.hl{background:#6c63ff;color:#fff}
+.cell.found{background:#2ecc71;color:#fff}
+.cell.selecting{background:#574fd6;color:#fff}
+#side{display:flex;flex-direction:column;gap:14px;min-width:180px}
+#word-list{background:#1e1e30;border:1px solid #2a2a45;border-radius:10px;padding:14px}
+#word-list h3{font-size:14px;color:#9898b8;margin-bottom:10px}
+.witem{font-size:15px;padding:4px 0;border-bottom:1px solid #2a2a45;transition:.2s}
+.witem.found{text-decoration:line-through;color:#2ecc71}
+#info{display:flex;flex-direction:column;gap:8px}
+#info span{background:#1e1e30;border:1px solid #2a2a45;padding:6px 14px;border-radius:8px;font-size:14px;color:#9898b8}
+#info b{color:#e8e8f0}
+button.action{background:#6c63ff;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}
+button.action:hover{background:#574fd6}
+#message{font-size:18px;font-weight:700;color:#2ecc71;text-align:center;min-height:28px}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>&#128270; Word Search</h1>
+  <span id="score-badge">Found: 0/10</span>
+</div>
+<div id="main">
+  <div style="display:flex;flex-direction:column;gap:10px;align-items:center">
+    <div id="grid-wrap"><div id="grid"></div></div>
+    <div id="message"></div>
+    <button class="action" onclick="newGame()">New Game</button>
+  </div>
+  <div id="side">
+    <div id="info">
+      <span>Time: <b id="timer">0:00</b></span>
+      <span>Found: <b id="found-count">0</b>/10</span>
+    </div>
+    <div id="word-list"><h3>FIND THESE WORDS</h3><div id="wlist"></div></div>
+  </div>
+</div>
+<script>
+const SIZE=15;
+const WORD_SETS=[
+  ['ELEPHANT','TIGER','PANDA','DOLPHIN','PENGUIN','CHEETAH','GORILLA','JAGUAR','FALCON','PYTHON'],
+  ['MANGO','PAPAYA','BANANA','CHERRY','LEMON','PEACH','GRAPE','MELON','KIWI','PLUM'],
+  ['PYTHON','JAVA','RUBY','SWIFT','KOTLIN','SCALA','RUST','PERL','BASH','LISP']
+];
+const DIRS=[[0,1],[1,0],[0,-1],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
+let grid=[],placed=[],found=[],words=[],elapsed=0,timerID=null;
+let selecting=false,startCell=null,currentPath=[];
+
+function newGame(){
+  clearInterval(timerID);elapsed=0;found=[];
+  words=[...WORD_SETS[Math.floor(Math.random()*WORD_SETS.length)]];
+  buildGrid();render();renderWordList();
+  timerID=setInterval(()=>{elapsed++;const m=Math.floor(elapsed/60),s=elapsed%60;document.getElementById('timer').textContent=m+':'+(s<10?'0':'')+s;},1000);
+  document.getElementById('message').textContent='';
+  document.getElementById('found-count').textContent='0';
+  document.getElementById('score-badge').textContent='Found: 0/10';
+}
+
+function buildGrid(){
+  grid=Array.from({length:SIZE},()=>Array(SIZE).fill(''));
+  placed=[];
+  for(const w of words){
+    let placed_ok=false;
+    for(let attempt=0;attempt<200&&!placed_ok;attempt++){
+      const [dr,dc]=DIRS[Math.floor(Math.random()*DIRS.length)];
+      const r=Math.floor(Math.random()*SIZE),c=Math.floor(Math.random()*SIZE);
+      const cells=[];
+      let ok=true;
+      for(let i=0;i<w.length;i++){
+        const nr=r+dr*i,nc=c+dc*i;
+        if(nr<0||nr>=SIZE||nc<0||nc>=SIZE){ok=false;break;}
+        if(grid[nr][nc]&&grid[nr][nc]!==w[i]){ok=false;break;}
+        cells.push([nr,nc]);
+      }
+      if(ok){cells.forEach(([nr,nc],i)=>grid[nr][nc]=w[i]);placed.push({word:w,cells});placed_ok=true;}
+    }
+  }
+  // Fill blanks
+  const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)if(!grid[r][c])grid[r][c]=letters[Math.floor(Math.random()*26)];
+}
+
+function render(){
+  const el=document.getElementById('grid');
+  el.style.gridTemplateColumns=`repeat(${SIZE},28px)`;
+  el.innerHTML='';
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+    const d=document.createElement('div');
+    d.className='cell';d.textContent=grid[r][c];d.dataset.r=r;d.dataset.c=c;
+    d.addEventListener('mousedown',startSel);
+    d.addEventListener('mouseover',moveSel);
+    d.addEventListener('mouseup',endSel);
+    d.addEventListener('touchstart',e=>{e.preventDefault();startSel(e.touches[0]);},{passive:false});
+    d.addEventListener('touchmove',e=>{e.preventDefault();const t=document.elementFromPoint(e.touches[0].clientX,e.touches[0].clientY);if(t&&t.classList.contains('cell'))moveSel({target:t});},{passive:false});
+    d.addEventListener('touchend',e=>{e.preventDefault();endSel();},{passive:false});
+    el.appendChild(d);
+  }
+  recolorFound();
+}
+
+function cellKey(r,c){return r+','+c;}
+let foundCells=new Set();
+
+function recolorFound(){
+  document.querySelectorAll('.cell').forEach(d=>{
+    const key=cellKey(parseInt(d.dataset.r),parseInt(d.dataset.c));
+    if(foundCells.has(key))d.classList.add('found');
+  });
+}
+
+function startSel(e){selecting=true;startCell={r:parseInt(e.target.dataset.r),c:parseInt(e.target.dataset.c)};currentPath=[];highlightPath([startCell]);}
+function moveSel(e){
+  if(!selecting)return;
+  const r=parseInt(e.target.dataset.r),c=parseInt(e.target.dataset.c);
+  // compute straight path from start to current
+  const dr=r-startCell.r,dc=c-startCell.c;
+  let path=[];
+  const len=Math.max(Math.abs(dr),Math.abs(dc));
+  let stepR=dr===0?0:(dr>0?1:-1),stepC=dc===0?0:(dc>0?1:-1);
+  if(Math.abs(dr)!==Math.abs(dc)&&dr!==0&&dc!==0){// only straight or diagonal
+    if(Math.abs(dr)>Math.abs(dc))stepC=0;else stepR=0;
+  }
+  for(let i=0;i<=len;i++)path.push({r:startCell.r+stepR*i,c:startCell.c+stepC*i});
+  currentPath=path;highlightPath(path);
+}
+function endSel(){
+  if(!selecting)return;selecting=false;
+  const sel=currentPath.map(p=>grid[p.r][p.c]).join('');
+  const selR=sel.split('').reverse().join('');
+  for(const p of placed){
+    if(!found.includes(p.word)&&(sel===p.word||selR===p.word)){
+      found.push(p.word);
+      p.cells.forEach(([r,c])=>foundCells.add(cellKey(r,c)));
+      document.querySelectorAll('.witem').forEach(el=>{if(el.textContent===p.word)el.classList.add('found');});
+      const fc=found.length;
+      document.getElementById('found-count').textContent=fc;
+      document.getElementById('score-badge').textContent='Found: '+fc+'/10';
+      if(fc===words.length){clearInterval(timerID);document.getElementById('message').textContent='All found! Great job!';}
+      break;
+    }
+  }
+  clearHighlight();recolorFound();currentPath=[];
+}
+
+function highlightPath(path){
+  document.querySelectorAll('.cell.selecting').forEach(d=>d.classList.remove('selecting'));
+  path.forEach(p=>{
+    const d=document.querySelector(`.cell[data-r="${p.r}"][data-c="${p.c}"]`);
+    if(d&&!d.classList.contains('found'))d.classList.add('selecting');
+  });
+}
+function clearHighlight(){document.querySelectorAll('.cell.selecting').forEach(d=>d.classList.remove('selecting'));}
+
+function renderWordList(){
+  const el=document.getElementById('wlist');el.innerHTML='';
+  words.forEach(w=>{const d=document.createElement('div');d.className='witem';d.textContent=w;el.appendChild(d);});
+}
+
+document.addEventListener('mouseup',()=>{if(selecting)endSel();});
+newGame();
+</script>
+</body>
+</html>

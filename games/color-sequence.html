@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Sequence – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#9898b8;text-decoration:none;font-size:20px}
+.topbar a:hover{color:#6c63ff}
+.topbar h1{font-size:18px;font-weight:600;flex:1}
+.score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:700}
+.game-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:24px}
+.status{font-size:22px;font-weight:700;color:#e8e8f0;text-align:center;min-height:32px}
+.sub-status{color:#9898b8;font-size:15px;text-align:center}
+.buttons-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:min(340px,90vw)}
+.color-btn{width:100%;aspect-ratio:1;border:none;border-radius:16px;cursor:pointer;transition:transform .1s,filter .1s;filter:brightness(0.55);outline:none}
+.color-btn.lit{filter:brightness(1.2);transform:scale(1.06)}
+.color-btn:active{transform:scale(0.96)}
+.color-btn:disabled{cursor:not-allowed}
+#btn-red{background:#e74c3c}
+#btn-blue{background:#3498db}
+#btn-green{background:#2ecc71}
+#btn-yellow{background:#f1c40f}
+.controls{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+button.ctrl{background:#1e1e30;border:1px solid #2a2a45;color:#e8e8f0;padding:10px 24px;border-radius:8px;font-size:15px;cursor:pointer;transition:background .2s}
+button.ctrl:hover{background:#2a2a45}
+button.ctrl.primary{background:#6c63ff;border-color:#6c63ff}
+button.ctrl.primary:hover{background:#574fd6}
+.info-row{display:flex;gap:24px;flex-wrap:wrap;justify-content:center}
+.info-box{background:#1e1e30;border:1px solid #2a2a45;border-radius:10px;padding:10px 20px;text-align:center}
+.info-box .val{font-size:22px;font-weight:700;color:#6c63ff}
+.info-box .lbl{font-size:12px;color:#9898b8;margin-top:2px}
+.msg{font-size:18px;font-weight:600;min-height:28px;text-align:center}
+.msg.good{color:#2ecc71}
+.msg.bad{color:#e74c3c}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>🎨 Color Sequence</h1>
+  <span class="score-badge" id="score-badge">Best: 0</span>
+</div>
+<div class="game-area">
+  <div class="status" id="status">Press Start to Play</div>
+  <div class="sub-status" id="sub-status">Watch the sequence, then repeat it!</div>
+  <div class="buttons-grid">
+    <button class="color-btn" id="btn-red" disabled></button>
+    <button class="color-btn" id="btn-blue" disabled></button>
+    <button class="color-btn" id="btn-green" disabled></button>
+    <button class="color-btn" id="btn-yellow" disabled></button>
+  </div>
+  <div class="info-row">
+    <div class="info-box"><div class="val" id="level-val">0</div><div class="lbl">Level</div></div>
+    <div class="info-box"><div class="val" id="speed-val">1.0s</div><div class="lbl">Speed</div></div>
+    <div class="info-box"><div class="val" id="best-val">0</div><div class="lbl">Best</div></div>
+  </div>
+  <div class="msg" id="msg"></div>
+  <div class="controls">
+    <button class="ctrl primary" id="start-btn" onclick="startGame()">Start Game</button>
+  </div>
+</div>
+<script>
+const colors=['red','blue','green','yellow'];
+const colorMap={red:'#e74c3c',blue:'#3498db',green:'#2ecc71',yellow:'#f1c40f'};
+let sequence=[],playerSeq=[],level=0,playing=false,accepting=false;
+let highScore=0;
+try{highScore=parseInt(localStorage.getItem('colorseq_best'))||0}catch(e){}
+document.getElementById('best-val').textContent=highScore;
+document.getElementById('score-badge').textContent='Best: '+highScore;
+
+function getDelay(){return level>5?400:700}
+function getPause(){return level>5?150:300}
+
+function lightUp(color,dur=400){
+  return new Promise(res=>{
+    const btn=document.getElementById('btn-'+color);
+    btn.classList.add('lit');
+    playTone(color);
+    setTimeout(()=>{btn.classList.remove('lit');res()},dur);
+  });
+}
+
+let audioCtx=null;
+function getAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+function playTone(color){
+  try{
+    const ctx=getAudio();
+    const freq={red:220,blue:330,green:440,yellow:550}[color];
+    const o=ctx.createOscillator();const g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.frequency.value=freq;o.type='sine';
+    g.gain.setValueAtTime(0.3,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.3);
+    o.start();o.stop(ctx.currentTime+0.3);
+  }catch(e){}
+}
+function playWrong(){
+  try{
+    const ctx=getAudio();
+    const o=ctx.createOscillator();const g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.frequency.value=110;o.type='sawtooth';
+    g.gain.setValueAtTime(0.3,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.5);
+    o.start();o.stop(ctx.currentTime+0.5);
+  }catch(e){}
+}
+
+async function showSequence(){
+  accepting=false;
+  setButtons(false);
+  document.getElementById('status').textContent='Watch the sequence...';
+  document.getElementById('msg').textContent='';
+  const delay=getDelay(),pause=getPause();
+  for(let i=0;i<sequence.length;i++){
+    await new Promise(r=>setTimeout(r,pause));
+    await lightUp(sequence[i],delay);
+  }
+  setButtons(true);
+  accepting=true;
+  playerSeq=[];
+  document.getElementById('status').textContent='Your turn! ('+sequence.length+' steps)';
+  document.getElementById('sub-status').textContent='Repeat the sequence';
+}
+
+function setButtons(enabled){
+  colors.forEach(c=>{document.getElementById('btn-'+c).disabled=!enabled});
+}
+
+async function startGame(){
+  sequence=[];level=0;playerSeq=[];playing=true;
+  document.getElementById('start-btn').textContent='Restart';
+  document.getElementById('msg').classList.remove('good','bad');
+  document.getElementById('msg').textContent='';
+  nextRound();
+}
+
+async function nextRound(){
+  level++;
+  sequence.push(colors[Math.floor(Math.random()*4)]);
+  document.getElementById('level-val').textContent=level;
+  document.getElementById('speed-val').textContent=level>5?'0.4s':'0.7s';
+  document.getElementById('sub-status').textContent='Level '+level;
+  await showSequence();
+}
+
+async function handleClick(color){
+  if(!accepting)return;
+  await lightUp(color,200);
+  playerSeq.push(color);
+  const idx=playerSeq.length-1;
+  if(playerSeq[idx]!==sequence[idx]){
+    accepting=false;
+    setButtons(false);
+    playWrong();
+    document.getElementById('msg').className='msg bad';
+    document.getElementById('msg').textContent='Wrong! Game Over';
+    document.getElementById('status').textContent='Sequence was:';
+    document.getElementById('sub-status').textContent=sequence.join(' → ');
+    if(level-1>highScore){
+      highScore=level-1;
+      try{localStorage.setItem('colorseq_best',highScore)}catch(e){}
+      document.getElementById('best-val').textContent=highScore;
+      document.getElementById('score-badge').textContent='Best: '+highScore;
+    }
+    playing=false;
+    return;
+  }
+  if(playerSeq.length===sequence.length){
+    accepting=false;
+    setButtons(false);
+    document.getElementById('msg').className='msg good';
+    document.getElementById('msg').textContent='Correct! +1';
+    if(level>highScore){
+      highScore=level;
+      try{localStorage.setItem('colorseq_best',highScore)}catch(e){}
+      document.getElementById('best-val').textContent=highScore;
+      document.getElementById('score-badge').textContent='Best: '+highScore;
+    }
+    setTimeout(()=>nextRound(),900);
+  }
+}
+
+colors.forEach(c=>{
+  document.getElementById('btn-'+c).addEventListener('click',()=>handleClick(c));
+});
+</script>
+</body>
+</html>

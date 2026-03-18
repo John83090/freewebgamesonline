@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Chain – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#9898b8;text-decoration:none;font-size:20px}.topbar a:hover{color:#6c63ff}
+.topbar h1{font-size:18px;font-weight:600;flex:1}
+.score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:700}
+.game-area{flex:1;display:flex;flex-direction:column;align-items:center;padding:20px;gap:14px;max-width:560px;margin:0 auto;width:100%}
+.meta-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.mbox{background:#1e1e30;border:1px solid #2a2a45;border-radius:10px;padding:8px 18px;text-align:center}
+.mbox .v{font-size:20px;font-weight:800;color:#6c63ff}
+.mbox .l{font-size:11px;color:#9898b8}
+.lives{display:flex;gap:6px;font-size:22px}
+.timer-bar-wrap{width:100%;height:8px;background:#1e1e30;border-radius:4px;overflow:hidden}
+.timer-bar{height:100%;background:#6c63ff;border-radius:4px;transition:width .1s linear}
+.chain-display{background:#1e1e30;border:1px solid #2a2a45;border-radius:14px;padding:16px;width:100%;min-height:80px}
+.chain-display h3{font-size:12px;color:#9898b8;margin-bottom:8px}
+.chain-pills{display:flex;flex-wrap:wrap;gap:6px}
+.cpill{border-radius:16px;padding:4px 12px;font-size:14px;font-weight:700}
+.cpill.player{background:#6c63ff22;border:1px solid #6c63ff;color:#6c63ff}
+.cpill.ai{background:#e74c3c22;border:1px solid #e74c3c;color:#e74c3c}
+.current-word-box{background:#1e1e30;border:2px solid #6c63ff;border-radius:14px;padding:18px;text-align:center;width:100%}
+.cw-label{font-size:12px;color:#9898b8;margin-bottom:4px}
+.cw-word{font-size:36px;font-weight:900;color:#6c63ff;letter-spacing:.06em}
+.cw-must{font-size:14px;color:#9898b8;margin-top:4px}
+.cw-must span{color:#f1c40f;font-weight:700}
+.input-row{display:flex;gap:10px;width:100%;justify-content:center}
+input.word-input{background:#0d0d14;border:2px solid #2a2a45;border-radius:10px;color:#e8e8f0;font-size:20px;padding:10px 16px;outline:none;flex:1;max-width:280px;text-transform:uppercase}
+input.word-input:focus{border-color:#6c63ff}
+button.submit-btn{background:#6c63ff;border:none;color:#fff;padding:10px 22px;border-radius:10px;font-size:16px;cursor:pointer;font-weight:700}
+button.submit-btn:hover{background:#574fd6}
+.feedback{font-size:16px;font-weight:700;min-height:24px;text-align:center}
+.feedback.ok{color:#2ecc71}
+.feedback.err{color:#e74c3c}
+.feedback.ai{color:#e67e22}
+.end-card{background:#1e1e30;border:1px solid #2a2a45;border-radius:16px;padding:24px;text-align:center;width:100%;display:none}
+.end-score-big{font-size:56px;font-weight:900;color:#6c63ff}
+button.ctrl{background:#6c63ff;border:none;color:#fff;padding:10px 28px;border-radius:10px;font-size:15px;cursor:pointer;font-weight:700;margin-top:8px}
+button.ctrl:hover{background:#574fd6}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>🔗 Word Chain</h1>
+  <span class="score-badge" id="score-badge">Best: 0</span>
+</div>
+<div class="game-area">
+  <div class="meta-row">
+    <div class="mbox"><div class="v" id="score-v">0</div><div class="l">Score</div></div>
+    <div class="mbox"><div class="v" id="timer-v">10</div><div class="l">Seconds</div></div>
+    <div class="mbox"><div class="lives" id="lives-v">❤️❤️❤️</div><div class="l">Lives</div></div>
+  </div>
+  <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
+  <div class="current-word-box" id="current-word-box">
+    <div class="cw-label">Current word</div>
+    <div class="cw-word" id="cw-word">----</div>
+    <div class="cw-must">Your word must start with: <span id="must-letter">?</span></div>
+  </div>
+  <div class="input-row">
+    <input class="word-input" id="word-input" type="text" placeholder="Type word..." autocomplete="off" autocorrect="off" spellcheck="false">
+    <button class="submit-btn" onclick="submitWord()">Submit</button>
+  </div>
+  <div class="feedback" id="feedback"></div>
+  <div class="chain-display">
+    <h3>Chain</h3>
+    <div class="chain-pills" id="chain-pills"></div>
+  </div>
+  <div class="end-card" id="end-card">
+    <div style="font-size:18px;font-weight:700;margin-bottom:8px">Game Over</div>
+    <div class="end-score-big" id="end-score">0</div>
+    <div style="color:#9898b8;font-size:14px;margin-top:4px">words linked</div>
+    <div style="color:#9898b8;font-size:14px;margin-top:8px" id="end-detail"></div>
+    <button class="ctrl" onclick="startGame()">Play Again</button>
+  </div>
+</div>
+<script>
+const WORDS=['ABLE','ACID','AGED','ALSO','AREA','ARMY','AWAY','BACK','BALL','BAND','BANK','BASE',
+'BATH','BEAR','BEAT','BEEN','BELL','BEST','BIRD','BLUE','BODY','BOMB','BOND','BONE',
+'BOOK','BORN','BOTH','BRED','BULL','BURN','CALL','CAME','CAMP','CARD','CARE','CART',
+'CASE','CASH','CAST','CAVE','CELL','CHAT','CHIN','CHIP','CITY','CLAN','CLAY','CLUE',
+'COAL','COAT','CODE','COIL','COLD','COME','COOK','COOL','CORD','CORN','COST','COUP',
+'CREW','CROP','CURE','CURL','CUTE','DAME','DARK','DART','DATA','DATE','DAWN','DAYS',
+'DEAD','DEAL','DEAN','DEAR','DEBT','DEEP','DENY','DESK','DIET','DIRT','DISK','DOME',
+'DONE','DOOR','DOSE','DOTS','DRAG','DRAW','DREW','DRIP','DROP','DRUG','DRUM','DUEL',
+'DULL','DUSK','DUST','DUTY','EACH','EARL','EARN','EASE','EAST','EDGE','EMIT','EPIC',
+'EVEN','EVER','EXAM','FACE','FACT','FAIL','FAIR','FALL','FAME','FARM','FAST','FATE',
+'FEAR','FEEL','FEEL','FEET','FILE','FILL','FILM','FIND','FINE','FIRE','FISH','FIST',
+'FLAG','FLAT','FLAW','FLED','FLEW','FLIP','FLOW','FOAM','FOLK','FOND','FOOD','FOOL',
+'FORD','FORE','FORK','FORM','FORT','FOUL','FOUR','FREE','FROM','FUEL','FULL','FUME',
+'FUND','FURY','FUSE','GAIN','GAME','GANG','GAVE','GEAR','GENE','GIFT','GIRL','GIVE',
+'GLAD','GLOW','GLUE','GOAL','GOLD','GOLF','GONE','GOOD','GRAB','GRAY','GREW','GRID',
+'GRIP','GROW','GULF','GUST','HALT','HAND','HANG','HARD','HARM','HARP','HATE','HAVE',
+'HAWK','HEAL','HEAP','HEAT','HEEL','HELD','HELM','HELP','HERO','HIGH','HILL','HINT',
+'HIRE','HOLD','HOLE','HOLY','HOME','HOOK','HOPE','HORN','HOST','HOUR','HUGE','HUNT',
+'HURT','HYPE','IDEA','IDOL','INCH','INTO','IRIS','IRON','ISLE','ITEM','JOIN','JUMP',
+'JUST','KEEN','KEEP','KICK','KIND','KING','KNOW','LACK','LAID','LAKE','LAMP','LAND',
+'LANE','LAST','LAVA','LAWN','LEAD','LEAF','LEAN','LEAP','LEFT','LENS','LIFE','LIFT',
+'LIKE','LIME','LINK','LION','LIST','LIVE','LOAD','LOAN','LOCK','LOFT','LONE','LONG',
+'LOOK','LORD','LORE','LOSS','LURE','MADE','MAIN','MAKE','MALE','MALL','MANY','MARK',
+'MASS','MAST','MATE','MAZE','MEAL','MEAN','MEAT','MEET','MELT','MENU','MERE','MESH',
+'MILE','MILK','MILL','MIND','MINE','MINT','MISS','MODE','MOOD','MOON','MORE','MOST',
+'MOVE','MUCH','MUSK','MUTE','MYTH','NAIL','NAME','NAVY','NEAR','NECK','NEED','NEWS',
+'NEXT','NICE','NODE','NORM','NOTE','OATH','OBEY','ODDS','ONCE','ONLY','OPEN','ORAL',
+'OVEN','OVER','PACE','PACK','PAGE','PAID','PAIN','PAIR','PALE','PALM','PARK','PART',
+'PASS','PATH','PAVE','PAWN','PEAK','PEEL','PEER','PERK','PICK','PILE','PINE','PINK',
+'PIPE','PLAN','PLOD','PLOT','PLOW','PLUM','PLUS','POET','POLE','POND','POOL','POOR',
+'PORT','POSE','POST','POUR','PREY','PROP','PULL','PUMP','PURE','PUSH','QUIT','RACE',
+'RACK','RAID','RAIL','RAIN','RAKE','RAMP','RANK','RARE','RATE','READ','REAL','REAM',
+'REAP','REED','REEL','RELY','RENT','RICE','RICH','RIDE','RING','RIOT','RISE','RISK',
+'ROAD','ROAR','ROCK','ROLL','ROLE','ROOF','ROOT','ROPE','ROSE','RUIN','RULE','RUSH',
+'RUST','SAFE','SAGE','SAIL','SALE','SAME','SAND','SANE','SAVE','SEAL','SEAM','SEAT',
+'SEED','SEEK','SEEM','SEEP','SELL','SEND','SHED','SHIN','SHIP','SHOE','SHOP','SHOT',
+'SHOW','SHUT','SICK','SIDE','SILK','SILT','SING','SINK','SIZE','SKIN','SKIP','SLAM',
+'SLAP','SLIM','SLIP','SLOW','SNAP','SNOW','SOAK','SOAP','SOAR','SOCK','SOFT','SOIL',
+'SOLD','SOLE','SOME','SONG','SOON','SORT','SOUL','SPAN','SPAR','SPIN','SPOT','SPUR',
+'STAR','STAY','STEM','STEP','STIR','STOP','STUB','SUCH','SUIT','SUNG','SUNK','SURF',
+'SWAM','SWAP','SWAY','SWIM','TALE','TALL','TAME','TAPE','TART','TASK','TEAR','TELL',
+'TEND','TENT','TEST','TEXT','THAN','THAT','THEM','THEN','THEY','THIN','THIS','THUS',
+'TICK','TIDE','TILL','TIME','TIRE','TOAD','TOIL','TOLL','TOMB','TONE','TOOK','TOOL',
+'TORN','TOWN','TRAP','TRIM','TRIP','TRUE','TUBE','TUCK','TUNE','TURN','TWIN','UGLY',
+'UNDO','UNIT','UPON','URGE','VAIN','VALE','VAST','VEIL','VERY','VIEW','VINE','VISA',
+'VOID','VOLT','VOTE','WADE','WAGE','WAKE','WALK','WALL','WARD','WARM','WARY','WASH',
+'WAVE','WEAK','WELD','WENT','WERE','WEST','WHAT','WHEN','WIDE','WILD','WILL','WIND',
+'WINE','WING','WIRE','WISE','WISH','WITH','WOKE','WOLF','WOMB','WOOD','WOOL','WORD',
+'WORE','WORN','WRAP','WRIT','YARD','YEAR','YELL','YOGA','YOLK','YOUR','ZERO','ZONE'];
+
+const WORD_SET=new Set(WORDS);
+let lives=3,score=0,chain=[],lastLetter='',timerVal=10,timerInt=null,gameOver=false,usedWords=new Set();
+let highScore=0;
+try{highScore=parseInt(localStorage.getItem('wordchain_best'))||0;}catch(e){}
+document.getElementById('score-badge').textContent='Best: '+highScore;
+
+function startGame(){
+  lives=3;score=0;chain=[];usedWords=new Set();gameOver=false;
+  document.getElementById('end-card').style.display='none';
+  document.getElementById('score-v').textContent=0;
+  document.getElementById('chain-pills').innerHTML='';
+  document.getElementById('feedback').textContent='';
+  document.getElementById('word-input').value='';
+  document.getElementById('word-input').disabled=false;
+  updateLives();
+  const starters=['BANK','CAMP','DICE','FARM','GAME','HELP','IRON','JUMP','KITE','LAMP'];
+  const start=starters[Math.floor(Math.random()*starters.length)];
+  addToChain(start,'ai');
+  lastLetter=start[start.length-1];
+  document.getElementById('must-letter').textContent=lastLetter;
+  startTimer();
+  document.getElementById('word-input').focus();
+}
+
+function addToChain(word,who){
+  chain.push({word,who});
+  const pill=document.createElement('div');
+  pill.className='cpill '+who;
+  pill.textContent=word.toLowerCase();
+  document.getElementById('chain-pills').appendChild(pill);
+  document.getElementById('cw-word').textContent=word.toUpperCase();
+  usedWords.add(word);
+}
+
+function updateLives(){
+  document.getElementById('lives-v').textContent='❤️'.repeat(lives)+'🖤'.repeat(3-lives);
+}
+
+function startTimer(){
+  clearInterval(timerInt);
+  timerVal=10;
+  document.getElementById('timer-bar').style.width='100%';
+  timerInt=setInterval(()=>{
+    timerVal-=0.1;
+    document.getElementById('timer-v').textContent=Math.ceil(timerVal);
+    document.getElementById('timer-bar').style.width=(timerVal/10*100)+'%';
+    if(timerVal<=0){clearInterval(timerInt);loseLife('Time\'s up!');}
+  },100);
+}
+
+function loseLife(reason){
+  lives--;updateLives();
+  showFeedback(reason,'err');
+  if(lives<=0){endGame();}
+  else{
+    // AI takes a turn
+    aiTurn();
+  }
+}
+
+function aiTurn(){
+  const aiWord=findAIWord(lastLetter);
+  if(aiWord){
+    lastLetter=aiWord[aiWord.length-1];
+    addToChain(aiWord,'ai');
+    document.getElementById('must-letter').textContent=lastLetter;
+    showFeedback('AI played: '+aiWord.toLowerCase(),'ai');
+    startTimer();
+  } else {
+    showFeedback('AI is stuck! You win this round!','ok');
+    startTimer();
+  }
+}
+
+function findAIWord(startLetter){
+  const candidates=WORDS.filter(w=>w[0]===startLetter&&!usedWords.has(w));
+  if(!candidates.length)return null;
+  return candidates[Math.floor(Math.random()*candidates.length)];
+}
+
+function showFeedback(msg,type){
+  const f=document.getElementById('feedback');
+  f.textContent=msg;f.className='feedback '+type;
+}
+
+function submitWord(){
+  if(gameOver)return;
+  const raw=document.getElementById('word-input').value.trim().toUpperCase();
+  document.getElementById('word-input').value='';
+  if(!raw)return;
+  if(raw[0]!==lastLetter){showFeedback('Must start with '+lastLetter,'err');return;}
+  if(raw.length<3){showFeedback('Too short!','err');return;}
+  if(usedWords.has(raw)){showFeedback('Already used!','err');return;}
+  if(!WORD_SET.has(raw)){showFeedback('Not in word list','err');return;}
+  clearInterval(timerInt);
+  score++;
+  document.getElementById('score-v').textContent=score;
+  addToChain(raw,'player');
+  lastLetter=raw[raw.length-1];
+  document.getElementById('must-letter').textContent=lastLetter;
+  showFeedback('+1 Link!','ok');
+  // AI responds
+  setTimeout(()=>{
+    const aiWord=findAIWord(lastLetter);
+    if(aiWord){
+      lastLetter=aiWord[aiWord.length-1];
+      addToChain(aiWord,'ai');
+      document.getElementById('must-letter').textContent=lastLetter;
+      showFeedback('AI: '+aiWord.toLowerCase(),'ai');
+    } else {
+      showFeedback('AI stuck! Keep going!','ok');
+    }
+    startTimer();
+  },600);
+}
+
+document.getElementById('word-input').addEventListener('keydown',e=>{if(e.key==='Enter')submitWord();});
+
+function endGame(){
+  clearInterval(timerInt);gameOver=true;
+  document.getElementById('word-input').disabled=true;
+  document.getElementById('end-card').style.display='block';
+  document.getElementById('end-score').textContent=score;
+  document.getElementById('end-detail').textContent='Chain length: '+chain.length;
+  if(score>highScore){
+    highScore=score;
+    try{localStorage.setItem('wordchain_best',highScore);}catch(e){}
+    document.getElementById('score-badge').textContent='Best: '+highScore;
+    document.getElementById('end-detail').textContent+=' | New record!';
+  }
+}
+
+startGame();
+</script>
+</body>
+</html>

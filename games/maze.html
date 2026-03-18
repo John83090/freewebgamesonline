@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maze Solver – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#9898b8;text-decoration:none;font-size:20px}
+.topbar a:hover{color:#6c63ff}
+.topbar h1{font-size:18px;font-weight:600;flex:1}
+.score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:700}
+.game-area{flex:1;display:flex;flex-direction:column;align-items:center;padding:16px;gap:12px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center}
+.ctrl-btn{background:#1e1e30;border:1px solid #2a2a45;color:#e8e8f0;padding:7px 16px;border-radius:8px;font-size:13px;cursor:pointer}
+.ctrl-btn:hover{background:#2a2a45}
+.ctrl-btn.primary{background:#6c63ff;border-color:#6c63ff}
+.ctrl-btn.primary:hover{background:#574fd6}
+select{background:#1e1e30;border:1px solid #2a2a45;color:#e8e8f0;padding:7px 12px;border-radius:8px;font-size:13px}
+.stats{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.stat{background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;padding:6px 16px;text-align:center}
+.stat .v{font-size:18px;font-weight:700;color:#6c63ff}
+.stat .l{font-size:11px;color:#9898b8}
+canvas{border:1px solid #2a2a45;border-radius:4px;max-width:100%;touch-action:none}
+.d-pad{display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px);gap:4px;margin-top:8px}
+.dp{background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;color:#e8e8f0;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.dp:active{background:#2a2a45}
+.dp.empty{background:transparent;border-color:transparent;pointer-events:none}
+.win-msg{background:#6c63ff;border-radius:12px;padding:14px 28px;font-size:20px;font-weight:800;text-align:center;display:none}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>🧩 Maze Solver</h1>
+  <span class="score-badge" id="score-badge">Best: --</span>
+</div>
+<div class="game-area">
+  <div class="controls">
+    <select id="size-sel" onchange="newMaze()">
+      <option value="15">Small 15×15</option>
+      <option value="21" selected>Medium 21×21</option>
+      <option value="27">Large 27×27</option>
+    </select>
+    <button class="ctrl-btn primary" onclick="newMaze()">New Maze</button>
+    <button class="ctrl-btn" onclick="showSolve()">Solve</button>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="v" id="time-v">0:00</div><div class="l">Time</div></div>
+    <div class="stat"><div class="v" id="steps-v">0</div><div class="l">Steps</div></div>
+  </div>
+  <canvas id="c"></canvas>
+  <div class="win-msg" id="win-msg">You solved it! 🎉</div>
+  <div class="d-pad">
+    <div class="dp empty"></div>
+    <div class="dp" onclick="move(0,-1)">▲</div>
+    <div class="dp empty"></div>
+    <div class="dp" onclick="move(-1,0)">◀</div>
+    <div class="dp empty"></div>
+    <div class="dp" onclick="move(1,0)">▶</div>
+    <div class="dp empty"></div>
+    <div class="dp" onclick="move(0,1)">▼</div>
+    <div class="dp empty"></div>
+  </div>
+</div>
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
+    this.beginPath();this.moveTo(x+r,y);this.lineTo(x+w-r,y);
+    this.quadraticCurveTo(x+w,y,x+w,y+r);this.lineTo(x+w,y+h-r);
+    this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);this.lineTo(x+r,y+h);
+    this.quadraticCurveTo(x,y+h,x,y+h-r);this.lineTo(x,y+r);
+    this.quadraticCurveTo(x,y,x+r,y);this.closePath();
+  };
+}
+const canvas=document.getElementById('c');
+const ctx=canvas.getContext('2d');
+let N=21,cells=[],px=0,py=0,steps=0,timerInt=null,elapsed=0,won=false,solvePath=[];
+let highScore={};
+try{highScore=JSON.parse(localStorage.getItem('maze_best'))||{};}catch(e){}
+
+function cellIdx(x,y){return y*N+x;}
+function initMaze(){
+  cells=[];
+  for(let i=0;i<N*N;i++)cells.push({visited:false,walls:[true,true,true,true]});// N,E,S,W
+}
+function removeWall(a,b,dir){
+  // dir: 0=N,1=E,2=S,3=W
+  const opp=[2,3,0,1];
+  cells[a].walls[dir]=false;
+  cells[b].walls[opp[dir]]=false;
+}
+function genMaze(){
+  initMaze();
+  const stack=[];
+  let cx=0,cy=0;
+  cells[cellIdx(cx,cy)].visited=true;
+  stack.push([cx,cy]);
+  const dirs=[[0,-1,0],[1,0,1],[0,1,2],[-1,0,3]];// dx,dy,wallIdx
+  while(stack.length){
+    const [x,y]=stack[stack.length-1];
+    const neighbors=[];
+    for(const [dx,dy,wi] of dirs){
+      const nx=x+dx,ny=y+dy;
+      if(nx>=0&&nx<N&&ny>=0&&ny<N&&!cells[cellIdx(nx,ny)].visited){
+        neighbors.push([nx,ny,wi]);
+      }
+    }
+    if(neighbors.length===0){stack.pop();continue;}
+    const [nx,ny,wi]=neighbors[Math.floor(Math.random()*neighbors.length)];
+    removeWall(cellIdx(x,y),cellIdx(nx,ny),wi);
+    cells[cellIdx(nx,ny)].visited=true;
+    stack.push([nx,ny]);
+  }
+}
+function solveBFS(){
+  const dist=new Array(N*N).fill(-1);
+  const parent=new Array(N*N).fill(-1);
+  const q=[[0,0]];dist[0]=0;
+  const dirs=[[0,-1,0],[1,0,1],[0,1,2],[-1,0,3]];
+  while(q.length){
+    const [x,y]=q.shift();
+    const idx=cellIdx(x,y);
+    if(x===N-1&&y===N-1){
+      const path=[];let cur=idx;
+      while(cur!==-1){path.push(cur);cur=parent[cur];}
+      return path.reverse();
+    }
+    for(const [dx,dy,wi] of dirs){
+      const nx=x+dx,ny=y+dy;
+      if(nx<0||nx>=N||ny<0||ny>=N)continue;
+      if(cells[idx].walls[wi])continue;
+      const ni=cellIdx(nx,ny);
+      if(dist[ni]===-1){dist[ni]=dist[idx]+1;parent[ni]=idx;q.push([nx,ny]);}
+    }
+  }
+  return[];
+}
+function getCellSize(){
+  const maxW=Math.min(window.innerWidth-32,520);
+  return Math.floor(maxW/N);
+}
+function draw(showSolution=false){
+  const cs=getCellSize();
+  const W=N*cs,H=N*cs;
+  canvas.width=W;canvas.height=H;
+  ctx.fillStyle='#0d0d14';ctx.fillRect(0,0,W,H);
+  // Draw solution path
+  if(showSolution&&solvePath.length){
+    ctx.fillStyle='rgba(108,99,255,0.25)';
+    for(const idx of solvePath){
+      const sx=idx%N,sy=Math.floor(idx/N);
+      ctx.fillRect(sx*cs+1,sy*cs+1,cs-2,cs-2);
+    }
+  }
+  // Draw visited path
+  ctx.fillStyle='rgba(108,99,255,0.10)';
+  cells.forEach((c,i)=>{
+    if(c.visited2){const sx=i%N,sy=Math.floor(i/N);ctx.fillRect(sx*cs,sy*cs,cs,cs);}
+  });
+  // End
+  ctx.fillStyle='#2ecc71';ctx.fillRect((N-1)*cs+2,(N-1)*cs+2,cs-4,cs-4);
+  // Start
+  ctx.fillStyle='#f1c40f';ctx.fillRect(2,2,cs-4,cs-4);
+  // Player
+  ctx.fillStyle='#6c63ff';
+  ctx.beginPath();ctx.arc(px*cs+cs/2,py*cs+cs/2,cs*0.38,0,Math.PI*2);ctx.fill();
+  // Walls
+  ctx.strokeStyle='#4a4a6a';ctx.lineWidth=1.5;
+  for(let y=0;y<N;y++){
+    for(let x=0;x<N;x++){
+      const c=cells[cellIdx(x,y)];
+      const X=x*cs,Y=y*cs;
+      ctx.beginPath();
+      if(c.walls[0]&&y>0){ctx.moveTo(X,Y);ctx.lineTo(X+cs,Y);}
+      if(c.walls[1]){ctx.moveTo(X+cs,Y);ctx.lineTo(X+cs,Y+cs);}
+      if(c.walls[2]){ctx.moveTo(X,Y+cs);ctx.lineTo(X+cs,Y+cs);}
+      if(c.walls[3]&&x>0){ctx.moveTo(X,Y);ctx.lineTo(X,Y+cs);}
+      ctx.stroke();
+    }
+  }
+  // Border
+  ctx.strokeStyle='#6c63ff';ctx.lineWidth=2;
+  ctx.strokeRect(0,0,W,H);
+}
+function newMaze(){
+  N=parseInt(document.getElementById('size-sel').value);
+  genMaze();
+  px=0;py=0;steps=0;won=false;elapsed=0;
+  cells.forEach(c=>c.visited2=false);
+  cells[0].visited2=true;
+  clearInterval(timerInt);
+  timerInt=setInterval(tick,1000);
+  solvePath=solveBFS();
+  document.getElementById('steps-v').textContent='0';
+  document.getElementById('time-v').textContent='0:00';
+  document.getElementById('win-msg').style.display='none';
+  draw();
+}
+function tick(){if(!won){elapsed++;const m=Math.floor(elapsed/60),s=elapsed%60;document.getElementById('time-v').textContent=m+':'+(s<10?'0':'')+s;}}
+function move(dx,dy){
+  if(won)return;
+  const nx=px+dx,ny=py+dy;
+  if(nx<0||nx>=N||ny<0||ny>=N)return;
+  const dirMap=[[-1,0,3],[1,0,1],[0,-1,0],[0,1,2]];
+  let wi=-1;
+  for(const [ddx,ddy,w] of dirMap){if(ddx===dx&&ddy===dy){wi=w;break;}}
+  if(cells[cellIdx(px,py)].walls[wi])return;
+  px=nx;py=ny;steps++;
+  cells[cellIdx(px,py)].visited2=true;
+  document.getElementById('steps-v').textContent=steps;
+  draw();
+  if(px===N-1&&py===N-1){
+    clearInterval(timerInt);won=true;
+    document.getElementById('win-msg').style.display='block';
+    const key=N+'x'+N;
+    if(!highScore[key]||elapsed<highScore[key]){
+      highScore[key]=elapsed;
+      try{localStorage.setItem('maze_best',JSON.stringify(highScore));}catch(e){}
+    }
+    document.getElementById('score-badge').textContent='Best: '+(highScore[N+'x'+N]||'--')+'s';
+  }
+}
+let solveTimeout=null;
+function showSolve(){
+  draw(true);
+  clearTimeout(solveTimeout);
+  solveTimeout=setTimeout(()=>draw(false),2500);
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowUp'||e.key==='w')move(0,-1);
+  else if(e.key==='ArrowDown'||e.key==='s')move(0,1);
+  else if(e.key==='ArrowLeft'||e.key==='a')move(-1,0);
+  else if(e.key==='ArrowRight'||e.key==='d')move(1,0);
+  e.preventDefault();
+});
+newMaze();
+</script>
+</body>
+</html>

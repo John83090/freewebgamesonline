@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fruit Catcher – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+#topbar{width:100%;background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 16px;display:flex;align-items:center;gap:12px}
+#topbar a{color:#9898b8;text-decoration:none;font-size:20px}#topbar a:hover{color:#6c63ff}
+.title{font-size:18px;font-weight:700;flex:1}
+#badge{background:#2a2a45;border-radius:8px;padding:4px 12px;font-size:13px;color:#9898b8}
+#badge span{color:#e8e8f0;font-weight:700}
+canvas{border:2px solid #2a2a45;border-radius:4px;margin-top:8px;display:block}
+#msg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(13,13,20,.93);border:2px solid #6c63ff;border-radius:12px;padding:24px 36px;text-align:center;z-index:10;min-width:240px}
+#msg h2{color:#6c63ff;font-size:26px;margin-bottom:8px}
+#msg p{color:#9898b8;margin-bottom:14px}
+#msg button{background:#6c63ff;border:none;color:#fff;padding:10px 28px;border-radius:8px;font-size:16px;cursor:pointer}
+#btns{display:flex;gap:12px;margin:10px 0 4px;justify-content:center}
+.cbtn{width:80px;height:52px;background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;color:#e8e8f0;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-tap-highlight-color:transparent}
+.cbtn:active,.cbtn.held{background:#6c63ff}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <span class="title">🍎 Fruit Catcher</span>
+  <div id="badge">Score:<span id="sd">0</span> Combo:<span id="cd">×1</span> Best:<span id="hd">0</span></div>
+</div>
+<div style="position:relative">
+<canvas id="c"></canvas>
+<div id="msg">
+  <h2 id="mt">Fruit Catcher</h2>
+  <p id="mp">Catch falling fruits with your basket!<br>Arrow keys or mouse to move.<br>Avoid 💣 bombs!</p>
+  <button onclick="startGame()">Start</button>
+</div>
+</div>
+<div id="btns">
+  <button class="cbtn" id="bL">◀</button>
+  <button class="cbtn" id="bR">▶</button>
+</div>
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.beginPath();this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.quadraticCurveTo(x+w,y,x+w,y+r);this.lineTo(x+w,y+h-r);this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);this.lineTo(x+r,y+h);this.quadraticCurveTo(x,y+h,x,y+h-r);this.lineTo(x,y+r);this.quadraticCurveTo(x,y,x+r,y);this.closePath();return this}}
+
+const C=document.getElementById('c'),ctx=C.getContext('2d');
+const W=400,H=480;C.width=W;C.height=H;
+
+const FRUITS=['🍎','🍊','🍋','🍇','🍓','🍑','🍍','🥝'];
+const BASKET_W=70,BASKET_H=36,ITEM_R=16;
+let basket,items,score,combo,lives,timeLeft,gameState,keys,animId,lastTs,spawnTimer,spawnRate,particles,hs;
+try{hs=parseInt(localStorage.getItem('fc_hs')||'0');}catch(e){hs=0;}
+document.getElementById('hd').textContent=hs;
+
+function startGame(){
+  document.getElementById('msg').style.display='none';
+  score=0;combo=1;lives=3;timeLeft=60;spawnTimer=0;spawnRate=1.2;
+  basket={x:W/2,y:H-30,vx:0,speed:300};
+  items=[];particles=[];keys={};
+  gameState='playing';
+  lastTs=performance.now();
+  if(animId) cancelAnimationFrame(animId);
+  animId=requestAnimationFrame(loop);
+  updateHUD();
+}
+
+function updateHUD(){document.getElementById('sd').textContent=score;document.getElementById('cd').textContent='×'+combo;document.getElementById('hd').textContent=hs;}
+
+function loop(ts){
+  const dt=Math.min((ts-lastTs)/1000,.05);lastTs=ts;
+  if(gameState==='playing'){update(dt);draw();}
+  animId=requestAnimationFrame(loop);
+}
+
+function update(dt){
+  timeLeft-=dt;if(timeLeft<=0){timeLeft=0;endGame();}
+  // Basket movement
+  if(keys['ArrowLeft']||keys['left']) basket.x=Math.max(BASKET_W/2,basket.x-basket.speed*dt);
+  if(keys['ArrowRight']||keys['right']) basket.x=Math.min(W-BASKET_W/2,basket.x+basket.speed*dt);
+  // Spawn items
+  spawnRate=1.2+((60-timeLeft)/60)*2.5;
+  spawnTimer-=dt;
+  if(spawnTimer<=0){spawnTimer=1/spawnRate;spawnItem();}
+  // Move items
+  const catchY=basket.y-BASKET_H/2;
+  items=items.filter(it=>{
+    it.y+=it.speed*dt;
+    it.angle+=it.spin*dt;
+    if(it.y>H+ITEM_R){if(!it.bomb){combo=1;updateHUD();}return false;}
+    // Catch check
+    if(it.y+ITEM_R>=catchY&&it.y-ITEM_R<catchY+BASKET_H&&it.x>basket.x-BASKET_W/2-ITEM_R&&it.x<basket.x+BASKET_W/2+ITEM_R){
+      if(it.bomb){lives--;updateHUD();for(let i=0;i<12;i++) particles.push({x:it.x,y:it.y,vx:(Math.random()-.5)*180,vy:(Math.random()-.5)*180,life:.5,color:'#ff4444'});if(lives<=0) endGame();combo=1;}
+      else{const pts=10*combo;score+=pts;updateHUD();for(let i=0;i<8;i++) particles.push({x:it.x,y:it.y,vx:(Math.random()-.5)*120,vy:-40-Math.random()*80,life:.4,color:'#ffe000'});combo++;showPop(it.x,it.y,'+'+pts,combo>2?'#ffe000':'#6c63ff');}
+      return false;
+    }
+    return true;
+  });
+  particles=particles.filter(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=200*dt;p.life-=dt;return p.life>0;});
+}
+
+function spawnItem(){
+  const isBomb=Math.random()<0.15;
+  items.push({
+    x:ITEM_R+Math.random()*(W-ITEM_R*2),y:-ITEM_R,
+    speed:90+Math.random()*60+((60-timeLeft)/60)*50,
+    bomb:isBomb,emoji:isBomb?'💣':FRUITS[Math.floor(Math.random()*FRUITS.length)],
+    angle:0,spin:(Math.random()-.5)*2
+  });
+}
+
+function showPop(x,y,text,color){
+  const d=document.createElement('div');
+  const br=C.getBoundingClientRect();
+  d.style.cssText=`position:fixed;left:${br.left+x-15}px;top:${br.top+y-20}px;color:${color};font-weight:700;font-size:16px;pointer-events:none;z-index:99;animation:fadeUp .6s forwards`;
+  d.textContent=text;document.body.appendChild(d);
+  if(!document.getElementById('fuStyle')){const s=document.createElement('style');s.id='fuStyle';s.textContent='@keyframes fadeUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}';document.head.appendChild(s);}
+  setTimeout(()=>d.remove(),700);
+}
+
+function endGame(){
+  gameState='over';
+  if(score>hs){hs=score;try{localStorage.setItem('fc_hs',hs);}catch(e){}updateHUD();}
+  document.getElementById('mt').textContent='Time\'s Up!';
+  document.getElementById('mp').textContent='Score: '+score+' | Best: '+hs;
+  document.querySelector('#msg button').textContent='Play Again';
+  document.getElementById('msg').style.display='block';
+}
+
+function draw(){
+  // Background sky/field
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'#0d1a2a');grad.addColorStop(.6,'#1a2a1a');grad.addColorStop(1,'#0d1a0d');
+  ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+  // Ground stripes
+  ctx.fillStyle='rgba(255,255,255,.03)';
+  for(let y=H-60;y<H;y+=20) ctx.fillRect(0,y,W,10);
+  // Items
+  items.forEach(it=>{
+    ctx.save();ctx.translate(it.x,it.y);ctx.rotate(it.angle);
+    ctx.font=(ITEM_R*1.8)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(it.emoji,0,0);
+    ctx.restore();
+  });
+  // Basket
+  const bx=basket.x-BASKET_W/2,by=basket.y-BASKET_H;
+  // Basket body
+  ctx.fillStyle='#8B4513';
+  ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx+BASKET_W,by);ctx.lineTo(bx+BASKET_W-8,by+BASKET_H);ctx.lineTo(bx+8,by+BASKET_H);ctx.closePath();ctx.fill();
+  // Basket rim
+  ctx.fillStyle='#A0522D';ctx.beginPath();ctx.roundRect(bx-4,by-4,BASKET_W+8,10,4);ctx.fill();
+  // Basket weave pattern
+  ctx.strokeStyle='#6B3410';ctx.lineWidth=1;
+  for(let i=0;i<3;i++) ctx.strokeRect(bx+4,by+4+i*9,BASKET_W-8,7);
+  // Hearts for lives
+  for(let i=0;i<lives;i++){ctx.font='16px serif';ctx.fillText('❤️',8+i*22,16);}
+  // Particles
+  particles.forEach(p=>{ctx.globalAlpha=p.life*2;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fill();});
+  ctx.globalAlpha=1;
+  // Timer bar
+  ctx.fillStyle='#2a2a45';ctx.fillRect(0,H-5,W,5);
+  ctx.fillStyle=timeLeft>15?'#6c63ff':'#ff4444';ctx.fillRect(0,H-5,W*(timeLeft/60),5);
+  // Score overlay
+  ctx.fillStyle='rgba(13,13,20,.5)';ctx.fillRect(0,0,W,26);
+  ctx.fillStyle='#e8e8f0';ctx.font='bold 14px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Score: '+score+'  ×'+combo+'  Time: '+Math.ceil(timeLeft)+'s',W/2,18);
+}
+
+// Mouse control
+C.addEventListener('mousemove',e=>{const r=C.getBoundingClientRect();basket.x=Math.max(BASKET_W/2,Math.min(W-BASKET_W/2,e.clientX-r.left));});
+C.addEventListener('touchmove',e=>{e.preventDefault();const r=C.getBoundingClientRect(),t=e.touches[0];basket.x=Math.max(BASKET_W/2,Math.min(W-BASKET_W/2,t.clientX-r.left));},{passive:false});
+document.addEventListener('keydown',e=>{keys[e.key]=true;if(['ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();});
+document.addEventListener('keyup',e=>{keys[e.key]=false;});
+const bL=document.getElementById('bL'),bR=document.getElementById('bR');
+bL.addEventListener('pointerdown',()=>keys['left']=true);bL.addEventListener('pointerup',()=>keys['left']=false);bL.addEventListener('pointerleave',()=>keys['left']=false);
+bR.addEventListener('pointerdown',()=>keys['right']=true);bR.addEventListener('pointerup',()=>keys['right']=false);bR.addEventListener('pointerleave',()=>keys['right']=false);
+
+document.getElementById('msg').style.display='block';gameState='idle';
+</script>
+</body>
+</html>

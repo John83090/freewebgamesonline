@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trivia Quiz – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#9898b8;text-decoration:none;font-size:20px}.topbar a:hover{color:#6c63ff}
+.topbar h1{font-size:18px;font-weight:600;flex:1}
+.score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:700}
+.game-area{flex:1;display:flex;flex-direction:column;align-items:center;padding:20px;gap:16px;max-width:640px;margin:0 auto;width:100%}
+.progress-row{width:100%;display:flex;justify-content:space-between;font-size:13px;color:#9898b8}
+.timer-bar-wrap{width:100%;height:8px;background:#1e1e30;border-radius:4px;overflow:hidden}
+.timer-bar{height:100%;background:#6c63ff;transition:width .1s linear;border-radius:4px}
+.q-card{background:#1e1e30;border:1px solid #2a2a45;border-radius:14px;padding:22px;width:100%}
+.category{font-size:12px;color:#9898b8;margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em}
+.question{font-size:18px;font-weight:600;line-height:1.4}
+.options{display:flex;flex-direction:column;gap:10px;width:100%}
+.opt-btn{background:#1e1e30;border:2px solid #2a2a45;border-radius:10px;color:#e8e8f0;padding:13px 18px;font-size:15px;cursor:pointer;text-align:left;transition:border-color .15s,background .15s}
+.opt-btn:hover:not(:disabled){border-color:#6c63ff;background:#2a2a45}
+.opt-btn.correct{border-color:#2ecc71;background:#1a3a2a;color:#2ecc71}
+.opt-btn.wrong{border-color:#e74c3c;background:#3a1a1a;color:#e74c3c}
+.opt-btn:disabled{cursor:default}
+.streak-badge{background:#f1c40f;color:#0d0d14;padding:4px 12px;border-radius:16px;font-size:13px;font-weight:700;display:none}
+.score-row{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.sbox{background:#1e1e30;border:1px solid #2a2a45;border-radius:10px;padding:10px 20px;text-align:center}
+.sbox .v{font-size:22px;font-weight:800;color:#6c63ff}
+.sbox .l{font-size:12px;color:#9898b8}
+.end-screen{display:none;flex-direction:column;align-items:center;gap:16px;width:100%}
+.grade{font-size:80px;font-weight:900;line-height:1}
+.grade-msg{font-size:18px;color:#9898b8;text-align:center}
+button.ctrl{background:#6c63ff;border:none;color:#fff;padding:12px 32px;border-radius:10px;font-size:16px;cursor:pointer;font-weight:700}
+button.ctrl:hover{background:#574fd6}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>🧠 Trivia Quiz</h1>
+  <span class="score-badge" id="score-badge">Score: 0</span>
+</div>
+<div class="game-area">
+  <div id="quiz-ui">
+    <div class="progress-row"><span id="q-num">Q 1 / 20</span><span id="streak-badge" class="streak-badge">🔥 Streak x2</span><span id="score-display">Score: 0</span></div>
+    <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar"></div></div>
+    <div class="q-card">
+      <div class="category" id="category"></div>
+      <div class="question" id="question"></div>
+    </div>
+    <div class="options" id="options"></div>
+  </div>
+  <div class="end-screen" id="end-screen">
+    <div class="grade" id="grade-letter">A</div>
+    <div class="grade-msg" id="grade-msg">Excellent work!</div>
+    <div class="score-row">
+      <div class="sbox"><div class="v" id="final-score">0</div><div class="l">Score</div></div>
+      <div class="sbox"><div class="v" id="final-correct">0</div><div class="l">Correct</div></div>
+      <div class="sbox"><div class="v" id="final-streak">0</div><div class="l">Best Streak</div></div>
+    </div>
+    <button class="ctrl" onclick="startGame()">Play Again</button>
+    <a href="../index.html" style="color:#9898b8;font-size:14px">Back to Games</a>
+  </div>
+</div>
+<script>
+const ALL_QS=[
+  {q:"What is the capital of France?",a:"Paris",opts:["London","Paris","Berlin","Madrid"],cat:"Geography"},
+  {q:"Which planet is known as the Red Planet?",a:"Mars",opts:["Venus","Jupiter","Mars","Saturn"],cat:"Science"},
+  {q:"Who painted the Mona Lisa?",a:"Leonardo da Vinci",opts:["Picasso","Van Gogh","Leonardo da Vinci","Michelangelo"],cat:"History"},
+  {q:"What is the largest ocean on Earth?",a:"Pacific",opts:["Atlantic","Indian","Pacific","Arctic"],cat:"Geography"},
+  {q:"In what year did World War II end?",a:"1945",opts:["1943","1944","1945","1946"],cat:"History"},
+  {q:"What is the chemical symbol for gold?",a:"Au",opts:["Go","Gd","Au","Ag"],cat:"Science"},
+  {q:"Which country has the most natural lakes?",a:"Canada",opts:["Russia","USA","Canada","Brazil"],cat:"Geography"},
+  {q:"How many sides does a hexagon have?",a:"6",opts:["5","6","7","8"],cat:"Math"},
+  {q:"What is the fastest land animal?",a:"Cheetah",opts:["Lion","Cheetah","Horse","Ostrich"],cat:"Science"},
+  {q:"Who wrote 'Romeo and Juliet'?",a:"Shakespeare",opts:["Dickens","Shakespeare","Austen","Tolstoy"],cat:"History"},
+  {q:"What is the smallest country in the world?",a:"Vatican City",opts:["Monaco","San Marino","Vatican City","Liechtenstein"],cat:"Geography"},
+  {q:"What color are rubies?",a:"Red",opts:["Blue","Green","Red","Purple"],cat:"General"},
+  {q:"How many bones are in the adult human body?",a:"206",opts:["186","196","206","216"],cat:"Science"},
+  {q:"What is the capital of Japan?",a:"Tokyo",opts:["Osaka","Kyoto","Tokyo","Hiroshima"],cat:"Geography"},
+  {q:"Which sport uses a shuttlecock?",a:"Badminton",opts:["Tennis","Squash","Badminton","Volleyball"],cat:"Sports"},
+  {q:"What is 15% of 200?",a:"30",opts:["25","30","35","40"],cat:"Math"},
+  {q:"Which element has the symbol 'O'?",a:"Oxygen",opts:["Osmium","Oganesson","Oxygen","Ozone"],cat:"Science"},
+  {q:"In which country were the 2016 Summer Olympics held?",a:"Brazil",opts:["China","UK","Brazil","Russia"],cat:"Sports"},
+  {q:"What is the longest river in the world?",a:"Nile",opts:["Amazon","Congo","Nile","Yangtze"],cat:"Geography"},
+  {q:"Who invented the telephone?",a:"Alexander Graham Bell",opts:["Edison","Tesla","Marconi","Alexander Graham Bell"],cat:"History"},
+  {q:"What is the hardest natural substance?",a:"Diamond",opts:["Ruby","Quartz","Diamond","Topaz"],cat:"Science"},
+  {q:"How many players are on a soccer team?",a:"11",opts:["9","10","11","12"],cat:"Sports"},
+  {q:"What is the capital of Australia?",a:"Canberra",opts:["Sydney","Melbourne","Brisbane","Canberra"],cat:"Geography"},
+  {q:"Which gas do plants absorb from air?",a:"Carbon dioxide",opts:["Oxygen","Nitrogen","Carbon dioxide","Hydrogen"],cat:"Science"},
+  {q:"What is 7 × 8?",a:"56",opts:["48","54","56","64"],cat:"Math"},
+  {q:"Who was the first US President?",a:"George Washington",opts:["Thomas Jefferson","John Adams","George Washington","Benjamin Franklin"],cat:"History"},
+  {q:"What is the currency of Japan?",a:"Yen",opts:["Won","Yen","Ringgit","Baht"],cat:"Geography"},
+  {q:"How many strings does a standard guitar have?",a:"6",opts:["4","5","6","7"],cat:"General"},
+  {q:"What is the square root of 144?",a:"12",opts:["10","11","12","13"],cat:"Math"},
+  {q:"Which country is home to the kangaroo?",a:"Australia",opts:["New Zealand","South Africa","Australia","India"],cat:"Geography"},
+  {q:"What is H2O more commonly known as?",a:"Water",opts:["Hydrogen","Oxygen","Salt","Water"],cat:"Science"},
+  {q:"How many continents are there on Earth?",a:"7",opts:["5","6","7","8"],cat:"Geography"},
+  {q:"Which sport is played at Wimbledon?",a:"Tennis",opts:["Cricket","Golf","Tennis","Croquet"],cat:"Sports"},
+  {q:"Who painted the Sistine Chapel ceiling?",a:"Michelangelo",opts:["Leonardo","Raphael","Michelangelo","Botticelli"],cat:"History"},
+  {q:"What is the capital of Canada?",a:"Ottawa",opts:["Toronto","Vancouver","Montreal","Ottawa"],cat:"Geography"},
+  {q:"In what decade was the internet invented?",a:"1960s",opts:["1940s","1950s","1960s","1970s"],cat:"History"},
+  {q:"What is the most spoken language in the world?",a:"Mandarin Chinese",opts:["English","Spanish","Mandarin Chinese","Hindi"],cat:"General"},
+  {q:"How many zeros in one million?",a:"6",opts:["5","6","7","9"],cat:"Math"},
+  {q:"Which planet has the most moons?",a:"Saturn",opts:["Jupiter","Neptune","Uranus","Saturn"],cat:"Science"},
+  {q:"Who wrote 'Harry Potter'?",a:"J.K. Rowling",opts:["Tolkien","C.S. Lewis","J.K. Rowling","Roald Dahl"],cat:"General"},
+  {q:"What is the tallest mountain in the world?",a:"Mount Everest",opts:["K2","Kangchenjunga","Mount Everest","Lhotse"],cat:"Geography"},
+  {q:"What sport uses a puck?",a:"Ice Hockey",opts:["Lacrosse","Polo","Ice Hockey","Field Hockey"],cat:"Sports"},
+  {q:"What is the powerhouse of the cell?",a:"Mitochondria",opts:["Nucleus","Ribosomes","Mitochondria","Golgi"],cat:"Science"},
+  {q:"How many sides does an octagon have?",a:"8",opts:["6","7","8","9"],cat:"Math"},
+  {q:"What is the capital of Brazil?",a:"Brasília",opts:["Rio de Janeiro","São Paulo","Brasília","Salvador"],cat:"Geography"},
+  {q:"In what year was the Titanic sunk?",a:"1912",opts:["1905","1912","1918","1923"],cat:"History"},
+  {q:"What color is a flamingo?",a:"Pink",opts:["White","Red","Orange","Pink"],cat:"General"},
+  {q:"How many players on a basketball team?",a:"5",opts:["4","5","6","7"],cat:"Sports"},
+  {q:"What is the speed of light (approx)?",a:"300,000 km/s",opts:["30,000 km/s","150,000 km/s","300,000 km/s","3,000,000 km/s"],cat:"Science"},
+  {q:"Which country invented pizza?",a:"Italy",opts:["Greece","France","Italy","Spain"],cat:"General"},
+];
+
+let questions=[],qIdx=0,score=0,streak=0,bestStreak=0,correct=0,timerVal=15,timerInt=null,answered=false;
+
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function startGame(){
+  questions=shuffle(ALL_QS).slice(0,20);
+  qIdx=0;score=0;streak=0;bestStreak=0;correct=0;
+  document.getElementById('quiz-ui').style.display='block';
+  document.getElementById('end-screen').style.display='none';
+  document.getElementById('score-badge').textContent='Score: 0';
+  showQuestion();
+}
+
+function showQuestion(){
+  answered=false;
+  const q=questions[qIdx];
+  document.getElementById('q-num').textContent='Q '+(qIdx+1)+' / 20';
+  document.getElementById('score-display').textContent='Score: '+score;
+  document.getElementById('category').textContent=q.cat;
+  document.getElementById('question').textContent=q.q;
+  const opts=shuffle(q.opts);
+  const container=document.getElementById('options');
+  container.innerHTML='';
+  opts.forEach(opt=>{
+    const b=document.createElement('button');
+    b.className='opt-btn';b.textContent=opt;
+    b.onclick=()=>chooseAnswer(opt,q.a,b);
+    container.appendChild(b);
+  });
+  timerVal=15;
+  document.getElementById('timer-bar').style.width='100%';
+  clearInterval(timerInt);
+  timerInt=setInterval(()=>{
+    timerVal-=0.1;
+    document.getElementById('timer-bar').style.width=(timerVal/15*100)+'%';
+    if(timerVal<=0){clearInterval(timerInt);timeUp();}
+  },100);
+  updateStreak();
+}
+
+function timeUp(){
+  if(answered)return;
+  answered=true;
+  streak=0;updateStreak();
+  const q=questions[qIdx];
+  document.querySelectorAll('.opt-btn').forEach(b=>{
+    b.disabled=true;
+    if(b.textContent===q.a)b.classList.add('correct');
+  });
+  setTimeout(advance,1200);
+}
+
+function chooseAnswer(chosen,correct_ans,btn){
+  if(answered)return;
+  answered=true;
+  clearInterval(timerInt);
+  const isCorrect=chosen===correct_ans;
+  if(isCorrect){
+    btn.classList.add('correct');
+    const pts=Math.round(timerVal/15*100);
+    const mult=streak>=2?2:1;
+    score+=pts*mult;streak++;correct++;
+    if(streak>bestStreak)bestStreak=streak;
+    document.getElementById('score-badge').textContent='Score: '+score;
+    document.getElementById('score-display').textContent='Score: '+score;
+  } else {
+    btn.classList.add('wrong');
+    streak=0;
+    document.querySelectorAll('.opt-btn').forEach(b=>{
+      if(b.textContent===correct_ans)b.classList.add('correct');
+    });
+  }
+  document.querySelectorAll('.opt-btn').forEach(b=>b.disabled=true);
+  updateStreak();
+  setTimeout(advance,1300);
+}
+
+function updateStreak(){
+  const sb=document.getElementById('streak-badge');
+  if(streak>=2){sb.style.display='inline-block';sb.textContent='🔥 Streak x'+(streak>=2?'2':'1');}
+  else{sb.style.display='none';}
+}
+
+function advance(){
+  qIdx++;
+  if(qIdx>=20){endGame();}else{showQuestion();}
+}
+
+function endGame(){
+  document.getElementById('quiz-ui').style.display='none';
+  document.getElementById('end-screen').style.display='flex';
+  const pct=correct/20;
+  let grade,msg;
+  if(pct>=0.9){grade='A';msg='Outstanding! You\'re a trivia champion!';}
+  else if(pct>=0.75){grade='B';msg='Great job! Well above average!';}
+  else if(pct>=0.6){grade='C';msg='Not bad! Keep practicing!';}
+  else{grade='F';msg='Better luck next time!';}
+  document.getElementById('grade-letter').textContent=grade;
+  document.getElementById('grade-msg').textContent=msg;
+  document.getElementById('final-score').textContent=score;
+  document.getElementById('final-correct').textContent=correct+'/20';
+  document.getElementById('final-streak').textContent=bestStreak;
+}
+
+startGame();
+</script>
+</body>
+</html>

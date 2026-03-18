@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shooting Gallery – FreeWebGamesOnline</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;height:100vh;overflow:hidden;cursor:crosshair}
+  #topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0;cursor:default}
+  #topbar a{color:#9898b8;text-decoration:none;font-size:20px;cursor:pointer}
+  #topbar a:hover{color:#6c63ff}
+  #title{flex:1;font-size:18px;font-weight:700}
+  #score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-weight:700;font-size:15px}
+  #game-wrap{flex:1;display:flex;justify-content:center;align-items:center;position:relative}
+  canvas{display:block}
+  #overlay{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:rgba(13,13,20,.88);gap:14px;cursor:default}
+  #overlay h2{font-size:30px;color:#6c63ff}
+  #overlay p{color:#9898b8;font-size:14px;text-align:center;max-width:280px}
+  #overlay .hs{color:#e8e8f0;font-size:17px}
+  #start-btn{background:#6c63ff;color:#fff;border:none;padding:11px 30px;border-radius:8px;font-size:16px;cursor:pointer;font-weight:700}
+  #start-btn:hover{background:#5a52e0}
+  #hud{position:absolute;top:8px;left:0;right:0;display:flex;justify-content:space-between;padding:0 16px;pointer-events:none;font-size:14px;color:#e8e8f0}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <span id="title">🎯 Shooting Gallery</span>
+  <span id="score-badge">Score: 0</span>
+</div>
+<div id="game-wrap">
+  <canvas id="c"></canvas>
+  <div id="hud">
+    <span id="hud-bullets"></span>
+    <span id="hud-timer"></span>
+    <span id="hud-round"></span>
+  </div>
+  <div id="overlay">
+    <h2>Shooting Gallery</h2>
+    <p>Click targets to shoot. 10 bullets per round, 5 rounds. Headshot bonus!</p>
+    <div class="hs" id="hs-display"></div>
+    <button id="start-btn">Play</button>
+  </div>
+</div>
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){r=Math.min(r,w/2,h/2);this.beginPath();this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.arcTo(x+w,y,x+w,y+r,r);this.lineTo(x+w,y+h-r);this.arcTo(x+w,y+h,x+w-r,y+h,r);this.lineTo(x+r,y+h);this.arcTo(x,y+h,x,y+h-r,r);this.lineTo(x,y+r);this.arcTo(x,y,x+r,y,r);this.closePath();return this};}
+
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),scoreBadge=document.getElementById('score-badge');
+const hudBullets=document.getElementById('hud-bullets'),hudTimer=document.getElementById('hud-timer'),hudRound=document.getElementById('hud-round');
+const W=600,H=420;
+canvas.width=W;canvas.height=H;
+
+const ROWS=[H*0.25,H*0.45,H*0.65],BULLETS_PER_ROUND=10,ROUND_TIME=30,TOTAL_ROUNDS=5;
+const TARGET_SHAPES=['duck','can','star'];
+const COLORS=['#ff6584','#43d9ad','#f9ca24','#ff9f43','#6c63ff','#fd79a8'];
+
+let targets=[],score=0,bullets=0,timeLeft=0,round=0,gameRunning=false,animId=null;
+let timerInterval=null,hs=0,effects=[];
+
+function getHS(){try{return parseInt(localStorage.getItem('sg_hs')||'0')}catch(e){return 0}}
+function saveHS(s){try{localStorage.setItem('sg_hs',s)}catch(e){}}
+
+function setupCanvas(){
+  const wrap=document.getElementById('game-wrap');
+  const scale=Math.min(wrap.clientWidth/W,wrap.clientHeight/H);
+  canvas.style.width=W*scale+'px';canvas.style.height=H*scale+'px';
+}
+window.addEventListener('resize',setupCanvas);setupCanvas();
+
+function spawnTarget(){
+  const row=ROWS[Math.floor(Math.random()*ROWS.length)];
+  const dir=Math.random()<0.5?1:-1;
+  const speed=(1.5+Math.random()*2.5)*(round*0.15+1);
+  const w=50+Math.random()*30,h=w*0.7;
+  const shape=TARGET_SHAPES[Math.floor(Math.random()*TARGET_SHAPES.length)];
+  const color=COLORS[Math.floor(Math.random()*COLORS.length)];
+  return{x:dir>0?-w:W+w,y:row,w,h,dir,speed,shape,color,alive:true,hit:false,hitT:0};
+}
+
+function initRound(){
+  targets=[];bullets=BULLETS_PER_ROUND;timeLeft=ROUND_TIME;
+  updateHUD();
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    timeLeft--;updateHUD();
+    if(timeLeft<=0){endRound();}
+  },1000);
+  for(let i=0;i<6;i++){
+    const t=spawnTarget();
+    t.x=Math.random()*W;
+    targets.push(t);
+  }
+}
+
+function updateHUD(){
+  hudBullets.textContent='Bullets: '+bullets;
+  hudTimer.textContent='Time: '+timeLeft+'s';
+  hudRound.textContent='Round: '+round+'/'+TOTAL_ROUNDS;
+}
+
+function endRound(){
+  clearInterval(timerInterval);
+  round++;
+  if(round>TOTAL_ROUNDS){endGame();return;}
+  showRoundScreen();
+}
+
+function showRoundScreen(){
+  overlay.style.display='flex';
+  overlay.querySelector('h2').textContent='Round '+(round-1)+' Done!';
+  overlay.querySelector('p').textContent='Score: '+score;
+  document.getElementById('start-btn').textContent='Next Round';
+  document.getElementById('hs-display').textContent='Best: '+hs;
+}
+
+function endGame(){
+  gameRunning=false;
+  if(score>hs){hs=score;saveHS(hs);}
+  overlay.style.display='flex';
+  overlay.querySelector('h2').textContent='Game Over!';
+  overlay.querySelector('p').textContent='Final Score: '+score;
+  document.getElementById('start-btn').textContent='Play Again';
+  document.getElementById('hs-display').textContent='Best: '+hs;
+  cancelAnimationFrame(animId);
+}
+
+function drawDuck(ctx,x,y,w,h,color){
+  ctx.fillStyle=color;
+  ctx.beginPath();ctx.ellipse(x,y+h*0.1,w*0.4,h*0.35,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(x+w*0.25,y-h*0.2,w*0.22,h*0.25,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#f9ca24';
+  ctx.beginPath();ctx.ellipse(x+w*0.45,y-h*0.22,w*0.1,h*0.08,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#0d0d14';
+  ctx.beginPath();ctx.arc(x+w*0.3,y-h*0.28,3,0,Math.PI*2);ctx.fill();
+  // headshot dot
+  ctx.fillStyle='rgba(255,255,255,0.6)';
+  ctx.beginPath();ctx.arc(x+w*0.3,y-h*0.28,5,0,Math.PI*2);ctx.fill();
+}
+
+function drawCan(ctx,x,y,w,h,color){
+  ctx.fillStyle=color;
+  ctx.roundRect(x-w/2,y-h/2,w,h,4);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.2)';
+  ctx.fillRect(x-w/2+4,y-h/2+4,w-8,4);
+  // headshot dot
+  ctx.fillStyle='rgba(255,255,255,0.7)';
+  ctx.beginPath();ctx.arc(x,y-h*0.28,5,0,Math.PI*2);ctx.fill();
+}
+
+function drawStar(ctx,x,y,size,color){
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  for(let i=0;i<5;i++){
+    const a=i*Math.PI*2/5-Math.PI/2;
+    const a2=a+Math.PI/5;
+    i===0?ctx.moveTo(x+Math.cos(a)*size,y+Math.sin(a)*size):ctx.lineTo(x+Math.cos(a)*size,y+Math.sin(a)*size);
+    ctx.lineTo(x+Math.cos(a2)*size*0.45,y+Math.sin(a2)*size*0.45);
+  }
+  ctx.closePath();ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.7)';
+  ctx.beginPath();ctx.arc(x,y-size*0.15,5,0,Math.PI*2);ctx.fill();
+}
+
+function draw(){
+  // background
+  ctx.fillStyle='#1a1a2e';ctx.fillRect(0,0,W,H);
+  // sky gradient
+  const grad=ctx.createLinearGradient(0,0,0,H*0.7);
+  grad.addColorStop(0,'#0d0d14');grad.addColorStop(1,'#1e1e30');
+  ctx.fillStyle=grad;ctx.fillRect(0,0,W,H*0.85);
+  // ground
+  ctx.fillStyle='#2a2a45';ctx.fillRect(0,H*0.82,W,H*0.18);
+  ctx.fillStyle='#3a3a55';ctx.fillRect(0,H*0.82,W,8);
+  // lane dividers
+  ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=1;
+  ROWS.forEach(r=>{ctx.beginPath();ctx.moveTo(0,r+30);ctx.lineTo(W,r+30);ctx.stroke();});
+  // targets
+  targets.forEach(t=>{
+    if(!t.alive)return;
+    ctx.save();
+    if(t.hit){ctx.globalAlpha=1-(Date.now()-t.hitT)/300;}
+    if(t.shape==='duck')drawDuck(ctx,t.x,t.y,t.w,t.h,t.color);
+    else if(t.shape==='can')drawCan(ctx,t.x,t.y,t.w,t.h,t.color);
+    else drawStar(ctx,t.x,t.y,t.w*0.4,t.color);
+    ctx.restore();
+  });
+  // effects
+  effects=effects.filter(e=>{
+    const age=(Date.now()-e.t)/500;
+    if(age>1)return false;
+    ctx.save();ctx.globalAlpha=1-age;
+    ctx.fillStyle=e.headshot?'#f9ca24':'#fff';
+    ctx.font='bold '+(14+age*10)+'px Segoe UI';
+    ctx.textAlign='center';
+    ctx.fillText(e.text,e.x,e.y-age*30);
+    ctx.restore();
+    return true;
+  });
+}
+
+function gameLoop(){
+  if(!gameRunning)return;
+  targets.forEach(t=>{
+    if(!t.alive)return;
+    if(t.hit&&Date.now()-t.hitT>300){t.alive=false;return;}
+    t.x+=t.dir*t.speed;
+    if(t.x>W+60){t.x=-60;}
+    if(t.x<-60){t.x=W+60;}
+  });
+  // spawn new if under 8
+  if(targets.filter(t=>t.alive).length<8&&Math.random()<0.02){targets.push(spawnTarget());}
+  draw();
+  animId=requestAnimationFrame(gameLoop);
+}
+
+function getCanvasPos(e){
+  const rect=canvas.getBoundingClientRect();
+  const scaleX=W/rect.width,scaleY=H/rect.height;
+  const cx=(e.clientX||e.touches[0].clientX)-rect.left;
+  const cy=(e.clientY||e.touches[0].clientY)-rect.top;
+  return{x:cx*scaleX,y:cy*scaleY};
+}
+
+function shoot(pos){
+  if(!gameRunning||bullets<=0)return;
+  bullets--;updateHUD();
+  let hit=false;
+  for(let i=targets.length-1;i>=0;i--){
+    const t=targets[i];
+    if(!t.alive||t.hit)continue;
+    const dx=pos.x-t.x,dy=pos.y-t.y;
+    let inTarget=false,isHeadshot=false;
+    if(t.shape==='duck'){
+      inTarget=Math.abs(dx)<t.w*0.4&&Math.abs(dy)<t.h*0.4;
+      isHeadshot=Math.abs(dx-t.w*0.25)<10&&Math.abs(dy+t.h*0.28)<10;
+    } else if(t.shape==='can'){
+      inTarget=Math.abs(dx)<t.w/2&&Math.abs(dy)<t.h/2;
+      isHeadshot=Math.abs(dx)<8&&Math.abs(dy+t.h*0.28)<8;
+    } else {
+      inTarget=Math.hypot(dx,dy)<t.w*0.4;
+      isHeadshot=Math.abs(dx)<8&&Math.abs(dy+t.w*0.06)<8;
+    }
+    if(inTarget){
+      t.hit=true;t.hitT=Date.now();
+      const pts=isHeadshot?30:10;score+=pts;
+      scoreBadge.textContent='Score: '+score;
+      effects.push({x:t.x,y:t.y,text:isHeadshot?'HEADSHOT! +30':'+10',t:Date.now(),headshot:isHeadshot});
+      hit=true;break;
+    }
+  }
+  if(!hit)effects.push({x:pos.x,y:pos.y,text:'Miss',t:Date.now(),headshot:false});
+  if(bullets<=0)setTimeout(endRound,800);
+}
+
+canvas.addEventListener('click',e=>{if(gameRunning)shoot(getCanvasPos(e));});
+canvas.addEventListener('touchstart',e=>{e.preventDefault();if(gameRunning)shoot(getCanvasPos(e));},{passive:false});
+
+document.getElementById('start-btn').addEventListener('click',()=>{
+  if(!gameRunning||round>TOTAL_ROUNDS){score=0;round=1;scoreBadge.textContent='Score: 0';hs=getHS();}
+  overlay.style.display='none';gameRunning=true;
+  initRound();gameLoop();
+});
+document.getElementById('hs-display').textContent='Best: '+getHS();
+setupCanvas();
+</script>
+</body>
+</html>

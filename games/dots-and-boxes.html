@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dots and Boxes – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:Arial,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+#topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 16px;display:flex;align-items:center;gap:12px;width:100%}
+#topbar a{color:#9898b8;text-decoration:none;font-size:20px}
+#topbar a:hover{color:#6c63ff}
+#topbar .title{flex:1;font-size:18px;font-weight:bold}
+.badge{background:#6c63ff;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:bold}
+#main{display:flex;flex-direction:column;align-items:center;padding:16px;gap:12px}
+#scores{display:flex;gap:16px;font-size:16px}
+.sc{background:#1e1e30;border:1px solid #2a2a45;padding:8px 18px;border-radius:10px;text-align:center}
+.sc .val{font-size:24px;font-weight:bold}
+.sc.p1 .val{color:#6c63ff}
+.sc.p2 .val{color:#e74c3c}
+canvas{cursor:pointer;border-radius:8px;touch-action:none}
+#status{font-size:14px;color:#9898b8;text-align:center}
+#btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+button{background:#1e1e30;border:1px solid #2a2a45;color:#e8e8f0;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px}
+button:hover{background:#2a2a45}
+button.active{border-color:#6c63ff;color:#6c63ff}
+#overlay{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1e1e30;border:2px solid #6c63ff;padding:30px 50px;border-radius:16px;text-align:center;display:none;z-index:100;font-size:20px}
+#overlay button{margin-top:14px;background:#6c63ff;border:none;color:#fff;padding:10px 28px;border-radius:8px;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <span class="title">&#9632; Dots &amp; Boxes</span>
+  <span class="badge" id="badge">Player 1</span>
+</div>
+<div id="main">
+  <div id="scores">
+    <div class="sc p1"><div style="font-size:12px;color:#9898b8">Player 1</div><div class="val" id="s1">0</div></div>
+    <div class="sc p2"><div style="font-size:12px;color:#9898b8" id="p2lbl">Player 2 / AI</div><div class="val" id="s2">0</div></div>
+  </div>
+  <div id="status">Click an edge between dots to draw a line</div>
+  <canvas id="c"></canvas>
+  <div id="btns">
+    <button id="mode-btn" onclick="toggleMode()">Mode: vs AI</button>
+    <button onclick="newGame()">New Game</button>
+  </div>
+</div>
+<div id="overlay"><div id="ovtext"></div><button onclick="newGame();document.getElementById('overlay').style.display='none'">Play Again</button></div>
+<script>
+const C=document.getElementById('c');
+const ctx=C.getContext('2d');
+const GRID=5; // dots: 5x5, boxes: 4x4
+let DOT_SPACE,MARGIN,DOT_R;
+let vsAI=true;
+
+function calcSize(){
+  const sz=Math.min(window.innerWidth-16,460);
+  MARGIN=sz*0.08;DOT_SPACE=(sz-2*MARGIN)/(GRID-1);DOT_R=6;
+  C.width=C.height=sz;
+}
+calcSize();window.addEventListener('resize',()=>{calcSize();draw();});
+
+// hlines[row][col]: row=0..GRID-1, col=0..GRID-2 — horizontal line between (row,col)-(row,col+1)
+// vlines[row][col]: row=0..GRID-2, col=0..GRID-1 — vertical line between (row,col)-(row+1,col)
+// owner[row][col]: 0=unclaimed, 1=p1, 2=p2 — box at (row,col), row,col=0..GRID-2
+let hlines,vlines,owner,score,turn,gameOver;
+
+function newGame(){
+  hlines=Array.from({length:GRID},()=>Array(GRID-1).fill(0));
+  vlines=Array.from({length:GRID-1},()=>Array(GRID).fill(0));
+  owner=Array.from({length:GRID-1},()=>Array(GRID-1).fill(0));
+  score=[0,0];turn=1;gameOver=false;
+  document.getElementById('overlay').style.display='none';
+  document.getElementById('s1').textContent='0';
+  document.getElementById('s2').textContent='0';
+  setBadge();draw();setStatus('Click an edge to draw a line');
+}
+
+function toggleMode(){
+  vsAI=!vsAI;
+  document.getElementById('mode-btn').textContent='Mode: '+(vsAI?'vs AI':'2 Player');
+  document.getElementById('p2lbl').textContent=vsAI?'AI':'Player 2';
+  newGame();
+}
+
+function setBadge(){
+  const b=document.getElementById('badge');
+  b.textContent=turn===1?'Player 1':'Player 2'+(vsAI?' (AI)':'');
+  b.style.background=turn===1?'#6c63ff':'#e74c3c';
+}
+
+function setStatus(m){document.getElementById('status').textContent=m;}
+
+function dotPos(r,c){return{x:MARGIN+c*DOT_SPACE,y:MARGIN+r*DOT_SPACE};}
+
+function draw(){
+  ctx.fillStyle='#0d0d14';ctx.fillRect(0,0,C.width,C.height);
+  // boxes
+  for(let r=0;r<GRID-1;r++)for(let c=0;c<GRID-1;c++){
+    if(owner[r][c]){
+      const{x,y}=dotPos(r,c);
+      ctx.fillStyle=owner[r][c]===1?'rgba(108,99,255,0.25)':'rgba(231,76,60,0.25)';
+      ctx.fillRect(x,y,DOT_SPACE,DOT_SPACE);
+      // owner initial
+      ctx.fillStyle=owner[r][c]===1?'#6c63ff':'#e74c3c';
+      ctx.font=`bold ${Math.floor(DOT_SPACE*0.4)}px Arial`;
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(owner[r][c]===1?'1':'2',x+DOT_SPACE/2,y+DOT_SPACE/2);
+    }
+  }
+  // hlines
+  for(let r=0;r<GRID;r++)for(let c=0;c<GRID-1;c++){
+    const p1=dotPos(r,c),p2=dotPos(r,c+1);
+    ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);
+    ctx.strokeStyle=hlines[r][c]?(hlines[r][c]===1?'#6c63ff':'#e74c3c'):'#2a2a45';
+    ctx.lineWidth=hlines[r][c]?4:2;ctx.stroke();
+  }
+  // vlines
+  for(let r=0;r<GRID-1;r++)for(let c=0;c<GRID;c++){
+    const p1=dotPos(r,c),p2=dotPos(r+1,c);
+    ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);
+    ctx.strokeStyle=vlines[r][c]?(vlines[r][c]===1?'#6c63ff':'#e74c3c'):'#2a2a45';
+    ctx.lineWidth=vlines[r][c]?4:2;ctx.stroke();
+  }
+  // dots
+  for(let r=0;r<GRID;r++)for(let c=0;c<GRID;c++){
+    const{x,y}=dotPos(r,c);
+    ctx.beginPath();ctx.arc(x,y,DOT_R,0,Math.PI*2);
+    ctx.fillStyle='#e8e8f0';ctx.fill();
+  }
+  // hover
+  if(hover){
+    const{type,r,c}=hover;
+    ctx.beginPath();
+    if(type==='h'){ctx.moveTo(dotPos(r,c).x,dotPos(r,c).y);ctx.lineTo(dotPos(r,c+1).x,dotPos(r,c+1).y);}
+    else{ctx.moveTo(dotPos(r,c).x,dotPos(r,c).y);ctx.lineTo(dotPos(r+1,c).x,dotPos(r+1,c).y);}
+    ctx.strokeStyle='rgba(108,99,255,0.6)';ctx.lineWidth=4;ctx.stroke();
+  }
+}
+
+function checkBoxes(player){
+  let gained=0;
+  for(let r=0;r<GRID-1;r++)for(let c=0;c<GRID-1;c++){
+    if(!owner[r][c]&&hlines[r][c]&&hlines[r+1][c]&&vlines[r][c]&&vlines[r][c+1]){
+      owner[r][c]=player;score[player-1]++;gained++;
+    }
+  }
+  return gained;
+}
+
+function playEdge(type,r,c,player){
+  if(type==='h'){if(hlines[r][c])return false;hlines[r][c]=player;}
+  else{if(vlines[r][c])return false;vlines[r][c]=player;}
+  const gained=checkBoxes(player);
+  document.getElementById('s1').textContent=score[0];
+  document.getElementById('s2').textContent=score[1];
+  if(isGameOver()){endGame();return true;}
+  if(gained===0){turn=turn===1?2:1;setBadge();}
+  else setStatus('Box captured! Extra turn!');
+  return true;
+}
+
+function isGameOver(){
+  return owner.flat().every(v=>v!==0);
+}
+
+function endGame(){
+  gameOver=true;draw();
+  const[s1,s2]=score;
+  let msg;
+  if(s1>s2)msg='Player 1 Wins! '+s1+' to '+s2;
+  else if(s2>s1)msg=(vsAI?'AI':'Player 2')+' Wins! '+s2+' to '+s1;
+  else msg='Draw! '+s1+' each';
+  document.getElementById('ovtext').textContent=msg;
+  setTimeout(()=>document.getElementById('overlay').style.display='block',400);
+}
+
+// AI logic
+function getAllEdges(){
+  const edges=[];
+  for(let r=0;r<GRID;r++)for(let c=0;c<GRID-1;c++)if(!hlines[r][c])edges.push({type:'h',r,c});
+  for(let r=0;r<GRID-1;r++)for(let c=0;c<GRID;c++)if(!vlines[r][c])edges.push({type:'v',r,c});
+  return edges;
+}
+
+function edgeCompletesBox(type,r,c){
+  // temporarily place
+  if(type==='h')hlines[r][c]=2;else vlines[r][c]=2;
+  let count=0;
+  for(let br=0;br<GRID-1;br++)for(let bc=0;bc<GRID-1;bc++)
+    if(!owner[br][bc]&&hlines[br][bc]&&hlines[br+1][bc]&&vlines[br][bc]&&vlines[br][bc+1])count++;
+  if(type==='h')hlines[r][c]=0;else vlines[r][c]=0;
+  return count;
+}
+
+function aiMove(){
+  const edges=getAllEdges();
+  if(!edges.length)return;
+  // 1. Complete a box if possible
+  for(const e of edges){if(edgeCompletesBox(e.type,e.r,e.c)>0){playEdge(e.type,e.r,e.c,2);draw();if(!gameOver&&turn===2)setTimeout(aiMove,300);return;}}
+  // 2. Avoid giving 3-sided boxes; pick random safe edge
+  const safe=edges.filter(e=>{
+    // check if this edge would give opponent a box
+    if(e.type==='h')hlines[e.r][e.c]=2;else vlines[e.r][e.c]=2;
+    let danger=false;
+    for(const e2 of getAllEdges()){
+      if(e2.type==='h')hlines[e2.r][e2.c]=1;else vlines[e2.r][e2.c]=1;
+      let cnt=0;for(let br=0;br<GRID-1;br++)for(let bc=0;bc<GRID-1;bc++)if(!owner[br][bc]&&hlines[br][bc]&&hlines[br+1][bc]&&vlines[br][bc]&&vlines[br][bc+1])cnt++;
+      if(e2.type==='h')hlines[e2.r][e2.c]=0;else vlines[e2.r][e2.c]=0;
+      if(cnt>0){danger=true;break;}
+    }
+    if(e.type==='h')hlines[e.r][e.c]=0;else vlines[e.r][e.c]=0;
+    return !danger;
+  });
+  const pick=(safe.length?safe:edges)[Math.floor(Math.random()*(safe.length?safe.length:edges.length))];
+  playEdge(pick.type,pick.r,pick.c,2);draw();
+  if(!gameOver&&turn===2)setTimeout(aiMove,300);
+}
+
+let hover=null;
+C.addEventListener('mousemove',e=>{
+  if(gameOver||(vsAI&&turn===2))return;
+  const r2=C.getBoundingClientRect();
+  const mx=e.clientX-r2.left,my=e.clientY-r2.top;
+  hover=getNearestEdge(mx,my);draw();
+});
+C.addEventListener('mouseleave',()=>{hover=null;draw();});
+
+C.addEventListener('click',e=>{
+  if(gameOver||(vsAI&&turn===2))return;
+  const r2=C.getBoundingClientRect();
+  const mx=e.clientX-r2.left,my=e.clientY-r2.top;
+  const edge=getNearestEdge(mx,my);
+  if(!edge)return;
+  const placed=playEdge(edge.type,edge.r,edge.c,turn);
+  if(placed){draw();if(!gameOver&&vsAI&&turn===2)setTimeout(aiMove,300);}
+});
+
+function getNearestEdge(mx,my){
+  let best=null,bestDist=DOT_SPACE*0.45;
+  // check hlines
+  for(let r=0;r<GRID;r++)for(let c=0;c<GRID-1;c++){
+    if(hlines[r][c])continue;
+    const p1=dotPos(r,c),p2=dotPos(r,c+1);
+    const cx=(p1.x+p2.x)/2,cy=(p1.y+p2.y)/2;
+    const dx=mx-cx,dy=my-cy;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist<bestDist){bestDist=dist;best={type:'h',r,c};}
+  }
+  // check vlines
+  for(let r=0;r<GRID-1;r++)for(let c=0;c<GRID;c++){
+    if(vlines[r][c])continue;
+    const p1=dotPos(r,c),p2=dotPos(r+1,c);
+    const cx=(p1.x+p2.x)/2,cy=(p1.y+p2.y)/2;
+    const dx=mx-cx,dy=my-cy;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist<bestDist){bestDist=dist;best={type:'v',r,c};}
+  }
+  return best;
+}
+
+newGame();
+</script>
+</body>
+</html>

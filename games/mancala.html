@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mancala – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:Arial,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+#topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 16px;display:flex;align-items:center;gap:12px;width:100%}
+#topbar a{color:#9898b8;text-decoration:none;font-size:20px}
+#topbar a:hover{color:#6c63ff}
+#topbar .title{flex:1;font-size:18px;font-weight:bold}
+.badge{background:#6c63ff;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:bold}
+#board-area{display:flex;flex-direction:column;align-items:center;padding:20px;gap:14px;width:100%}
+canvas{border-radius:16px;max-width:100%;cursor:pointer;touch-action:none}
+#status{font-size:15px;color:#e8e8f0;text-align:center;min-height:22px}
+#btns{display:flex;gap:10px}
+button{background:#1e1e30;border:1px solid #2a2a45;color:#e8e8f0;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:14px}
+button:hover{background:#2a2a45}
+#overlay{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1e1e30;border:2px solid #6c63ff;padding:30px 50px;border-radius:16px;text-align:center;display:none;z-index:100;font-size:20px}
+#overlay button{margin-top:14px;background:#6c63ff;border:none;color:#fff;padding:10px 28px;border-radius:8px;cursor:pointer;font-size:16px}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <span class="title">&#127381; Mancala</span>
+  <span class="badge" id="badge">Your Turn</span>
+</div>
+<div id="board-area">
+  <div id="status">Click one of your pits (bottom row) to sow</div>
+  <canvas id="c"></canvas>
+  <div id="btns"><button onclick="newGame()">New Game</button></div>
+</div>
+<div id="overlay"><div id="ovtext"></div><button onclick="newGame();document.getElementById('overlay').style.display='none'">Play Again</button></div>
+<script>
+const C=document.getElementById('c');
+const ctx=C.getContext('2d');
+// Board layout:
+// pits[0..5] = AI top row (index 0=right of AI mancala, index 5=left of AI mancala ... reversed visually)
+// pits[6] = AI mancala
+// pits[7..12] = Player bottom row (index 7=left)
+// pits[13] = Player mancala
+// Kalah: player owns 7-12+13, AI owns 0-5+6
+
+const W_PAD=20,PIT_R=36,MANCALA_R=44,SEED_R=5;
+let BW,BH;
+
+function calcSize(){
+  BW=Math.min(window.innerWidth-16,700);
+  BH=Math.floor(BW*0.35);
+  C.width=BW;C.height=BH;
+  const scale=BW/700;
+  return scale;
+}
+
+let pits,turn,gameOver,animating;
+const SEED_COLORS=['#e74c3c','#f39c12','#2ecc71','#3498db','#9b59b6','#e91e63'];
+
+function newGame(){
+  pits=Array(14).fill(4);pits[6]=0;pits[13]=0;
+  turn='player';gameOver=false;animating=false;
+  document.getElementById('badge').textContent='Your Turn';
+  document.getElementById('badge').style.background='#6c63ff';
+  document.getElementById('overlay').style.display='none';
+  draw();setStatus('Click one of your pits (bottom row) to sow');
+}
+
+function pitCenter(i){
+  const sc=BW/700;const cy=BH/2;
+  // Mancalas at edges
+  if(i===13)return{x:BW-W_PAD-MANCALA_R*sc,y:cy}; // player mancala right
+  if(i===6)return{x:W_PAD+MANCALA_R*sc,y:cy};      // ai mancala left
+  const spacing=(BW-4*(MANCALA_R*sc+W_PAD))/6;
+  if(i>=7&&i<=12){// player bottom
+    const n=i-7;
+    return{x:W_PAD*2+2*MANCALA_R*sc+spacing*n+spacing/2,y:cy+BH*0.25};
+  }
+  if(i>=0&&i<=5){// ai top (reversed: 5 is leftmost)
+    const n=5-i;
+    return{x:W_PAD*2+2*MANCALA_R*sc+spacing*n+spacing/2,y:cy-BH*0.25};
+  }
+  return{x:BW/2,y:cy};
+}
+
+function drawSeeds(x,y,count,r,isStore){
+  if(count===0)return;
+  ctx.font=`bold ${Math.floor(r*0.5)}px Arial`;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillStyle='#e8e8f0';ctx.fillText(count,x,y);
+  // draw dots around
+  const n=Math.min(count,12);
+  for(let i=0;i<n;i++){
+    const angle=(i/n)*Math.PI*2;
+    const dist=r*0.55;
+    const sx=x+Math.cos(angle)*dist,sy=y+Math.sin(angle)*dist;
+    ctx.beginPath();ctx.arc(sx,sy,SEED_R*BW/700,0,Math.PI*2);
+    ctx.fillStyle=SEED_COLORS[i%SEED_COLORS.length];ctx.fill();
+  }
+}
+
+function draw(){
+  const sc=BW/700;
+  ctx.fillStyle='#1e1e30';ctx.beginPath();
+  if(ctx.roundRect)ctx.roundRect(0,0,BW,BH,16);
+  else ctx.rect(0,0,BW,BH);
+  ctx.fill();
+  ctx.strokeStyle='#2a2a45';ctx.lineWidth=2;ctx.stroke();
+
+  // Draw pits
+  for(let i=0;i<14;i++){
+    const{x,y}=pitCenter(i);
+    const isStore=i===6||i===13;
+    const r=(isStore?MANCALA_R:PIT_R)*sc;
+    // highlight valid player pits
+    let highlight=false;
+    if(turn==='player'&&!gameOver&&i>=7&&i<=12&&pits[i]>0)highlight=true;
+    ctx.beginPath();
+    if(isStore){ctx.ellipse(x,y,r*0.7,r,0,0,Math.PI*2);}
+    else{ctx.arc(x,y,r,0,Math.PI*2);}
+    ctx.fillStyle=highlight?'#2a3a5a':'#141428';ctx.fill();
+    ctx.strokeStyle=highlight?'#6c63ff':'#2a2a45';ctx.lineWidth=highlight?2:1;ctx.stroke();
+    drawSeeds(x,y,pits[i],r,isStore);
+  }
+  // Labels
+  ctx.fillStyle='#9898b8';ctx.font=`${Math.floor(11*sc+9)}px Arial`;ctx.textAlign='center';
+  ctx.fillText('AI',pitCenter(6).x,BH-8);
+  ctx.fillText('You',pitCenter(13).x,BH-8);
+  ctx.fillText(`Your Score: ${pits[13]}`,BW/2,BH-8);
+  ctx.fillText(`AI Score: ${pits[6]}`,BW/2,12);
+}
+
+function setStatus(m){document.getElementById('status').textContent=m;}
+
+function doMove(pitIdx){
+  if(animating||gameOver)return;
+  let seeds=pits[pitIdx];
+  if(seeds===0)return;
+  pits[pitIdx]=0;
+  let cur=pitIdx;
+  const skipStore=turn==='player'?6:13;
+  while(seeds>0){
+    cur=(cur+1)%14;
+    if(cur===skipStore){cur=(cur+1)%14;}
+    pits[cur]++;seeds--;
+  }
+  // capture rule
+  const myStart=turn==='player'?7:0;
+  const myEnd=turn==='player'?12:5;
+  const myStore=turn==='player'?13:6;
+  const oppStart=turn==='player'?0:7;
+  const oppEnd=turn==='player'?5:12;
+  if(cur>=myStart&&cur<=myEnd&&pits[cur]===1){
+    const opposite=12-cur+(turn==='player'?0:14-12);
+    // mirror: player pit i <-> ai pit (12-i)
+    const opp=(turn==='player')?(12-cur):(12-cur+7);
+    const oppi=12-cur; // for player: pit i(7-12) mirrors ai pit (12-i = 5-0)
+    const aiMirror=12-(cur-7); // player pit cur(7-12) -> ai pit 5-(cur-7)=12-cur
+    const mirrorIdx=turn==='player'?(12-cur):(19-cur); // player: cur 7-12, mirror 5-0
+    if(mirrorIdx>=0&&mirrorIdx<14&&pits[mirrorIdx]>0){
+      pits[myStore]+=pits[cur]+pits[mirrorIdx];
+      pits[cur]=0;pits[mirrorIdx]=0;
+    }
+  }
+  draw();
+  // extra turn?
+  const gotExtra=(cur===(turn==='player'?13:6));
+  if(gotExtra){setStatus('Extra turn!');setTimeout(()=>{setStatus(turn==='player'?'Your extra turn!':'AI takes another turn...');if(turn==='ai')setTimeout(aiTurn,600);},300);return;}
+  // switch turn
+  turn=turn==='player'?'ai':'player';
+  checkEnd();
+  if(!gameOver){
+    if(turn==='ai'){setStatus('AI is thinking...');document.getElementById('badge').textContent='AI Turn';document.getElementById('badge').style.background='#2a2a45';setTimeout(aiTurn,700);}
+    else{setStatus('Your turn!');document.getElementById('badge').textContent='Your Turn';document.getElementById('badge').style.background='#6c63ff';}
+  }
+}
+
+function checkEnd(){
+  const playerEmpty=pits.slice(7,13).every(p=>p===0);
+  const aiEmpty=pits.slice(0,6).every(p=>p===0);
+  if(playerEmpty||aiEmpty){
+    // collect remaining seeds
+    for(let i=0;i<6;i++){pits[6]+=pits[i];pits[i]=0;}
+    for(let i=7;i<13;i++){pits[13]+=pits[i];pits[i]=0;}
+    gameOver=true;draw();
+    const p=pits[13],a=pits[6];
+    let msg=p>a?`You Win! ${p} to ${a}`:p<a?`AI Wins! ${a} to ${p}`:`Draw! ${p} each`;
+    document.getElementById('ovtext').textContent=msg;
+    document.getElementById('overlay').style.display='block';
+  }
+}
+
+function aiTurn(){
+  if(turn!=='ai'||gameOver)return;
+  // strategy: pick pit that gives extra turn; else pick largest
+  let best=-1,bestScore=-1;
+  for(let i=0;i<6;i++){
+    if(pits[i]===0)continue;
+    // check if lands on store (6 - i steps from store = lands exactly on store)
+    const steps=pits[i];const dest=(i+steps)%14;
+    let score=pits[i];
+    if(dest===6)score+=1000;
+    if(score>bestScore){bestScore=score;best=i;}
+  }
+  if(best===-1){checkEnd();return;}
+  doMove(best);
+}
+
+C.addEventListener('click',e=>{
+  if(turn!=='player'||gameOver)return;
+  const r=C.getBoundingClientRect();
+  const mx=e.clientX-r.left,my=e.clientY-r.top;
+  const sc=BW/700;
+  for(let i=7;i<=12;i++){
+    const{x,y}=pitCenter(i);
+    const dist=Math.hypot(mx-x,my-y);
+    if(dist<PIT_R*sc+4&&pits[i]>0){doMove(i);return;}
+  }
+});
+
+window.addEventListener('resize',()=>{calcSize();draw();});
+calcSize();newGame();
+</script>
+</body>
+</html>

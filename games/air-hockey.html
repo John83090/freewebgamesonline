@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Air Hockey – FreeWebGamesOnline</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+  #topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+  #topbar a{color:#9898b8;text-decoration:none;font-size:20px}
+  #topbar a:hover{color:#6c63ff}
+  #title{flex:1;font-size:18px;font-weight:700}
+  #score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-weight:700;font-size:15px}
+  #game-wrap{flex:1;display:flex;justify-content:center;align-items:center;position:relative}
+  canvas{display:block;touch-action:none;cursor:none}
+  #overlay{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:rgba(13,13,20,.88);gap:14px}
+  #overlay h2{font-size:30px;color:#6c63ff}
+  #overlay p{color:#9898b8;font-size:14px;text-align:center}
+  #start-btn{background:#6c63ff;color:#fff;border:none;padding:11px 30px;border-radius:8px;font-size:16px;cursor:pointer;font-weight:700}
+  #start-btn:hover{background:#5a52e0}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <span id="title">🏒 Air Hockey</span>
+  <span id="score-badge">0 – 0</span>
+</div>
+<div id="game-wrap">
+  <canvas id="c"></canvas>
+  <div id="overlay">
+    <h2>Air Hockey</h2>
+    <p>Move mouse / drag to control your paddle.<br>First to 7 goals wins!</p>
+    <button id="start-btn">Play</button>
+  </div>
+</div>
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){r=Math.min(r,w/2,h/2);this.beginPath();this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.arcTo(x+w,y,x+w,y+r,r);this.lineTo(x+w,y+h-r);this.arcTo(x+w,y+h,x+w-r,y+h,r);this.lineTo(x+r,y+h);this.arcTo(x,y+h,x,y+h-r,r);this.lineTo(x,y+r);this.arcTo(x,y,x+r,y,r);this.closePath();return this};}
+
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),scoreBadge=document.getElementById('score-badge');
+const W=400,H=580,PUCK_R=14,PADDLE_R=28,GOAL_W=130;
+canvas.width=W;canvas.height=H;
+
+let playerScore=0,aiScore=0,gameRunning=false,animId=null,goalFlash=0;
+let puck,playerPaddle,aiPaddle,mouseX=W/2,mouseY=H-80,lastMX=W/2,lastMY=H-80;
+
+function resetPuck(toPlayer){
+  puck={x:W/2,y:H/2,vx:(Math.random()-0.5)*4,vy:toPlayer?-4:4,speed:5};
+}
+
+function initGame(){
+  playerScore=0;aiScore=0;
+  playerPaddle={x:W/2,y:H-80,r:PADDLE_R,vx:0,vy:0};
+  aiPaddle={x:W/2,y:80,r:PADDLE_R,vx:0,vy:0};
+  resetPuck(true);scoreBadge.textContent='0 – 0';
+}
+
+function setupCanvas(){
+  const wrap=document.getElementById('game-wrap');
+  const scale=Math.min(wrap.clientWidth/W,wrap.clientHeight/H);
+  canvas.style.width=W*scale+'px';canvas.style.height=H*scale+'px';
+}
+window.addEventListener('resize',setupCanvas);setupCanvas();
+
+function getPos(e){
+  const rect=canvas.getBoundingClientRect();
+  const scaleX=W/rect.width,scaleY=H/rect.height;
+  const cx=(e.clientX||e.touches[0].clientX)-rect.left;
+  const cy=(e.clientY||e.touches[0].clientY)-rect.top;
+  return{x:cx*scaleX,y:cy*scaleY};
+}
+canvas.addEventListener('mousemove',e=>{const p=getPos(e);lastMX=mouseX;lastMY=mouseY;mouseX=p.x;mouseY=p.y;});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();const p=getPos(e);lastMX=mouseX;lastMY=mouseY;mouseX=p.x;mouseY=p.y;},{passive:false});
+
+function collidePaddlePuck(paddle,p){
+  const dx=p.x-paddle.x,dy=p.y-paddle.y;
+  const dist=Math.hypot(dx,dy);
+  if(dist<paddle.r+p.r+1){
+    const nx=dx/dist,ny=dy/dist;
+    const relVx=p.vx-paddle.vx,relVy=p.vy-paddle.vy;
+    const dot=relVx*nx+relVy*ny;
+    if(dot<0){
+      p.vx-=2*dot*nx;p.vy-=2*dot*ny;
+      // add paddle velocity
+      p.vx+=paddle.vx*0.4;p.vy+=paddle.vy*0.4;
+      // clamp speed
+      const spd=Math.hypot(p.vx,p.vy);
+      const maxSpd=Math.min(12,puck.speed+0.3);
+      puck.speed=maxSpd;
+      if(spd>maxSpd){p.vx=p.vx/spd*maxSpd;p.vy=p.vy/spd*maxSpd;}
+      // push out
+      const overlap=paddle.r+p.r-dist+2;
+      p.x+=nx*overlap;p.y+=ny*overlap;
+    }
+  }
+}
+
+function updateAI(){
+  const targetX=puck.x;
+  const targetY=Math.max(80,Math.min(H/2-10,puck.y));
+  const dx=targetX-aiPaddle.x,dy=targetY-aiPaddle.y;
+  const speed=3.5;
+  const dist=Math.hypot(dx,dy)||1;
+  aiPaddle.vx=dx/dist*Math.min(speed,dist);
+  aiPaddle.vy=dy/dist*Math.min(speed,dist);
+  aiPaddle.x+=aiPaddle.vx;aiPaddle.y+=aiPaddle.vy;
+  aiPaddle.x=Math.max(PADDLE_R,Math.min(W-PADDLE_R,aiPaddle.x));
+  aiPaddle.y=Math.max(PADDLE_R,Math.min(H/2-10,aiPaddle.y));
+}
+
+function gameLoop(){
+  if(!gameRunning)return;
+  // player paddle
+  playerPaddle.vx=mouseX-playerPaddle.x;playerPaddle.vy=mouseY-playerPaddle.y;
+  playerPaddle.x+=playerPaddle.vx*0.25;playerPaddle.y+=playerPaddle.vy*0.25;
+  playerPaddle.x=Math.max(PADDLE_R,Math.min(W-PADDLE_R,playerPaddle.x));
+  playerPaddle.y=Math.max(H/2+10,Math.min(H-PADDLE_R,playerPaddle.y));
+  updateAI();
+  // puck
+  puck.x+=puck.vx;puck.y+=puck.vy;
+  if(puck.x-PUCK_R<0){puck.x=PUCK_R;puck.vx*=-0.95;}
+  if(puck.x+PUCK_R>W){puck.x=W-PUCK_R;puck.vx*=-0.95;}
+  // top/bottom wall / goal detection
+  const goalLeft=(W-GOAL_W)/2,goalRight=goalLeft+GOAL_W;
+  if(puck.y-PUCK_R<0){
+    if(puck.x>goalLeft&&puck.x<goalRight){playerScore++;scoreBadge.textContent=playerScore+' – '+aiScore;goalFlash=30;if(playerScore>=7)endGame(true);else{resetPuck(false);} }
+    else{puck.y=PUCK_R;puck.vy*=-0.95;}
+  }
+  if(puck.y+PUCK_R>H){
+    if(puck.x>goalLeft&&puck.x<goalRight){aiScore++;scoreBadge.textContent=playerScore+' – '+aiScore;goalFlash=30;if(aiScore>=7)endGame(false);else{resetPuck(true);} }
+    else{puck.y=H-PUCK_R;puck.vy*=-0.95;}
+  }
+  collidePaddlePuck(playerPaddle,puck);
+  collidePaddlePuck(aiPaddle,puck);
+  if(goalFlash>0)goalFlash--;
+  draw();
+  animId=requestAnimationFrame(gameLoop);
+}
+
+function draw(){
+  // table
+  ctx.fillStyle='#0a2a1a';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#0d3d26';ctx.fillRect(4,4,W-8,H-8);
+  // center line
+  ctx.strokeStyle='rgba(255,255,255,.15)';ctx.lineWidth=2;ctx.setLineDash([10,10]);
+  ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();ctx.setLineDash([]);
+  // center circle
+  ctx.beginPath();ctx.arc(W/2,H/2,50,0,Math.PI*2);ctx.stroke();
+  // goals
+  const gl=(W-GOAL_W)/2;
+  ctx.fillStyle=goalFlash>0?'rgba(249,202,36,.3)':'rgba(108,99,255,.2)';
+  ctx.fillRect(gl,0,GOAL_W,16);
+  ctx.fillStyle=goalFlash>0?'rgba(249,202,36,.3)':'rgba(255,101,132,.2)';
+  ctx.fillRect(gl,H-16,GOAL_W,16);
+  ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=3;ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(gl,2);ctx.lineTo(gl,14);ctx.moveTo(gl+GOAL_W,2);ctx.lineTo(gl+GOAL_W,14);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(gl,H-2);ctx.lineTo(gl,H-14);ctx.moveTo(gl+GOAL_W,H-2);ctx.lineTo(gl+GOAL_W,H-14);ctx.stroke();
+  // score
+  ctx.fillStyle='rgba(255,255,255,.08)';ctx.roundRect(W/2-60,H/2-20,120,40,8);ctx.fill();
+  ctx.fillStyle='#e8e8f0';ctx.font='bold 24px Segoe UI';ctx.textAlign='center';
+  ctx.fillText(playerScore+' – '+aiScore,W/2,H/2+9);
+  // paddles
+  function drawPaddle(p,color){
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    const g=ctx.createRadialGradient(p.x-4,p.y-4,2,p.x,p.y,p.r);
+    g.addColorStop(0,'#fff');g.addColorStop(0.4,color);g.addColorStop(1,'#333');
+    ctx.fillStyle=g;ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.3)';ctx.lineWidth=2;ctx.stroke();
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r*0.35,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=2;ctx.stroke();
+  }
+  drawPaddle(aiPaddle,'#ff6584');
+  drawPaddle(playerPaddle,'#6c63ff');
+  // puck
+  ctx.beginPath();ctx.arc(puck.x,puck.y,PUCK_R,0,Math.PI*2);
+  ctx.fillStyle='#e8e8f0';ctx.fill();
+  ctx.beginPath();ctx.arc(puck.x,puck.y,PUCK_R*0.5,0,Math.PI*2);
+  ctx.fillStyle='#9898b8';ctx.fill();
+}
+
+function endGame(playerWin){
+  gameRunning=false;cancelAnimationFrame(animId);
+  overlay.querySelector('h2').textContent=playerWin?'You Win! 🎉':'AI Wins!';
+  overlay.querySelector('p').textContent='Score: '+playerScore+' – '+aiScore;
+  document.getElementById('start-btn').textContent='Play Again';
+  overlay.style.display='flex';
+}
+
+document.getElementById('start-btn').addEventListener('click',()=>{
+  overlay.style.display='none';gameRunning=true;initGame();gameLoop();
+});
+setupCanvas();
+</script>
+</body>
+</html>

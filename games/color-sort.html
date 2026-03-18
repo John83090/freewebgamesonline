@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Sort – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
+#topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 16px;display:flex;align-items:center;gap:12px}
+#topbar a{color:#6c63ff;text-decoration:none;font-size:1.3em}
+#topbar h1{font-size:1.1em;flex:1}
+.badge{background:#2a2a45;border:1px solid #6c63ff;border-radius:20px;padding:4px 14px;font-size:.9em;color:#6c63ff;font-weight:bold}
+#game{max-width:460px;margin:0 auto;padding:14px}
+.info-bar{display:flex;gap:8px;margin-bottom:12px}
+.info-box{flex:1;background:#1e1e30;border:1px solid #2a2a45;border-radius:9px;padding:8px;text-align:center}
+.info-num{font-size:1.3em;font-weight:bold;color:#6c63ff}
+.info-lbl{font-size:.75em;color:#9898b8}
+#tubeArea{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;padding:10px;min-height:200px}
+.tube-wrap{display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:transform .15s}
+.tube-wrap:hover{transform:translateY(-4px)}
+.tube-wrap.selected{transform:translateY(-10px)}
+.tube-label{font-size:.7em;color:#9898b8;margin-top:4px}
+.tube{width:50px;border:3px solid #3a3a55;border-top:none;border-radius:0 0 30px 30px;background:#1e1e30;display:flex;flex-direction:column-reverse;overflow:hidden;height:160px;position:relative;transition:border-color .2s}
+.tube.selected{border-color:#6c63ff}
+.tube.complete{border-color:#4caf50}
+.tube-top{width:50px;height:12px;border:3px solid #3a3a55;border-bottom:none;border-radius:8px 8px 0 0;background:#1e1e30;transition:border-color .2s}
+.tube-top.selected{border-color:#6c63ff}
+.tube-top.complete{border-color:#4caf50}
+.seg{height:37px;width:100%;transition:all .3s;display:flex;align-items:center;justify-content:center;font-size:1.1em}
+#status{text-align:center;padding:10px;background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;margin:10px 0;min-height:42px;font-size:.9em}
+.btn-row{display:flex;gap:8px}
+.btn{flex:1;padding:11px;border:none;border-radius:9px;font-weight:bold;cursor:pointer;font-size:.9em}
+#undoBtn{background:#2a2a45;color:#e8e8f0;border:1px solid #3a3a55}
+#newBtn{background:#6c63ff;color:#fff}
+.lvl-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.lvl-btn{flex:1;padding:8px;background:#2a2a45;border:1px solid #3a3a55;border-radius:8px;color:#9898b8;cursor:pointer;font-size:.8em;transition:all .2s}
+.lvl-btn.active{background:#6c63ff;border-color:#6c63ff;color:#fff}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>🧪 Color Sort</h1>
+  <span class="badge" id="lvlBadge">Level 1</span>
+</div>
+<div id="game">
+  <div class="lvl-row" id="lvlRow"></div>
+  <div class="info-bar">
+    <div class="info-box"><div class="info-num" id="movesNum">0</div><div class="info-lbl">Moves</div></div>
+    <div class="info-box"><div class="info-num" id="doneNum">0</div><div class="info-lbl">Sorted</div></div>
+  </div>
+  <div id="tubeArea"></div>
+  <div id="status">Click a tube to select, then click another to pour!</div>
+  <div class="btn-row" style="margin-top:8px">
+    <button class="btn" id="undoBtn" onclick="undo()">Undo</button>
+    <button class="btn" id="newBtn" onclick="startLevel(curLevel)">New Game</button>
+  </div>
+</div>
+<script>
+const LEVELS=[
+  {colors:4,tubes:6,empty:1},
+  {colors:4,tubes:6,empty:2},
+  {colors:5,tubes:7,empty:2},
+  {colors:5,tubes:8,empty:2},
+  {colors:6,tubes:8,empty:2},
+];
+const PALETTE=['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c'];
+const EMOJIS=['🔴','🔵','🟢','🟡','🟣','🩵'];
+const TUBE_SIZE=4;
+let tubes=[],selected=null,moves=0,history=[],curLevel=0;
+
+function buildLevelBtns(){
+  const el=document.getElementById('lvlRow');el.innerHTML='';
+  LEVELS.forEach((l,i)=>{
+    const b=document.createElement('button');b.className='lvl-btn'+(i===curLevel?' active':'');
+    b.textContent='Lvl '+(i+1);b.onclick=()=>startLevel(i);el.appendChild(b);
+  });
+}
+
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}}
+
+function startLevel(lvl){
+  curLevel=lvl;selected=null;moves=0;history=[];
+  const{colors,tubes:numTubes,empty}=LEVELS[lvl];
+  // Build a pool: each color appears TUBE_SIZE times
+  let pool=[];
+  for(let c=0;c<colors;c++)for(let s=0;s<TUBE_SIZE;s++)pool.push(c);
+  shuffle(pool);
+  tubes=[];
+  let idx=0;
+  for(let t=0;t<numTubes-empty;t++){tubes.push(pool.slice(idx,idx+TUBE_SIZE));idx+=TUBE_SIZE;}
+  for(let e=0;e<empty;e++)tubes.push([]);
+  document.getElementById('lvlBadge').textContent='Level '+(lvl+1);
+  document.getElementById('movesNum').textContent=0;
+  buildLevelBtns();render();document.getElementById('status').textContent='Click a tube to select, then click another to pour!';
+}
+
+function topColor(tube){return tube.length>0?tube[tube.length-1]:-1;}
+
+function canPour(src,dst){
+  if(src===dst)return false;
+  if(src.length===0)return false;
+  if(dst.length>=TUBE_SIZE)return false;
+  if(dst.length===0)return true;
+  return topColor(src)===topColor(dst);
+}
+
+function pour(srcIdx,dstIdx){
+  const src=tubes[srcIdx],dst=tubes[dstIdx];
+  if(!canPour(src,dst))return false;
+  history.push(tubes.map(t=>[...t]));
+  const color=topColor(src);
+  while(src.length>0&&topColor(src)===color&&dst.length<TUBE_SIZE){
+    dst.push(src.pop());
+  }
+  moves++;document.getElementById('movesNum').textContent=moves;
+  return true;
+}
+
+function undo(){
+  if(history.length===0)return;
+  tubes=history.pop().map(t=>[...t]);
+  moves=Math.max(0,moves-1);selected=null;
+  document.getElementById('movesNum').textContent=moves;
+  render();document.getElementById('status').textContent='Undone!';
+}
+
+function isTubeDone(tube){
+  if(tube.length!==TUBE_SIZE)return false;
+  return tube.every(c=>c===tube[0]);
+}
+
+function checkWin(){
+  const done=tubes.filter(t=>t.length===0||isTubeDone(t)).length;
+  const colorTubes=tubes.filter(t=>t.length>0);
+  document.getElementById('doneNum').textContent=colorTubes.filter(isTubeDone).length;
+  if(colorTubes.every(isTubeDone)){
+    document.getElementById('status').textContent=`Sorted! Level ${curLevel+1} complete in ${moves} moves! ${curLevel<4?'Next level awaits!':'All levels done!'}`;
+    if(curLevel<LEVELS.length-1)setTimeout(()=>startLevel(curLevel+1),1500);
+    return true;
+  }
+  return false;
+}
+
+function render(){
+  const area=document.getElementById('tubeArea');area.innerHTML='';
+  tubes.forEach((tube,i)=>{
+    const wrap=document.createElement('div');wrap.className='tube-wrap'+(selected===i?' selected':'');
+    const top=document.createElement('div');top.className='tube-top'+(selected===i?' selected':isTubeDone(tube)?' complete':'');
+    const t=document.createElement('div');t.className='tube'+(selected===i?' selected':isTubeDone(tube)?' complete':'');
+    // Fill segments (from bottom)
+    for(let s=0;s<TUBE_SIZE;s++){
+      const seg=document.createElement('div');seg.className='seg';
+      if(s<tube.length){seg.style.background=PALETTE[tube[s]];seg.textContent=EMOJIS[tube[s]];}
+      else seg.style.background='transparent';
+      t.appendChild(seg);
+    }
+    wrap.appendChild(top);wrap.appendChild(t);
+    const lbl=document.createElement('div');lbl.className='tube-label';lbl.textContent=tube.length>0?tube.length+'/'+TUBE_SIZE:'empty';wrap.appendChild(lbl);
+    wrap.onclick=()=>handleClick(i);
+    area.appendChild(wrap);
+  });
+  const done=tubes.filter(t=>t.length>0&&isTubeDone(t)).length;
+  document.getElementById('doneNum').textContent=done;
+}
+
+function handleClick(i){
+  if(selected===null){
+    if(tubes[i].length===0){document.getElementById('status').textContent='That tube is empty!';return;}
+    selected=i;render();document.getElementById('status').textContent=`Tube ${i+1} selected. Click destination.`;
+  } else {
+    if(i===selected){selected=null;render();document.getElementById('status').textContent='Deselected.';return;}
+    if(pour(selected,i)){selected=null;render();if(!checkWin())document.getElementById('status').textContent='Poured! Keep sorting.';}
+    else{
+      if(tubes[i].length>=TUBE_SIZE)document.getElementById('status').textContent='That tube is full!';
+      else if(tubes[i].length>0&&topColor(tubes[i])!==topColor(tubes[selected]))document.getElementById('status').textContent='Colors don\'t match!';
+      selected=i;render();
+    }
+  }
+}
+
+buildLevelBtns();startLevel(0);
+</script>
+</body>
+</html>

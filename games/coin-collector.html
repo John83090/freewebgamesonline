@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coin Collector – FreeWebGamesOnline</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+  #topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+  #topbar a{color:#9898b8;text-decoration:none;font-size:20px}
+  #topbar a:hover{color:#6c63ff}
+  #title{flex:1;font-size:18px;font-weight:700}
+  #score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-weight:700;font-size:15px}
+  #game-wrap{flex:1;display:flex;justify-content:center;align-items:center;position:relative}
+  canvas{display:block;touch-action:none}
+  #overlay{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:rgba(13,13,20,.88);gap:14px}
+  #overlay h2{font-size:30px;color:#6c63ff}
+  #overlay p{color:#9898b8;font-size:14px;text-align:center}
+  #overlay .hs{color:#e8e8f0;font-size:17px}
+  #start-btn{background:#6c63ff;color:#fff;border:none;padding:11px 30px;border-radius:8px;font-size:16px;cursor:pointer;font-weight:700}
+  #start-btn:hover{background:#5a52e0}
+  #dpad{position:absolute;bottom:16px;left:16px;display:none;user-select:none}
+  #dpad button{background:rgba(108,99,255,.35);border:1px solid #6c63ff;color:#fff;width:52px;height:52px;font-size:22px;cursor:pointer;border-radius:8px;touch-action:none}
+  #dpad .row{display:flex;gap:4px;justify-content:center}
+  .gap{width:52px;height:52px}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <span id="title">🪙 Coin Collector</span>
+  <span id="score-badge">Score: 0</span>
+</div>
+<div id="game-wrap">
+  <canvas id="c"></canvas>
+  <div id="overlay">
+    <h2>Coin Collector</h2>
+    <p>Arrow keys to move. Collect coins, avoid red enemies!<br>Golden coin = invincibility!</p>
+    <div class="hs" id="hs-display"></div>
+    <button id="start-btn">Play</button>
+  </div>
+  <div id="dpad">
+    <div class="row"><div class="gap"></div><button id="up-btn">▲</button><div class="gap"></div></div>
+    <div class="row"><button id="left-btn">◀</button><div class="gap"></div><button id="right-btn">▶</button></div>
+    <div class="row"><div class="gap"></div><button id="down-btn">▼</button><div class="gap"></div></div>
+  </div>
+</div>
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){r=Math.min(r,w/2,h/2);this.beginPath();this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.arcTo(x+w,y,x+w,y+r,r);this.lineTo(x+w,y+h-r);this.arcTo(x+w,y+h,x+w-r,y+h,r);this.lineTo(x+r,y+h);this.arcTo(x,y+h,x,y+h-r,r);this.lineTo(x,y+r);this.arcTo(x,y,x+r,y,r);this.closePath();return this};}
+
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),scoreBadge=document.getElementById('score-badge');
+const W=520,H=460;canvas.width=W;canvas.height=H;
+const TILE=20,SPEED=2.8,ENEMY_SPEED=1.4,COIN_R=7,PLAYER_R=10;
+let player,coins,enemies,score,lives,gameRunning,animId,invincible,invTimer,keys,effects,coinAngle;
+
+function getHS(){try{return parseInt(localStorage.getItem('cc_hs')||'0')}catch(e){return 0}}
+function saveHS(s){try{localStorage.setItem('cc_hs',s)}catch(e){}}
+
+function setupCanvas(){
+  const wrap=document.getElementById('game-wrap');
+  const scale=Math.min(wrap.clientWidth/W,wrap.clientHeight/H);
+  canvas.style.width=W*scale+'px';canvas.style.height=H*scale+'px';
+  const mob=window.innerWidth<=600;
+  document.getElementById('dpad').style.display=mob&&gameRunning?'block':'none';
+}
+window.addEventListener('resize',setupCanvas);
+
+function randPos(margin=30){
+  return{x:margin+Math.random()*(W-margin*2),y:margin+Math.random()*(H-margin*2)};
+}
+
+function initGame(){
+  score=0;lives=3;invincible=false;invTimer=0;keys={};effects=[];coinAngle=0;
+  player={...randPos(60),vx:0,vy:0,r:PLAYER_R};
+  coins=[];enemies=[];
+  for(let i=0;i<12;i++)spawnCoin();
+  for(let i=0;i<3;i++)spawnEnemy();
+  scoreBadge.textContent='Score: 0';
+}
+
+function spawnCoin(golden=false){
+  if(!golden&&Math.random()<0.08)golden=true;
+  const pos=randPos(20);
+  coins.push({...pos,r:COIN_R,golden,angle:Math.random()*Math.PI*2,alive:true});
+}
+
+function spawnEnemy(){
+  let pos;
+  do{pos=randPos(30);}while(Math.hypot(pos.x-player.x,pos.y-player.y)<120);
+  enemies.push({...pos,r:12,vx:(Math.random()-0.5)*ENEMY_SPEED*2,vy:(Math.random()-0.5)*ENEMY_SPEED*2});
+}
+
+function updatePlayer(){
+  player.vx=0;player.vy=0;
+  if(keys['ArrowLeft']||keys['a'])player.vx=-SPEED;
+  if(keys['ArrowRight']||keys['d'])player.vx=SPEED;
+  if(keys['ArrowUp']||keys['w'])player.vy=-SPEED;
+  if(keys['ArrowDown']||keys['s'])player.vy=SPEED;
+  player.x=Math.max(player.r,Math.min(W-player.r,player.x+player.vx));
+  player.y=Math.max(player.r,Math.min(H-player.r,player.y+player.vy));
+}
+
+function updateEnemies(){
+  enemies.forEach(e=>{
+    const dx=player.x-e.x,dy=player.y-e.y;
+    const dist=Math.hypot(dx,dy)||1;
+    const pursuit=0.012;
+    e.vx+=dx/dist*pursuit;e.vy+=dy/dist*pursuit;
+    const spd=Math.hypot(e.vx,e.vy);
+    if(spd>ENEMY_SPEED){e.vx=e.vx/spd*ENEMY_SPEED;e.vy=e.vy/spd*ENEMY_SPEED;}
+    e.x+=e.vx;e.y+=e.vy;
+    if(e.x<e.r){e.x=e.r;e.vx*=-1;}if(e.x>W-e.r){e.x=W-e.r;e.vx*=-1;}
+    if(e.y<e.r){e.y=e.r;e.vy*=-1;}if(e.y>H-e.r){e.y=H-e.r;e.vy*=-1;}
+    if(!invincible&&Math.hypot(player.x-e.x,player.y-e.y)<player.r+e.r-4){
+      lives--;scoreBadge.textContent='Score: '+score;
+      effects.push({x:player.x,y:player.y,text:'-1 Life',color:'#ff6584',t:Date.now()});
+      invincible=true;invTimer=Date.now()+2000;
+      if(lives<=0){endGame();}
+    }
+  });
+}
+
+function updateCoins(){
+  coinAngle+=0.05;
+  coins.forEach(c=>{
+    if(!c.alive)return;
+    if(Math.hypot(player.x-c.x,player.y-c.y)<player.r+c.r+2){
+      c.alive=false;score+=10;scoreBadge.textContent='Score: '+score;
+      effects.push({x:c.x,y:c.y,text:c.golden?'INVINCIBLE! +10':'+10',color:c.golden?'#f9ca24':'#43d9ad',t:Date.now()});
+      if(c.golden){invincible=true;invTimer=Date.now()+5000;}
+      spawnCoin();
+    }
+  });
+  coins=coins.filter(c=>c.alive);
+  while(coins.length<10)spawnCoin();
+}
+
+function draw(){
+  ctx.fillStyle='#0d0d14';ctx.fillRect(0,0,W,H);
+  // grid dots
+  ctx.fillStyle='rgba(255,255,255,0.03)';
+  for(let x=TILE;x<W;x+=TILE)for(let y=TILE;y<H;y+=TILE)ctx.fillRect(x-1,y-1,2,2);
+  // coins
+  coins.forEach(c=>{
+    if(!c.alive)return;
+    const scaleX=Math.abs(Math.cos(coinAngle+c.angle))*0.9+0.1;
+    ctx.save();ctx.translate(c.x,c.y);ctx.scale(scaleX,1);
+    ctx.beginPath();ctx.arc(0,0,c.r,0,Math.PI*2);
+    ctx.fillStyle=c.golden?'#f9ca24':'#ffd700';ctx.fill();
+    ctx.strokeStyle=c.golden?'#ff9f43':'#c8a400';ctx.lineWidth=2;ctx.stroke();
+    if(c.golden){ctx.fillStyle='#fff';ctx.font='bold 9px sans-serif';ctx.textAlign='center';ctx.fillText('★',0,3);}
+    ctx.restore();
+  });
+  // enemies
+  enemies.forEach(e=>{
+    ctx.save();ctx.translate(e.x,e.y);
+    ctx.beginPath();ctx.arc(0,0,e.r,0,Math.PI*2);
+    ctx.fillStyle='#ff4757';ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-4,-3,3,0,Math.PI*2);ctx.arc(4,-3,3,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#0d0d14';ctx.beginPath();ctx.arc(-4,-3,1.5,0,Math.PI*2);ctx.arc(4,-3,1.5,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  });
+  // player
+  ctx.save();ctx.translate(player.x,player.y);
+  if(invincible&&Math.floor(Date.now()/100)%2===0){ctx.globalAlpha=0.5;}
+  ctx.beginPath();ctx.arc(0,0,PLAYER_R,0,Math.PI*2);
+  ctx.fillStyle='#6c63ff';ctx.fill();
+  ctx.strokeStyle='#a29bfe';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-3,-3,3,0,Math.PI*2);ctx.arc(3,-3,3,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#0d0d14';ctx.beginPath();
+  const ex=player.vx>0?1:player.vx<0?-1:0;
+  ctx.arc(-3+ex,-3+0,1.5,0,Math.PI*2);ctx.arc(3+ex,-3,1.5,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+  // HUD
+  ctx.fillStyle='rgba(0,0,0,.4)';ctx.roundRect(8,8,180,36,6);ctx.fill();
+  ctx.fillStyle='#e8e8f0';ctx.font='14px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('Lives: '+'❤️'.repeat(lives),14,30);
+  if(invincible){
+    ctx.fillStyle='#f9ca24';ctx.font='bold 13px Segoe UI';ctx.textAlign='right';
+    ctx.fillText('★ INVINCIBLE',W-10,30);
+  }
+  // effects
+  effects=effects.filter(e=>{
+    const age=(Date.now()-e.t)/600;if(age>1)return false;
+    ctx.save();ctx.globalAlpha=1-age;ctx.fillStyle=e.color;
+    ctx.font='bold 14px Segoe UI';ctx.textAlign='center';
+    ctx.fillText(e.text,e.x,e.y-age*25);ctx.restore();return true;
+  });
+}
+
+function gameLoop(){
+  if(!gameRunning)return;
+  if(invincible&&Date.now()>invTimer)invincible=false;
+  updatePlayer();updateEnemies();updateCoins();draw();
+  animId=requestAnimationFrame(gameLoop);
+}
+
+function endGame(){
+  gameRunning=false;cancelAnimationFrame(animId);
+  const s=score;const h=getHS();if(s>h)saveHS(s);
+  overlay.querySelector('h2').textContent='Game Over!';
+  overlay.querySelector('p').textContent='Score: '+s;
+  document.getElementById('hs-display').textContent='Best: '+Math.max(s,h);
+  document.getElementById('start-btn').textContent='Play Again';
+  overlay.style.display='flex';
+  document.getElementById('dpad').style.display='none';
+}
+
+document.getElementById('start-btn').addEventListener('click',()=>{
+  overlay.style.display='none';gameRunning=true;initGame();
+  setupCanvas();gameLoop();
+});
+document.addEventListener('keydown',e=>{keys[e.key]=true;});
+document.addEventListener('keyup',e=>{keys[e.key]=false;});
+
+function dpad(key,down){
+  if(down)keys[key]=true; else delete keys[key];
+}
+document.getElementById('up-btn').addEventListener('touchstart',e=>{e.preventDefault();dpad('ArrowUp',true);},{passive:false});
+document.getElementById('up-btn').addEventListener('touchend',e=>{e.preventDefault();dpad('ArrowUp',false);},{passive:false});
+document.getElementById('down-btn').addEventListener('touchstart',e=>{e.preventDefault();dpad('ArrowDown',true);},{passive:false});
+document.getElementById('down-btn').addEventListener('touchend',e=>{e.preventDefault();dpad('ArrowDown',false);},{passive:false});
+document.getElementById('left-btn').addEventListener('touchstart',e=>{e.preventDefault();dpad('ArrowLeft',true);},{passive:false});
+document.getElementById('left-btn').addEventListener('touchend',e=>{e.preventDefault();dpad('ArrowLeft',false);},{passive:false});
+document.getElementById('right-btn').addEventListener('touchstart',e=>{e.preventDefault();dpad('ArrowRight',true);},{passive:false});
+document.getElementById('right-btn').addEventListener('touchend',e=>{e.preventDefault();dpad('ArrowRight',false);},{passive:false});
+
+document.getElementById('hs-display').textContent='Best: '+getHS();
+setupCanvas();
+</script>
+</body>
+</html>

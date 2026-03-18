@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Penalty Kick – FreeWebGamesOnline</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+  #topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+  #topbar a{color:#9898b8;text-decoration:none;font-size:20px}
+  #topbar a:hover{color:#6c63ff}
+  #title{flex:1;font-size:18px;font-weight:700}
+  #score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-weight:700;font-size:15px}
+  #game-wrap{flex:1;display:flex;justify-content:center;align-items:center;position:relative}
+  canvas{display:block;touch-action:none}
+  #overlay{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:rgba(13,13,20,.9);gap:14px}
+  #overlay h2{font-size:30px;color:#6c63ff}
+  #overlay p{color:#9898b8;font-size:14px;text-align:center;max-width:300px}
+  #overlay .hs{color:#e8e8f0;font-size:17px}
+  #start-btn{background:#6c63ff;color:#fff;border:none;padding:11px 30px;border-radius:8px;font-size:16px;cursor:pointer;font-weight:700}
+  #start-btn:hover{background:#5a52e0}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <span id="title">⚽ Penalty Kick</span>
+  <span id="score-badge">0 – 0</span>
+</div>
+<div id="game-wrap">
+  <canvas id="c"></canvas>
+  <div id="overlay">
+    <h2>Penalty Kick</h2>
+    <p>Kick phase: Move mouse to aim, click to shoot!<br>Keeper phase: Click to dive and save!</p>
+    <div class="hs" id="hs-display"></div>
+    <button id="start-btn">Play</button>
+  </div>
+</div>
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){r=Math.min(r,w/2,h/2);this.beginPath();this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.arcTo(x+w,y,x+w,y+r,r);this.lineTo(x+w,y+h-r);this.arcTo(x+w,y+h,x+w-r,y+h,r);this.lineTo(x+r,y+h);this.arcTo(x,y+h,x,y+h-r,r);this.lineTo(x,y+r);this.arcTo(x,y,x+r,y,r);this.closePath();return this};}
+
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),scoreBadge=document.getElementById('score-badge');
+const W=520,H=440;
+canvas.width=W;canvas.height=H;
+
+const GOAL_X=W/2,GOAL_Y=80,GOAL_W=220,GOAL_H=110;
+const BALL_START_X=W/2,BALL_START_Y=360;
+const GK_Y=GOAL_Y+GOAL_H/2;
+
+let state='idle',phase='kick',kickNum=0,totalKicks=5,playerGoals=0,cpuGoals=0;
+let ball,keeper,anim,mouseX=W/2,mouseY=H/2,animId,effects;
+let gameRunning=false;
+let ballTarget={x:W/2,y:GOAL_Y+20},keeperTarget=W/2;
+let ballAnim=0,kickDone=false,diveDone=false;
+let cpuKickTimer=null;
+
+function getHS(){try{return parseInt(localStorage.getItem('pk_hs')||'0')}catch(e){return 0}}
+function saveHS(s){try{localStorage.setItem('pk_hs',s)}catch(e){}}
+
+function setupCanvas(){
+  const wrap=document.getElementById('game-wrap');
+  const scale=Math.min(wrap.clientWidth/W,wrap.clientHeight/H);
+  canvas.style.width=W*scale+'px';canvas.style.height=H*scale+'px';
+}
+window.addEventListener('resize',setupCanvas);setupCanvas();
+
+function getPos(e){
+  const rect=canvas.getBoundingClientRect();
+  const scaleX=W/rect.width,scaleY=H/rect.height;
+  return{x:((e.clientX||e.touches[0].clientX)-rect.left)*scaleX,y:((e.clientY||e.touches[0].clientY)-rect.top)*scaleY};
+}
+
+function resetBall(){
+  ball={x:BALL_START_X,y:BALL_START_Y,r:12,tx:BALL_START_X,ty:BALL_START_Y,flying:false,t:0};
+}
+
+function resetKeeper(){
+  keeper={x:GOAL_X,y:GK_Y,targetX:GOAL_X,w:28,h:50,diving:false,diveDir:0};
+}
+
+function initGame(){
+  kickNum=0;playerGoals=0;cpuGoals=0;effects=[];phase='kick';
+  resetBall();resetKeeper();state='waiting';
+  scoreBadge.textContent='0 – 0';
+  gameRunning=true;
+}
+
+canvas.addEventListener('mousemove',e=>{const p=getPos(e);mouseX=p.x;mouseY=p.y;});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();const p=getPos(e);mouseX=p.x;mouseY=p.y;},{passive:false});
+
+canvas.addEventListener('click',e=>{
+  if(!gameRunning||state!=='waiting')return;
+  const p=getPos(e);
+  if(phase==='kick'){playerKick(p.x,p.y);}
+  else if(phase==='keep'){playerDive(p.x);}
+});
+canvas.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  if(!gameRunning||state!=='waiting')return;
+  const p=getPos(e);
+  if(phase==='kick')playerKick(p.x,p.y);
+  else if(phase==='keep')playerDive(p.x);
+},{passive:false});
+
+function playerKick(tx,ty){
+  state='animating';
+  // clamp target to goal area
+  const clampX=Math.max(GOAL_X-GOAL_W/2+20,Math.min(GOAL_X+GOAL_W/2-20,tx));
+  const clampY=Math.max(GOAL_Y+5,Math.min(GOAL_Y+GOAL_H-10,ty));
+  ball.tx=clampX;ball.ty=clampY;ball.flying=true;ball.t=0;
+  // keeper dives
+  const dx=clampX-GOAL_X;
+  const keeperBias=dx+((Math.random()-0.5)*80);
+  keeper.diveDir=keeperBias>0?1:-1;
+  keeper.targetX=GOAL_X+keeper.diveDir*95;
+  keeper.diving=true;
+  setTimeout(()=>resolveKick(clampX,clampY),700);
+}
+
+function resolveKick(tx,ty){
+  const keeperCoverX=keeper.targetX;
+  const dx=Math.abs(tx-keeperCoverX);
+  const dy=Math.abs(ty-GK_Y);
+  const saved=dx<keeper.w*1.5&&dy<keeper.h*0.6;
+  if(saved){
+    effects.push({x:W/2,y:200,text:'SAVED!',color:'#ff6584',t:Date.now()});
+  } else {
+    playerGoals++;
+    effects.push({x:W/2,y:200,text:'GOAL! ⚽',color:'#43d9ad',t:Date.now()});
+  }
+  scoreBadge.textContent=playerGoals+' – '+cpuGoals;
+  setTimeout(()=>nextKick(),900);
+}
+
+function playerDive(clickX){
+  state='animating';
+  const diveDir=clickX<W/2?-1:1;
+  keeper.diveDir=diveDir;keeper.diving=true;
+  keeper.targetX=GOAL_X+diveDir*95;
+  // cpu kicks to random side
+  const cpuTarget={x:GOAL_X+(Math.random()<0.5?-1:1)*(40+Math.random()*70),y:GOAL_Y+15+Math.random()*(GOAL_H-30)};
+  ball.tx=cpuTarget.x;ball.ty=cpuTarget.y;ball.flying=true;ball.t=0;
+  setTimeout(()=>resolveSave(cpuTarget),700);
+}
+
+function resolveSave(cpuTarget){
+  const keeperCoverX=keeper.targetX;
+  const dx=Math.abs(cpuTarget.x-keeperCoverX);
+  const dy=Math.abs(cpuTarget.y-GK_Y);
+  const saved=dx<keeper.w*1.5&&dy<keeper.h*0.6;
+  if(saved){
+    effects.push({x:W/2,y:200,text:'GREAT SAVE!',color:'#43d9ad',t:Date.now()});
+  } else {
+    cpuGoals++;
+    effects.push({x:W/2,y:200,text:'CPU SCORES!',color:'#ff6584',t:Date.now()});
+  }
+  scoreBadge.textContent=playerGoals+' – '+cpuGoals;
+  setTimeout(()=>nextKick(),900);
+}
+
+function nextKick(){
+  kickNum++;
+  resetBall();resetKeeper();
+  if(kickNum>=totalKicks*2){endGame();return;}
+  if(kickNum===totalKicks){
+    phase='keep';
+    effects.push({x:W/2,y:150,text:'Now YOU are the keeper!',color:'#f9ca24',t:Date.now()});
+    setTimeout(()=>{state='waiting';},1200);
+  } else {
+    state='waiting';
+  }
+}
+
+function endGame(){
+  gameRunning=false;cancelAnimationFrame(animId);
+  const h=getHS();const myScore=playerGoals;if(myScore>h)saveHS(myScore);
+  overlay.querySelector('h2').textContent=playerGoals>cpuGoals?'You Win!':playerGoals===cpuGoals?'Draw!':'CPU Wins!';
+  overlay.querySelector('p').textContent='You: '+playerGoals+' | CPU: '+cpuGoals;
+  document.getElementById('hs-display').textContent='Best goals: '+Math.max(myScore,h);
+  document.getElementById('start-btn').textContent='Play Again';
+  overlay.style.display='flex';
+}
+
+function gameLoop(){
+  if(!gameRunning)return;
+  // animate ball
+  if(ball.flying){
+    ball.t=Math.min(1,ball.t+0.04);
+    ball.x=BALL_START_X+(ball.tx-BALL_START_X)*ball.t;
+    ball.y=BALL_START_Y+(ball.ty-BALL_START_Y)*ball.t;
+    if(ball.t>=1)ball.flying=false;
+  }
+  // animate keeper
+  if(keeper.diving){keeper.x+=(keeper.targetX-keeper.x)*0.15;}
+  // aim preview for kick phase
+  if(phase==='kick'&&state==='waiting'){
+    const clampX=Math.max(GOAL_X-GOAL_W/2+20,Math.min(GOAL_X+GOAL_W/2-20,mouseX));
+    const clampY=Math.max(GOAL_Y+5,Math.min(GOAL_Y+GOAL_H-10,mouseY));
+    ball.tx=clampX;ball.ty=clampY;
+  }
+  draw();animId=requestAnimationFrame(gameLoop);
+}
+
+function draw(){
+  // pitch
+  ctx.fillStyle='#1a4a2a';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#1e5530';
+  for(let y=0;y<H;y+=30)if(Math.floor(y/30)%2===0)ctx.fillRect(0,y,W,30);
+  // penalty spot markings
+  ctx.strokeStyle='rgba(255,255,255,.15)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(W/2,BALL_START_Y,50,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,H*0.5);ctx.lineTo(W,H*0.5);ctx.stroke();
+  // goal
+  ctx.fillStyle='rgba(255,255,255,.07)';
+  ctx.fillRect(GOAL_X-GOAL_W/2,GOAL_Y,GOAL_W,GOAL_H);
+  ctx.strokeStyle='#fff';ctx.lineWidth=3;
+  ctx.beginPath();
+  ctx.moveTo(GOAL_X-GOAL_W/2,GOAL_Y+GOAL_H);
+  ctx.lineTo(GOAL_X-GOAL_W/2,GOAL_Y);
+  ctx.lineTo(GOAL_X+GOAL_W/2,GOAL_Y);
+  ctx.lineTo(GOAL_X+GOAL_W/2,GOAL_Y+GOAL_H);
+  ctx.stroke();
+  // net lines
+  ctx.strokeStyle='rgba(255,255,255,.15)';ctx.lineWidth=1;
+  for(let x=GOAL_X-GOAL_W/2;x<=GOAL_X+GOAL_W/2;x+=22){ctx.beginPath();ctx.moveTo(x,GOAL_Y);ctx.lineTo(x,GOAL_Y+GOAL_H);ctx.stroke();}
+  for(let y=GOAL_Y;y<=GOAL_Y+GOAL_H;y+=18){ctx.beginPath();ctx.moveTo(GOAL_X-GOAL_W/2,y);ctx.lineTo(GOAL_X+GOAL_W/2,y);ctx.stroke();}
+  // aim line
+  if(phase==='kick'&&state==='waiting'){
+    const clampX=Math.max(GOAL_X-GOAL_W/2+20,Math.min(GOAL_X+GOAL_W/2-20,mouseX));
+    const clampY=Math.max(GOAL_Y+5,Math.min(GOAL_Y+GOAL_H-10,mouseY));
+    ctx.strokeStyle='rgba(255,255,255,.2)';ctx.lineWidth=1;ctx.setLineDash([6,4]);
+    ctx.beginPath();ctx.moveTo(BALL_START_X,BALL_START_Y);ctx.lineTo(clampX,clampY);ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  // keeper
+  const kc=phase==='keep'&&state==='waiting'?'#6c63ff':'#ff6584';
+  ctx.fillStyle=kc;
+  ctx.roundRect(keeper.x-keeper.w/2,keeper.y-keeper.h/2,keeper.w,keeper.h,6);ctx.fill();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(keeper.x,keeper.y-keeper.h/2-10,10,0,Math.PI*2);ctx.fill();
+  // ball
+  ctx.beginPath();ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);
+  const bg=ctx.createRadialGradient(ball.x-2,ball.y-2,1,ball.x,ball.y,ball.r);
+  bg.addColorStop(0,'#fff');bg.addColorStop(1,'#ccc');
+  ctx.fillStyle=bg;ctx.fill();
+  ctx.strokeStyle='#333';ctx.lineWidth=1;ctx.stroke();
+  // pentagon patches
+  ctx.fillStyle='#333';
+  ctx.beginPath();ctx.arc(ball.x,ball.y,ball.r*0.4,0,Math.PI*2);ctx.fill();
+  // score HUD
+  ctx.fillStyle='rgba(0,0,0,.6)';ctx.roundRect(W/2-80,6,160,36,8);ctx.fill();
+  ctx.fillStyle='#e8e8f0';ctx.font='bold 20px Segoe UI';ctx.textAlign='center';
+  ctx.fillText(playerGoals+' – '+cpuGoals,W/2,30);
+  ctx.fillStyle='#9898b8';ctx.font='12px Segoe UI';
+  ctx.fillText((phase==='kick'?'YOU KICK':'YOU KEEP')+' | Kick '+(Math.min(kickNum,totalKicks*2-1)+1)+'/'+totalKicks*2,W/2,H-8);
+  // effects
+  effects=effects.filter(e=>{
+    const age=(Date.now()-e.t)/1000;if(age>1)return false;
+    ctx.save();ctx.globalAlpha=1-age;ctx.fillStyle=e.color;
+    ctx.font='bold 26px Segoe UI';ctx.textAlign='center';
+    ctx.fillText(e.text,e.x,e.y-age*20);ctx.restore();return true;
+  });
+}
+
+document.getElementById('start-btn').addEventListener('click',()=>{
+  overlay.style.display='none';initGame();cancelAnimationFrame(animId);animId=requestAnimationFrame(gameLoop);
+});
+document.getElementById('hs-display').textContent='Best goals: '+getHS();
+setupCanvas();
+</script>
+</body>
+</html>

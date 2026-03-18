@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkers – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:Arial,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+#topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 16px;display:flex;align-items:center;gap:12px;width:100%}
+#topbar a{color:#9898b8;text-decoration:none;font-size:20px}
+#topbar a:hover{color:#6c63ff}
+#topbar .title{flex:1;font-size:18px;font-weight:bold}
+.badge{background:#6c63ff;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:bold}
+#status{padding:10px 0;color:#9898b8;font-size:14px;text-align:center}
+canvas{cursor:pointer;border-radius:8px;max-width:100%;touch-action:none}
+#btns{display:flex;gap:10px;padding:10px}
+button{background:#1e1e30;border:1px solid #2a2a45;color:#e8e8f0;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:14px}
+button:hover{background:#2a2a45}
+#overlay{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1e1e30;border:2px solid #6c63ff;padding:30px 50px;border-radius:16px;text-align:center;display:none;z-index:100;font-size:22px}
+#overlay button{margin-top:14px;background:#6c63ff;border:none;color:#fff;padding:10px 28px;border-radius:8px;cursor:pointer;font-size:16px}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <span class="title">&#9824; Checkers</span>
+  <span class="badge" id="badge">Your Turn</span>
+</div>
+<div id="status">Select a red piece to move</div>
+<canvas id="c"></canvas>
+<div id="btns"><button onclick="newGame()">New Game</button></div>
+<div id="overlay"><div id="ovtext"></div><button onclick="newGame();document.getElementById('overlay').style.display='none'">Play Again</button></div>
+<script>
+const C=document.getElementById('c');
+const ctx=C.getContext('2d');
+const N=8;
+let SZ;
+function resize(){SZ=Math.min(Math.floor((Math.min(window.innerWidth,window.innerHeight)-120)/N)*N,480);C.width=C.height=SZ;}
+resize();
+window.addEventListener('resize',()=>{resize();draw();});
+
+// board[row][col]: 0=empty,1=red,2=red king,-1=black,-2=black king
+let board,selected,validMoves,turn,mustJump,jumpPiece;
+
+function newGame(){
+  board=[];
+  for(let r=0;r<N;r++){board.push([]);for(let c=0;c<N;c++){board[r].push(0);}}
+  for(let r=0;r<3;r++)for(let c=0;c<N;c++)if((r+c)%2===1)board[r][c]=-1;
+  for(let r=5;r<N;r++)for(let c=0;c<N;c++)if((r+c)%2===1)board[r][c]=1;
+  selected=null;validMoves=[];turn='player';mustJump=false;jumpPiece=null;
+  document.getElementById('overlay').style.display='none';
+  computeValidMovesForTurn();
+  draw();setStatus();
+}
+
+function isRed(v){return v>0;}
+function isBlack(v){return v<0;}
+function isEmpty(v){return v===0;}
+function isKing(v){return Math.abs(v)===2;}
+
+function getMovesForPiece(r,c,boardState){
+  const v=boardState[r][c];
+  if(!v)return{jumps:[],moves:[]};
+  const dirs=[];
+  if(v===1||isKing(v))dirs.push([-1,-1],[-1,1]); // red moves up
+  if(v===-1||isKing(v))dirs.push([1,-1],[1,1]);   // black moves down
+  const moves=[],jumps=[];
+  dirs.forEach(([dr,dc])=>{
+    const nr=r+dr,nc=c+dc;
+    if(nr<0||nr>=N||nc<0||nc>=N)return;
+    if(isEmpty(boardState[nr][nc]))moves.push([nr,nc]);
+    else if(isRed(v)?isBlack(boardState[nr][nc]):isRed(boardState[nr][nc])){
+      const jr=r+2*dr,jc=c+2*dc;
+      if(jr>=0&&jr<N&&jc>=0&&jc<N&&isEmpty(boardState[jr][jc]))jumps.push([jr,jc,nr,nc]);
+    }
+  });
+  return{jumps,moves};
+}
+
+function getAllJumps(player,boardState){
+  const all=[];
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const v=boardState[r][c];
+    if(player==='player'&&isRed(v)||player==='ai'&&isBlack(v)){
+      const{jumps}=getMovesForPiece(r,c,boardState);
+      if(jumps.length)all.push({r,c,jumps});
+    }
+  }
+  return all;
+}
+
+function getAllMoves(player,boardState){
+  const all=[];
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const v=boardState[r][c];
+    if(player==='player'&&isRed(v)||player==='ai'&&isBlack(v)){
+      const{moves,jumps}=getMovesForPiece(r,c,boardState);
+      if(moves.length)all.push({r,c,moves});
+    }
+  }
+  return all;
+}
+
+function computeValidMovesForTurn(){
+  mustJump=false;jumpPiece=null;
+  if(turn!=='player')return;
+  const allJ=getAllJumps('player',board);
+  if(allJ.length){mustJump=true;
+    validMoves=allJ;
+  }else{validMoves=getAllMoves('player',board);}
+}
+
+function setStatus(){
+  const st=document.getElementById('status');
+  const b=document.getElementById('badge');
+  if(turn==='player'){b.textContent='Your Turn';b.style.background='#c0392b';}
+  else{b.textContent='AI Thinking';b.style.background='#2a2a45';}
+  if(mustJump)st.textContent='You must capture!';
+  else if(turn==='player')st.textContent='Select a red piece';
+  else st.textContent='AI is thinking...';
+}
+
+function draw(){
+  const sq=SZ/N;
+  ctx.fillStyle='#0d0d14';ctx.fillRect(0,0,SZ,SZ);
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    ctx.fillStyle=(r+c)%2===0?'#2a2a45':'#1e1e30';
+    ctx.fillRect(c*sq,r*sq,sq,sq);
+  }
+  // highlights
+  if(selected){
+    const[sr,sc]=selected;
+    ctx.fillStyle='rgba(108,99,255,0.35)';ctx.fillRect(sc*sq,sr*sq,sq,sq);
+    const vm=validMoves.find(v=>v.r===sr&&v.c===sc);
+    if(vm){
+      const targets=mustJump?vm.jumps:vm.moves;
+      targets.forEach(([tr,tc])=>{
+        ctx.fillStyle='rgba(108,99,255,0.5)';ctx.fillRect(tc*sq,tr*sq,sq,sq);
+        ctx.strokeStyle='#6c63ff';ctx.lineWidth=2;ctx.strokeRect(tc*sq,tr*sq,sq,sq);
+      });
+    }
+  }
+  // pieces
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const v=board[r][c];if(!v)continue;
+    const x=c*sq+sq/2,y=r*sq+sq/2,rad=sq*0.38;
+    ctx.beginPath();ctx.arc(x,y,rad,0,Math.PI*2);
+    ctx.fillStyle=v>0?'#e74c3c':'#2c2c2c';ctx.fill();
+    ctx.strokeStyle=v>0?'#ff8a7a':'#888';ctx.lineWidth=2;ctx.stroke();
+    if(isKing(v)){
+      ctx.fillStyle='#f1c40f';ctx.font=`bold ${Math.floor(sq*0.4)}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText('♛',x,y);
+    }
+  }
+}
+
+function boardAt(r,c,b){return b?b[r][c]:board[r][c];}
+
+function applyMove(fromR,fromC,toR,toC,capR,capC,b){
+  const nb=b.map(row=>[...row]);
+  nb[toR][toC]=nb[fromR][fromC];nb[fromR][fromC]=0;
+  if(capR!==undefined)nb[capR][capC]=0;
+  // king promotion
+  if(nb[toR][toC]===1&&toR===0)nb[toR][toC]=2;
+  if(nb[toR][toC]===-1&&toR===7)nb[toR][toC]=-2;
+  return nb;
+}
+
+C.addEventListener('click',e=>{
+  if(turn!=='player')return;
+  const sq=SZ/N;
+  const r=C.getBoundingClientRect();
+  const x=e.clientX-r.left,y=e.clientY-r.top;
+  const cc=Math.floor(x/sq),cr=Math.floor(y/sq);
+  if(selected){
+    const[sr,sc]=selected;
+    const vm=validMoves.find(v=>v.r===sr&&v.c===sc);
+    if(vm){
+      const targets=mustJump?vm.jumps:vm.moves;
+      const hit=mustJump?targets.find(([tr,tc])=>tr===cr&&tc===cc):targets.find(([tr,tc])=>tr===cr&&tc===cc);
+      if(hit){
+        if(mustJump){
+          const[tr,tc,capr,capc]=hit;
+          board=applyMove(sr,sc,tr,tc,capr,capc,board);
+          // check for further jumps
+          const{jumps:moreJumps}=getMovesForPiece(tr,tc,board);
+          if(moreJumps.length){
+            selected=[tr,tc];validMoves=[{r:tr,c:tc,jumps:moreJumps}];mustJump=true;
+            draw();setStatus();checkGameOver();return;
+          }
+        }else{
+          const[tr,tc]=hit;
+          board=applyMove(sr,sc,tr,tc,undefined,undefined,board);
+        }
+        selected=null;validMoves=[];turn='ai';draw();setStatus();
+        checkGameOver();
+        setTimeout(aiMove,400);
+        return;
+      }
+    }
+    selected=null;
+  }
+  // select piece
+  if(isRed(board[cr][cc])){
+    const vm=validMoves.find(v=>v.r===cr&&v.c===cc);
+    if(vm&&(mustJump?vm.jumps.length:vm.moves.length)){selected=[cr,cc];}
+  }
+  draw();
+});
+
+function aiMove(){
+  if(turn!=='ai')return;
+  // greedy: take capture if available, else random
+  const allJ=getAllJumps('ai',board);
+  let chosen=null;
+  if(allJ.length){
+    const pick=allJ[Math.floor(Math.random()*allJ.length)];
+    const j=pick.jumps[Math.floor(Math.random()*pick.jumps.length)];
+    let {r,c}=pick;let[tr,tc,capr,capc]=j;
+    board=applyMove(r,c,tr,tc,capr,capc,board);
+    // chain jumps
+    let more=true;
+    while(more){
+      const{jumps:mj}=getMovesForPiece(tr,tc,board);
+      if(mj.length){[tr,tc,capr,capc]=mj[0];board=applyMove(tr-0,tc-0,tr,tc,capr,capc,board);}
+      else more=false;
+    }
+  }else{
+    const allM=getAllMoves('ai',board);
+    if(!allM.length){endGame('player');return;}
+    const pick=allM[Math.floor(Math.random()*allM.length)];
+    const m=pick.moves[Math.floor(Math.random()*pick.moves.length)];
+    board=applyMove(pick.r,pick.c,m[0],m[1],undefined,undefined,board);
+  }
+  turn='player';computeValidMovesForTurn();draw();setStatus();checkGameOver();
+}
+
+function checkGameOver(){
+  const reds=board.flat().filter(v=>v>0).length;
+  const blacks=board.flat().filter(v=>v<0).length;
+  if(!reds){endGame('ai');return;}
+  if(!blacks){endGame('player');return;}
+  if(turn==='player'&&!validMoves.length){endGame('ai');}
+  if(turn==='ai'&&!getAllJumps('ai',board).length&&!getAllMoves('ai',board).length){endGame('player');}
+}
+
+function endGame(winner){
+  const ov=document.getElementById('overlay');
+  document.getElementById('ovtext').textContent=winner==='player'?'You Win! 🎉':'AI Wins!';
+  ov.style.display='block';turn='over';
+}
+
+newGame();
+</script>
+</body>
+</html>

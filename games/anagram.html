@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Anagram – FreeWebGamesOnline</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
+#topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 18px;display:flex;align-items:center;gap:14px}
+#topbar a{color:#9898b8;text-decoration:none;font-size:20px}#topbar a:hover{color:#6c63ff}
+#topbar h1{font-size:18px;flex:1}
+#score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:700}
+#main{display:flex;flex-direction:column;align-items:center;padding:24px;gap:18px;max-width:480px;margin:0 auto}
+#round-info{display:flex;gap:16px;font-size:14px;color:#9898b8;flex-wrap:wrap;justify-content:center}
+#round-info span{background:#1e1e30;border:1px solid #2a2a45;padding:6px 14px;border-radius:8px}
+#round-info b{color:#e8e8f0}
+#timer-bar-wrap{width:100%;max-width:380px;background:#1e1e30;border-radius:8px;height:10px;overflow:hidden;border:1px solid #2a2a45}
+#timer-bar{height:100%;background:#6c63ff;transition:width .5s linear;border-radius:8px}
+#category{font-size:13px;color:#9898b8;text-transform:uppercase;letter-spacing:2px}
+#scrambled{font-size:42px;font-weight:900;letter-spacing:10px;color:#6c63ff;font-family:monospace;min-height:56px}
+#hint-letters{font-size:20px;font-weight:700;letter-spacing:6px;color:#e8e8f0;font-family:monospace;min-height:32px}
+#input-row{display:flex;gap:10px;width:100%;max-width:380px}
+#answer{flex:1;padding:12px 16px;background:#1e1e30;border:2px solid #2a2a45;color:#e8e8f0;border-radius:8px;font-size:18px;outline:none;text-transform:uppercase}
+#answer:focus{border-color:#6c63ff}
+#answer.correct{border-color:#2ecc71;background:#1a2e1a}
+#answer.wrong{border-color:#e74c3c;background:#2e1a1a}
+button.action{background:#6c63ff;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap}
+button.action:hover{background:#574fd6}
+button.hint-btn{background:#1e1e30;border:1px solid #2a2a45;color:#9898b8;padding:10px 16px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
+button.hint-btn:hover{border-color:#6c63ff;color:#6c63ff}
+#message{font-size:18px;font-weight:700;min-height:28px;color:#6c63ff;text-align:center}
+#score-panel{font-size:24px;font-weight:700;color:#e8e8f0;text-align:center;display:none}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>&#129302; Anagram</h1>
+  <span id="score-badge">Score: 0</span>
+</div>
+<div id="main">
+  <div id="round-info">
+    <span>Round: <b id="round">1</b>/5</span>
+    <span>Score: <b id="score">0</b></span>
+    <span>Time: <b id="time-left">30</b>s</span>
+  </div>
+  <div id="timer-bar-wrap"><div id="timer-bar" style="width:100%"></div></div>
+  <div id="category"></div>
+  <div id="scrambled"></div>
+  <div id="hint-letters"></div>
+  <div id="input-row">
+    <input id="answer" type="text" maxlength="12" placeholder="Type your answer..." autocomplete="off">
+    <button class="action" onclick="checkAnswer()">Go</button>
+  </div>
+  <div style="display:flex;gap:10px">
+    <button class="hint-btn" onclick="showHint()">Hint (-5pts)</button>
+    <button class="hint-btn" onclick="skipWord()">Skip</button>
+  </div>
+  <div id="message"></div>
+  <div id="score-panel"></div>
+</div>
+<script>
+const WORDS=[
+  {word:'PYTHON',cat:'Programming Language'},{word:'CANVAS',cat:'Web Technology'},{word:'SERVER',cat:'Computing'},
+  {word:'KEYBOARD',cat:'Computer Hardware'},{word:'MONITOR',cat:'Computer Hardware'},
+  {word:'ELEPHANT',cat:'Animal'},{word:'DOLPHIN',cat:'Animal'},{word:'PENGUIN',cat:'Animal'},
+  {word:'CHEETAH',cat:'Animal'},{word:'GORILLA',cat:'Animal'},
+  {word:'MANGO',cat:'Fruit'},{word:'BANANA',cat:'Fruit'},{word:'CHERRY',cat:'Fruit'},
+  {word:'PAPAYA',cat:'Fruit'},{word:'LEMON',cat:'Fruit'},
+  {word:'GUITAR',cat:'Musical Instrument'},{word:'VIOLIN',cat:'Musical Instrument'},{word:'TRUMPET',cat:'Musical Instrument'},
+  {word:'SUSHI',cat:'Food'},{word:'PIZZA',cat:'Food'},{word:'TACO',cat:'Food'},{word:'RAMEN',cat:'Food'},
+  {word:'MOUNTAIN',cat:'Geography'},{word:'VOLCANO',cat:'Geography'},{word:'GLACIER',cat:'Geography'},
+  {word:'OXYGEN',cat:'Chemistry'},{word:'CARBON',cat:'Chemistry'},{word:'SODIUM',cat:'Chemistry'},
+  {word:'JUPITER',cat:'Planet'},{word:'SATURN',cat:'Planet'},{word:'NEPTUNE',cat:'Planet'}
+];
+
+let round=0,score=0,timerID=null,timeLeft=30,hintCount=0,hintShown=0,currentWord=null,used=[];
+
+function scramble(w){
+  let a=w.split('');
+  do{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
+  while(a.join('')===w&&w.length>1);
+  return a.join('');
+}
+
+function nextRound(){
+  if(round>=5){endGame();return;}
+  round++;hintShown=0;hintCount=0;
+  document.getElementById('round').textContent=round;
+  document.getElementById('message').textContent='';
+  const pool=WORDS.filter(w=>!used.includes(w.word));
+  if(!pool.length){used=[];}
+  currentWord=pool[Math.floor(Math.random()*pool.length)];
+  used.push(currentWord.word);
+  document.getElementById('category').textContent=currentWord.cat;
+  document.getElementById('scrambled').textContent=scramble(currentWord.word);
+  document.getElementById('hint-letters').textContent='_'.repeat(currentWord.word.length);
+  const inp=document.getElementById('answer');
+  inp.value='';inp.className='';inp.disabled=false;inp.focus();
+  timeLeft=30;document.getElementById('time-left').textContent=timeLeft;
+  document.getElementById('timer-bar').style.width='100%';
+  clearInterval(timerID);
+  timerID=setInterval(()=>{
+    timeLeft--;document.getElementById('time-left').textContent=timeLeft;
+    document.getElementById('timer-bar').style.width=(timeLeft/30*100)+'%';
+    if(timeLeft<=10)document.getElementById('timer-bar').style.background='#e74c3c';
+    else document.getElementById('timer-bar').style.background='#6c63ff';
+    if(timeLeft<=0){clearInterval(timerID);timeExpired();}
+  },1000);
+}
+
+function timeExpired(){
+  document.getElementById('message').textContent='Time up! Answer: '+currentWord.word;
+  document.getElementById('message').style.color='#e74c3c';
+  document.getElementById('answer').disabled=true;
+  setTimeout(nextRound,1800);
+}
+
+function checkAnswer(){
+  const val=document.getElementById('answer').value.toUpperCase().trim();
+  if(!val)return;
+  if(val===currentWord.word){
+    clearInterval(timerID);
+    const pts=Math.max(10,timeLeft*3-hintShown*5);
+    score+=pts;
+    document.getElementById('score').textContent=score;document.getElementById('score-badge').textContent='Score: '+score;
+    document.getElementById('answer').className='correct';
+    document.getElementById('message').textContent='Correct! +'+pts+' points';
+    document.getElementById('message').style.color='#2ecc71';
+    document.getElementById('answer').disabled=true;
+    setTimeout(nextRound,1400);
+  } else {
+    document.getElementById('answer').className='wrong';
+    document.getElementById('message').textContent='Try again!';
+    document.getElementById('message').style.color='#e74c3c';
+    setTimeout(()=>{document.getElementById('answer').className='';document.getElementById('message').textContent='';},700);
+    document.getElementById('answer').value='';document.getElementById('answer').focus();
+  }
+}
+
+function showHint(){
+  if(hintShown>=currentWord.word.length)return;
+  hintShown++;
+  const hint=currentWord.word.substring(0,hintShown)+'_'.repeat(currentWord.word.length-hintShown);
+  document.getElementById('hint-letters').textContent=hint;
+}
+
+function skipWord(){clearInterval(timerID);document.getElementById('message').textContent='Skipped! Answer: '+currentWord.word;document.getElementById('message').style.color='#9898b8';setTimeout(nextRound,1200);}
+
+function endGame(){
+  clearInterval(timerID);
+  document.getElementById('scrambled').textContent='';
+  document.getElementById('hint-letters').textContent='';
+  document.getElementById('category').textContent='Game Over!';
+  document.getElementById('message').textContent='';
+  document.getElementById('input-row').style.display='none';
+  const sp=document.getElementById('score-panel');sp.style.display='block';
+  sp.innerHTML='Final Score: <span style="color:#6c63ff">'+score+'</span><br><button class="action" style="margin-top:16px" onclick="startGame()">Play Again</button>';
+}
+
+function startGame(){round=0;score=0;used=[];document.getElementById('input-row').style.display='flex';document.getElementById('score-panel').style.display='none';nextRound();}
+
+document.getElementById('answer').addEventListener('keydown',e=>{if(e.key==='Enter')checkAnswer();});
+startGame();
+</script>
+</body>
+</html>

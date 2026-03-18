@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Match-3 Puzzle – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
+#topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 16px;display:flex;align-items:center;gap:12px}
+#topbar a{color:#6c63ff;text-decoration:none;font-size:1.3em}
+#topbar h1{font-size:1.1em;flex:1}
+.badge{background:#2a2a45;border:1px solid #6c63ff;border-radius:20px;padding:4px 14px;font-size:.9em;color:#6c63ff;font-weight:bold}
+#game{max-width:420px;margin:0 auto;padding:10px}
+.info-bar{display:flex;gap:8px;margin-bottom:10px}
+.info-box{flex:1;background:#1e1e30;border:1px solid #2a2a45;border-radius:9px;padding:8px;text-align:center}
+.info-num{font-size:1.2em;font-weight:bold;color:#6c63ff}
+.info-lbl{font-size:.72em;color:#9898b8}
+.target-bar{background:#1e1e30;border:1px solid #2a2a45;border-radius:9px;padding:8px;margin-bottom:8px}
+.target-fill{height:8px;border-radius:4px;background:linear-gradient(90deg,#6c63ff,#a855f7);transition:width .4s}
+.target-bg{height:8px;background:#2a2a45;border-radius:4px;margin-top:4px}
+canvas{display:block;margin:0 auto;border-radius:12px;border:2px solid #2a2a45;cursor:pointer}
+#status{text-align:center;padding:9px;background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;margin:8px 0;font-size:.9em;min-height:38px}
+#newBtn{width:100%;padding:11px;background:#6c63ff;border:none;border-radius:9px;color:#fff;font-weight:bold;cursor:pointer;font-size:.95em}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>🐾 Match-3 Puzzle</h1>
+  <span class="badge" id="lvlBadge">Level 1</span>
+</div>
+<div id="game">
+  <div class="info-bar">
+    <div class="info-box"><div class="info-num" id="scoreNum">0</div><div class="info-lbl">Score</div></div>
+    <div class="info-box"><div class="info-num" id="movesNum">30</div><div class="info-lbl">Moves</div></div>
+    <div class="info-box"><div class="info-num" id="targetNum">1000</div><div class="info-lbl">Target</div></div>
+  </div>
+  <div class="target-bar">
+    <div style="font-size:.75em;color:#9898b8;margin-bottom:4px">Progress</div>
+    <div class="target-bg"><div class="target-fill" id="targetFill" style="width:0%"></div></div>
+  </div>
+  <canvas id="c" width="392" height="392"></canvas>
+  <div id="status">Click a tile to select, then click adjacent to swap!</div>
+  <button id="newBtn" onclick="newGame()">New Game</button>
+</div>
+<script>
+const COLS=7,ROWS=7,SZ=56;
+const ANIMALS=['🐶','🐱','🐸','🐻','🦊','🐼'];
+const BOMB='💣';
+const RAINBOW='🌈';
+// Level configs: [target, moves]
+const LEVELS=[[1000,30],[1800,28],[2800,25],[4000,22],[6000,20]];
+let grid=[],score=0,moves=0,level=0,target=1000,maxMoves=30;
+let selected=null,animating=false,hiScore=0;
+const canvas=document.getElementById('c');
+const ctx=canvas.getContext('2d');
+try{hiScore=parseInt(localStorage.getItem('m3_hi'))||0;}catch(e){}
+
+function randTile(){
+  const r=Math.random();
+  if(r<0.03)return{type:'bomb'};
+  if(r<0.06)return{type:'rainbow'};
+  return{type:'normal',animal:Math.floor(Math.random()*ANIMALS.length)};
+}
+
+function tileKey(t){if(!t)return-1;if(t.type==='bomb')return 10;if(t.type==='rainbow')return 11;return t.animal;}
+
+function newGame(){
+  level=0;score=0;animating=false;selected=null;
+  [target,maxMoves]=LEVELS[level];moves=maxMoves;
+  grid=[];
+  for(let r=0;r<ROWS;r++){grid.push([]);for(let c=0;c<COLS;c++)grid[r].push(randTile());}
+  while(findMatches().length>0)grid=grid.map(row=>row.map(()=>randTile()));
+  document.getElementById('lvlBadge').textContent='Level '+(level+1);
+  updateUI();draw();
+  document.getElementById('status').textContent='Click a tile to select, then click adjacent to swap!';
+}
+
+function updateUI(){
+  document.getElementById('scoreNum').textContent=score;
+  document.getElementById('movesNum').textContent=moves;
+  document.getElementById('targetNum').textContent=target;
+  const pct=Math.min(100,Math.round(score/target*100));
+  document.getElementById('targetFill').style.width=pct+'%';
+}
+
+function drawTile(r,c,highlight){
+  const x=c*SZ,y=r*SZ;
+  const t=grid[r][c];
+  ctx.fillStyle=(r+c)%2===0?'#1e1e30':'#232338';ctx.fillRect(x,y,SZ,SZ);
+  if(highlight){ctx.fillStyle='rgba(108,99,255,0.3)';ctx.fillRect(x,y,SZ,SZ);}
+  if(!t)return;
+  ctx.font=`${SZ*.65}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  if(t.type==='normal')ctx.fillText(ANIMALS[t.animal],x+SZ/2,y+SZ/2+2);
+  else if(t.type==='bomb')ctx.fillText(BOMB,x+SZ/2,y+SZ/2+2);
+  else ctx.fillText(RAINBOW,x+SZ/2,y+SZ/2+2);
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='#0d0d14';ctx.fillRect(0,0,canvas.width,canvas.height);
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)
+    drawTile(r,c,selected&&selected[0]===r&&selected[1]===c);
+  // grid lines
+  ctx.strokeStyle='rgba(42,42,69,0.8)';ctx.lineWidth=1;
+  for(let i=0;i<=COLS;i++){ctx.beginPath();ctx.moveTo(i*SZ,0);ctx.lineTo(i*SZ,ROWS*SZ);ctx.stroke();}
+  for(let i=0;i<=ROWS;i++){ctx.beginPath();ctx.moveTo(0,i*SZ);ctx.lineTo(COLS*SZ,i*SZ);ctx.stroke();}
+}
+
+function findMatches(){
+  const matched=new Set();
+  // Horizontal
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS-2;c++){
+    const k=tileKey(grid[r][c]);if(k>=10)continue;
+    if(k===tileKey(grid[r][c+1])&&k===tileKey(grid[r][c+2])){
+      let e=c+2;while(e+1<COLS&&tileKey(grid[r][e+1])===k)e++;
+      for(let i=c;i<=e;i++)matched.add(r*COLS+i);
+    }
+  }
+  // Vertical
+  for(let c=0;c<COLS;c++)for(let r=0;r<ROWS-2;r++){
+    const k=tileKey(grid[r][c]);if(k>=10)continue;
+    if(k===tileKey(grid[r+1][c])&&k===tileKey(grid[r+2][c])){
+      let e=r+2;while(e+1<ROWS&&tileKey(grid[e+1][c])===k)e++;
+      for(let i=r;i<=e;i++)matched.add(i*COLS+c);
+    }
+  }
+  return [...matched].map(i=>[Math.floor(i/COLS),i%COLS]);
+}
+
+function explodeBomb(r,c,toRemove){
+  for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+    const nr=r+dr,nc=c+dc;
+    if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS)toRemove.add(nr*COLS+nc);
+  }
+}
+
+function applyRainbow(r,c,toRemove){
+  // Remove all tiles of the most common animal adjacent
+  const adj=[[r-1,c],[r+1,c],[r,c-1],[r,c+1]];
+  let targetAnimal=-1,maxCount=-1;
+  // count animals on board
+  const counts={};
+  for(let i=0;i<ROWS;i++)for(let j=0;j<COLS;j++){const t=grid[i][j];if(t&&t.type==='normal'){counts[t.animal]=(counts[t.animal]||0)+1;}}
+  Object.entries(counts).forEach(([k,v])=>{if(v>maxCount){maxCount=v;targetAnimal=parseInt(k);}});
+  if(targetAnimal>=0)for(let i=0;i<ROWS;i++)for(let j=0;j<COLS;j++){const t=grid[i][j];if(t&&t.type==='normal'&&t.animal===targetAnimal)toRemove.add(i*COLS+j);}
+  toRemove.add(r*COLS+c);
+}
+
+async function clearMatches(matches,chain){
+  const toRemove=new Set(matches.map(([r,c])=>r*COLS+c));
+  // Check for bomb/rainbow in matched
+  matches.forEach(([r,c])=>{
+    const t=grid[r][c];
+    if(t&&t.type==='bomb')explodeBomb(r,c,toRemove);
+    if(t&&t.type==='rainbow')applyRainbow(r,c,toRemove);
+  });
+  const pts=[...toRemove].length*10*chain;
+  score+=pts;
+  toRemove.forEach(k=>{const r=Math.floor(k/COLS),c=k%COLS;grid[r][c]=null;});
+  draw();await sleep(300);
+  // drop
+  for(let c=0;c<COLS;c++){
+    for(let r=ROWS-1;r>=0;r--){
+      if(!grid[r][c]){
+        for(let k=r-1;k>=0;k--){if(grid[k][c]){grid[r][c]=grid[k][c];grid[k][c]=null;break;}}
+      }
+    }
+    for(let r=0;r<ROWS;r++)if(!grid[r][c])grid[r][c]=randTile();
+  }
+  draw();updateUI();return pts;
+}
+
+async function processChain(){
+  let chain=1;
+  let m=findMatches();
+  while(m.length>0){await clearMatches(m,chain);chain++;await sleep(250);m=findMatches();}
+}
+
+function swap(r1,c1,r2,c2){[grid[r1][c1],grid[r2][c2]]=[grid[r2][c2],grid[r1][c1]];}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+canvas.addEventListener('click',async e=>{
+  if(animating)return;
+  const rect=canvas.getBoundingClientRect();
+  const gc=Math.floor((e.clientX-rect.left)/(rect.width/COLS));
+  const gr=Math.floor((e.clientY-rect.top)/(rect.height/ROWS));
+  if(gr<0||gr>=ROWS||gc<0||gc>=COLS)return;
+  if(!selected){selected=[gr,gc];draw();return;}
+  const[sr,sc]=selected;
+  if(sr===gr&&sc===gc){selected=null;draw();return;}
+  const adj=(Math.abs(sr-gr)===1&&sc===gc)||(Math.abs(sc-gc)===1&&sr===gr);
+  if(!adj){
+    // check for bomb/rainbow click (non-adjacent special)
+    const t=grid[sr][sc];
+    if(t&&t.type==='bomb'){
+      animating=true;selected=null;
+      const toR=new Set();explodeBomb(sr,sc,toR);
+      toR.forEach(k=>{grid[Math.floor(k/COLS)][k%COLS]=null;});
+      score+=toR.size*15;moves--;draw();await processChain();updateUI();animating=false;
+      if(moves<=0)endGame();return;
+    }
+    selected=[gr,gc];draw();return;
+  }
+  // Rainbow swap with any tile — matches that animal
+  const srcT=grid[sr][sc],dstT=grid[gr][gc];
+  swap(sr,sc,gr,gc);
+  const m=findMatches();
+  if(m.length===0&&srcT?.type!=='rainbow'&&dstT?.type!=='rainbow'){swap(sr,sc,gr,gc);document.getElementById('status').textContent='No match! Try a different swap.';selected=null;draw();return;}
+  animating=true;selected=null;moves--;draw();
+  if(m.length>0||srcT?.type==='rainbow'||dstT?.type==='rainbow'){
+    if(srcT?.type==='rainbow'||dstT?.type==='rainbow'){
+      const rb=srcT?.type==='rainbow'?[sr,sc]:[gr,gc];
+      const toR=new Set();applyRainbow(...rb,toR);
+      toR.forEach(k=>{grid[Math.floor(k/COLS)][k%COLS]=null;});
+      score+=toR.size*20;draw();await sleep(300);
+      for(let c=0;c<COLS;c++){for(let r=ROWS-1;r>=0;r--)if(!grid[r][c]){for(let k=r-1;k>=0;k--)if(grid[k][c]){grid[r][c]=grid[k][c];grid[k][c]=null;break;}} for(let r=0;r<ROWS;r++)if(!grid[r][c])grid[r][c]=randTile();}
+      draw();
+    }
+    await processChain();
+  }
+  updateUI();animating=false;
+  document.getElementById('status').textContent=moves>0?'Keep going!':'No more moves!';
+  if(score>=target){
+    level++;
+    if(level>=LEVELS.length){document.getElementById('status').textContent='You beat all levels! Score: '+score;return;}
+    [target,maxMoves]=LEVELS[level];moves=maxMoves;
+    document.getElementById('lvlBadge').textContent='Level '+(level+1);
+    document.getElementById('status').textContent='Level '+(level+1)+'! New target: '+target;
+    updateUI();return;
+  }
+  if(moves<=0)endGame();
+});
+
+function endGame(){
+  animating=true;
+  if(score>hiScore){hiScore=score;try{localStorage.setItem('m3_hi',hiScore);}catch(e){}}
+  document.getElementById('status').textContent=`Game over! Score: ${score}. Target was ${target}.${score>=target?' Level up!':''}`;
+}
+
+newGame();
+</script>
+</body>
+</html>

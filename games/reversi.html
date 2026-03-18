@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reversi – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:Arial,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+#topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 16px;display:flex;align-items:center;gap:12px;width:100%}
+#topbar a{color:#9898b8;text-decoration:none;font-size:20px}
+#topbar a:hover{color:#6c63ff}
+#topbar .title{flex:1;font-size:18px;font-weight:bold}
+.badge{background:#6c63ff;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:bold}
+#scores{display:flex;gap:16px;padding:12px;font-size:16px;font-weight:bold}
+.sc{background:#1e1e30;border:1px solid #2a2a45;padding:8px 20px;border-radius:10px;display:flex;align-items:center;gap:8px}
+.disc-w{width:18px;height:18px;background:#e8e8f0;border-radius:50%;display:inline-block}
+.disc-b{width:18px;height:18px;background:#222;border:2px solid #9898b8;border-radius:50%;display:inline-block}
+canvas{cursor:pointer;border-radius:8px;max-width:100%;touch-action:none}
+#status{padding:6px;color:#9898b8;font-size:14px}
+#btns{display:flex;gap:10px;padding:10px}
+button{background:#1e1e30;border:1px solid #2a2a45;color:#e8e8f0;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:14px}
+button:hover{background:#2a2a45}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <span class="title">&#9898; Reversi</span>
+  <span class="badge" id="badge">Your Turn</span>
+</div>
+<div id="scores">
+  <div class="sc"><span class="disc-b"></span><span id="bsc">2</span> Black (You)</div>
+  <div class="sc"><span class="disc-w"></span><span id="wsc">2</span> White (AI)</div>
+</div>
+<canvas id="c"></canvas>
+<div id="status">Click a highlighted cell to place your disc</div>
+<div id="btns">
+  <button onclick="newGame()">New Game</button>
+  <button onclick="pass()">Pass</button>
+</div>
+<script>
+const C=document.getElementById('c');
+const ctx=C.getContext('2d');
+const N=8;
+let SZ,SQ;
+function resize(){SZ=Math.min(Math.floor((Math.min(window.innerWidth,window.innerHeight)-200)/N)*N,480);SQ=SZ/N;C.width=C.height=SZ;}
+resize();window.addEventListener('resize',()=>{resize();draw();});
+
+// 0=empty,1=black(player),-1=white(AI)
+let board,turn,gameOver;
+const DIRS=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+
+function newGame(){
+  board=Array.from({length:N},()=>Array(N).fill(0));
+  board[3][3]=-1;board[3][4]=1;board[4][3]=1;board[4][4]=-1;
+  turn=1;gameOver=false;
+  document.getElementById('badge').textContent='Your Turn';
+  document.getElementById('badge').style.background='#222';
+  updateScore();draw();setStatus();
+}
+
+function getFlips(r,c,player,b){
+  const flips=[];
+  DIRS.forEach(([dr,dc])=>{
+    const line=[];let nr=r+dr,nc=c+dc;
+    while(nr>=0&&nr<N&&nc>=0&&nc<N&&b[nr][nc]===-player){line.push([nr,nc]);nr+=dr;nc+=dc;}
+    if(line.length&&nr>=0&&nr<N&&nc>=0&&nc<N&&b[nr][nc]===player)flips.push(...line);
+  });
+  return flips;
+}
+
+function validMoves(player,b){
+  const moves=[];
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++)
+    if(!b[r][c]&&getFlips(r,c,player,b).length)moves.push([r,c]);
+  return moves;
+}
+
+function placeDisc(r,c,player){
+  const flips=getFlips(r,c,player,board);
+  if(!flips.length)return false;
+  board[r][c]=player;flips.forEach(([fr,fc])=>board[fr][fc]=player);
+  return true;
+}
+
+function updateScore(){
+  let b=0,w=0;board.flat().forEach(v=>{if(v===1)b++;if(v===-1)w++;});
+  document.getElementById('bsc').textContent=b;
+  document.getElementById('wsc').textContent=w;
+  return{b,w};
+}
+
+function setStatus(){
+  const st=document.getElementById('status');
+  const vm=validMoves(turn,board);
+  if(!vm.length){
+    const ovm=validMoves(-turn,board);
+    if(!ovm.length){checkEnd();return;}
+    st.textContent=(turn===1?'Black':'White')+' has no moves — click Pass';
+    document.getElementById('badge').textContent=turn===1?'Pass Required':'AI Pass';
+    return;
+  }
+  if(turn===1){st.textContent='Click a highlighted cell';document.getElementById('badge').textContent='Your Turn';}
+  else st.textContent='AI is thinking...';
+}
+
+function checkEnd(){
+  gameOver=true;
+  const{b,w}=updateScore();
+  let msg;if(b>w)msg='You Win! '+b+' vs '+w;
+  else if(w>b)msg='AI Wins! '+w+' vs '+b;
+  else msg='Draw! '+b+' each';
+  document.getElementById('status').textContent=msg;
+  document.getElementById('badge').textContent='Game Over';
+  document.getElementById('badge').style.background='#6c63ff';
+}
+
+function draw(){
+  ctx.fillStyle='#1a4a2a';ctx.fillRect(0,0,SZ,SZ);
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    ctx.strokeStyle='#0d3d1e';ctx.lineWidth=1;
+    ctx.strokeRect(c*SQ,r*SQ,SQ,SQ);
+  }
+  const vm=turn===1&&!gameOver?validMoves(1,board):[];
+  vm.forEach(([mr,mc])=>{
+    ctx.fillStyle='rgba(108,99,255,0.25)';ctx.fillRect(mc*SQ,mr*SQ,SQ,SQ);
+    ctx.beginPath();ctx.arc(mc*SQ+SQ/2,mr*SQ+SQ/2,SQ*0.15,0,Math.PI*2);
+    ctx.fillStyle='rgba(108,99,255,0.6)';ctx.fill();
+  });
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const v=board[r][c];if(!v)continue;
+    const x=c*SQ+SQ/2,y=r*SQ+SQ/2,rad=SQ*0.38;
+    ctx.beginPath();ctx.arc(x,y,rad,0,Math.PI*2);
+    ctx.fillStyle=v===1?'#1a1a1a':'#e8e8f0';ctx.fill();
+    ctx.strokeStyle=v===1?'#666':'#bbb';ctx.lineWidth=1.5;ctx.stroke();
+  }
+}
+
+function pass(){
+  if(gameOver)return;
+  const vm=validMoves(turn,board);
+  if(vm.length){document.getElementById('status').textContent='You still have valid moves!';return;}
+  turn=-turn;
+  if(turn===-1){setStatus();setTimeout(aiMove,300);}
+  else{setStatus();draw();}
+}
+
+C.addEventListener('click',e=>{
+  if(gameOver||turn!==1)return;
+  const r=C.getBoundingClientRect();
+  const cr=Math.floor((e.clientY-r.top)/SQ),cc=Math.floor((e.clientX-r.left)/SQ);
+  if(cr<0||cr>=N||cc<0||cc>=N)return;
+  if(!placeDisc(cr,cc,1))return;
+  turn=-1;updateScore();draw();setStatus();
+  setTimeout(aiMove,350);
+});
+
+function aiMove(){
+  if(turn!==-1)return;
+  const vm=validMoves(-1,board);
+  if(!vm.length){turn=1;setStatus();draw();return;}
+  // greedy: pick move that flips most
+  let best=null,bestCount=0;
+  vm.forEach(([r,c])=>{const fl=getFlips(r,c,-1,board);if(fl.length>bestCount){bestCount=fl.length;best=[r,c];}});
+  placeDisc(best[0],best[1],-1);
+  turn=1;updateScore();draw();setStatus();
+  // check if player has moves
+  if(!validMoves(1,board).length){
+    if(!validMoves(-1,board).length){checkEnd();return;}
+    document.getElementById('status').textContent='No valid moves — click Pass';
+    turn=1;
+  }
+}
+
+newGame();
+</script>
+</body>
+</html>

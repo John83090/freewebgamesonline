@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Galaga – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+#topbar{width:100%;background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 16px;display:flex;align-items:center;gap:12px}
+#topbar a{color:#9898b8;text-decoration:none;font-size:20px}#topbar a:hover{color:#6c63ff}
+.title{font-size:18px;font-weight:700;flex:1}
+#badge{background:#2a2a45;border-radius:8px;padding:4px 12px;font-size:13px;color:#9898b8}
+#badge span{color:#e8e8f0;font-weight:700}
+canvas{border:2px solid #2a2a45;border-radius:4px;margin-top:8px}
+#msg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(13,13,20,.93);border:2px solid #6c63ff;border-radius:12px;padding:24px 36px;text-align:center;z-index:10}
+#msg h2{color:#6c63ff;font-size:26px;margin-bottom:8px}
+#msg p{color:#9898b8;margin-bottom:14px}
+#msg button{background:#6c63ff;border:none;color:#fff;padding:10px 28px;border-radius:8px;font-size:16px;cursor:pointer}
+#btns{display:flex;gap:10px;margin:10px 0 4px;justify-content:center}
+.cbtn{width:56px;height:56px;background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;color:#e8e8f0;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-tap-highlight-color:transparent}
+.cbtn:active,.cbtn.held{background:#6c63ff}
+#btnFire{width:90px;background:#3a1e4e}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <span class="title">👾 Galaga</span>
+  <div id="badge">Score:<span id="sd">0</span> Wave:<span id="wd">1</span> Lives:<span id="ld">3</span></div>
+</div>
+<div style="position:relative">
+<canvas id="c"></canvas>
+<div id="msg" id="msg">
+  <h2 id="mt">GALAGA</h2>
+  <p id="mp">Defend Earth! Arrow keys to move, Space to fire.</p>
+  <button onclick="startGame()">Start</button>
+</div>
+</div>
+<div id="btns">
+  <button class="cbtn" id="bL">◀</button>
+  <button class="cbtn" id="btnFire">🔥 Fire</button>
+  <button class="cbtn" id="bR">▶</button>
+</div>
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.beginPath();this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.quadraticCurveTo(x+w,y,x+w,y+r);this.lineTo(x+w,y+h-r);this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);this.lineTo(x+r,y+h);this.quadraticCurveTo(x,y+h,x,y+h-r);this.lineTo(x,y+r);this.quadraticCurveTo(x,y,x+r,y);this.closePath();return this}}
+
+const C=document.getElementById('c'),ctx=C.getContext('2d');
+C.width=400;C.height=560;
+const W=C.width,H=C.height;
+
+let ship,bullets,enemyBullets,enemies,stars,particles,score,lives,wave,gameState,keys,lastTs,animId,shootCool,doubleShip;
+
+function initStars(){stars=[];for(let i=0;i<100;i++) stars.push({x:Math.random()*W,y:Math.random()*H,s:Math.random()*1.5+0.5,sp:Math.random()*30+10});}
+
+function spawnEnemies(){
+  enemies=[];
+  const cols=5,rows=4;
+  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+    enemies.push({x:60+c*60,y:40+r*40,w:24,h:24,alive:true,dive:false,divePhase:0,ox:60+c*60,oy:40+r*40,color:r===0?'#ff4444':r===1?'#ff9900':'#6c63ff',pts:r===0?150:r===1?100:50,bullets:0});
+  }
+}
+
+function startGame(){
+  document.getElementById('msg').style.display='none';
+  score=0;lives=3;wave=1;doubleShip=false;shootCool=0;
+  ship={x:W/2,y:H-50,w:30,h:28,speed:220};
+  bullets=[];enemyBullets=[];particles=[];
+  keys={};
+  initStars();spawnEnemies();
+  gameState='playing';
+  lastTs=performance.now();
+  if(animId) cancelAnimationFrame(animId);
+  animId=requestAnimationFrame(loop);
+  updateHUD();
+}
+
+function updateHUD(){document.getElementById('sd').textContent=score;document.getElementById('wd').textContent=wave;document.getElementById('ld').textContent=lives;}
+
+function loop(ts){
+  const dt=Math.min((ts-lastTs)/1000,.05);lastTs=ts;
+  if(gameState==='playing'){update(dt);draw();}
+  animId=requestAnimationFrame(loop);
+}
+
+function update(dt){
+  // Stars
+  stars.forEach(s=>{s.y+=s.sp*dt;if(s.y>H)s.y=0;});
+  // Ship
+  if(keys['ArrowLeft']||keys['a']) ship.x=Math.max(ship.w/2,ship.x-ship.speed*dt);
+  if(keys['ArrowRight']||keys['d']) ship.x=Math.min(W-ship.w/2,ship.x+ship.speed*dt);
+  // Shoot
+  shootCool-=dt;
+  if((keys[' ']||keys['fire'])&&shootCool<=0){
+    shootCool=0.22;
+    bullets.push({x:ship.x,y:ship.y-14,w:3,h:14,speed:420});
+    if(doubleShip){bullets.push({x:ship.x-20,y:ship.y-14,w:3,h:14,speed:420});bullets.push({x:ship.x+20,y:ship.y-14,w:3,h:14,speed:420});}
+  }
+  // Bullets
+  bullets=bullets.filter(b=>{b.y-=b.speed*dt;return b.y>-20;});
+  enemyBullets=enemyBullets.filter(b=>{b.y+=b.speed*dt;return b.y<H+20;});
+  // Particles
+  particles=particles.filter(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;return p.life>0;});
+  // Enemies
+  const alive=enemies.filter(e=>e.alive);
+  if(alive.length===0){wave++;spawnEnemies();return;}
+  // Formation drift
+  const drift=Math.sin(Date.now()/1200)*50;
+  enemies.forEach(e=>{
+    if(!e.alive) return;
+    if(!e.dive){e.x=e.ox+drift;}
+    else{
+      e.divePhase+=dt*2;
+      e.x=e.ox+Math.sin(e.divePhase*1.5)*100;
+      e.y+=80*dt;
+      if(e.y>H){e.y=e.oy;e.x=e.ox;e.dive=false;e.divePhase=0;}
+    }
+    // Random dive
+    if(!e.dive&&Math.random()<0.002*wave) e.dive=true;
+    // Enemy shoot
+    if(Math.random()<0.003*wave) enemyBullets.push({x:e.x,y:e.y+e.h/2,speed:180+wave*20});
+  });
+  // Bullet-enemy collision
+  bullets.forEach(b=>{
+    enemies.forEach(e=>{
+      if(!e.alive) return;
+      if(Math.abs(b.x-e.x)<e.w/2+2&&Math.abs(b.y-e.y)<e.h/2+7){
+        e.alive=false;b.dead=true;score+=e.pts;updateHUD();
+        spawnParticles(e.x,e.y,e.color);
+        // Rare power-up
+        if(Math.random()<0.05&&!doubleShip){doubleShip=true;}
+      }
+    });
+  });
+  bullets=bullets.filter(b=>!b.dead);
+  // Enemy bullet hits player
+  enemyBullets.forEach(b=>{
+    if(Math.abs(b.x-ship.x)<ship.w/2&&Math.abs(b.y-ship.y)<ship.h/2){b.dead=true;hitPlayer();}
+  });
+  enemyBullets=enemyBullets.filter(b=>!b.dead);
+  // Enemy reaches player row
+  enemies.forEach(e=>{if(e.alive&&e.y>H-80&&Math.abs(e.x-ship.x)<ship.w){hitPlayer();}});
+}
+
+function spawnParticles(x,y,col){for(let i=0;i<8;i++) particles.push({x,y,vx:(Math.random()-.5)*120,vy:(Math.random()-.5)*120,life:0.6,color:col});}
+
+function hitPlayer(){lives--;doubleShip=false;updateHUD();if(lives<=0)endGame();else spawnParticles(ship.x,ship.y,'#6c63ff');}
+
+function endGame(){gameState='over';document.getElementById('mt').textContent='Game Over';document.getElementById('mp').textContent='Score: '+score;document.querySelector('#msg button').textContent='Try Again';document.getElementById('msg').style.display='block';try{const hs=parseInt(localStorage.getItem('gal_hs')||0);if(score>hs)localStorage.setItem('gal_hs',score);}catch(e){}}
+
+function draw(){
+  ctx.fillStyle='#0d0d14';ctx.fillRect(0,0,W,H);
+  // Stars
+  stars.forEach(s=>{ctx.fillStyle=`rgba(232,232,240,${s.s/2})`;ctx.fillRect(s.x,s.y,s.s,s.s);});
+  // Enemies
+  enemies.forEach(e=>{
+    if(!e.alive) return;
+    ctx.fillStyle=e.color;
+    // Body
+    ctx.beginPath();ctx.ellipse(e.x,e.y,e.w/2,e.h/2,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.arc(e.x-5,e.y-4,4,0,Math.PI*2);ctx.arc(e.x+5,e.y-4,4,0,Math.PI*2);ctx.fill();
+    // Wings
+    ctx.fillStyle=e.color;ctx.beginPath();ctx.moveTo(e.x-e.w/2,e.y);ctx.lineTo(e.x-e.w,e.y+8);ctx.lineTo(e.x-e.w/2,e.y+8);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(e.x+e.w/2,e.y);ctx.lineTo(e.x+e.w,e.y+8);ctx.lineTo(e.x+e.w/2,e.y+8);ctx.closePath();ctx.fill();
+  });
+  // Player ship
+  const sx=ship.x,sy=ship.y;
+  ctx.fillStyle='#6c63ff';
+  ctx.beginPath();ctx.moveTo(sx,sy-ship.h/2);ctx.lineTo(sx-ship.w/2,sy+ship.h/2);ctx.lineTo(sx+ship.w/2,sy+ship.h/2);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#a09af0';ctx.beginPath();ctx.moveTo(sx,sy-ship.h/4);ctx.lineTo(sx-6,sy+ship.h/4);ctx.lineTo(sx+6,sy+ship.h/4);ctx.closePath();ctx.fill();
+  // Engine glow
+  ctx.fillStyle='rgba(255,100,0,.8)';ctx.beginPath();ctx.ellipse(sx,sy+ship.h/2+3,4,6+Math.random()*4,0,0,Math.PI*2);ctx.fill();
+  if(doubleShip){
+    ctx.fillStyle='rgba(108,99,255,.5)';ctx.beginPath();ctx.ellipse(sx-20,sy+ship.h/2+3,4,6,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(sx+20,sy+ship.h/2+3,4,6,0,0,Math.PI*2);ctx.fill();
+  }
+  // Bullets
+  ctx.fillStyle='#ffe000';
+  bullets.forEach(b=>{ctx.fillRect(b.x-b.w/2,b.y-b.h,b.w,b.h);});
+  ctx.fillStyle='#ff4444';
+  enemyBullets.forEach(b=>{ctx.beginPath();ctx.arc(b.x,b.y,3,0,Math.PI*2);ctx.fill();});
+  // Particles
+  particles.forEach(p=>{ctx.globalAlpha=p.life;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fill();});
+  ctx.globalAlpha=1;
+}
+
+document.addEventListener('keydown',e=>{keys[e.key]=true;if([' ','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();});
+document.addEventListener('keyup',e=>{keys[e.key]=false;});
+const bL=document.getElementById('bL'),bR=document.getElementById('bR'),bF=document.getElementById('btnFire');
+bL.addEventListener('pointerdown',()=>keys['ArrowLeft']=true);bL.addEventListener('pointerup',()=>keys['ArrowLeft']=false);
+bR.addEventListener('pointerdown',()=>keys['ArrowRight']=true);bR.addEventListener('pointerup',()=>keys['ArrowRight']=false);
+bF.addEventListener('pointerdown',()=>keys['fire']=true);bF.addEventListener('pointerup',()=>keys['fire']=false);
+
+document.getElementById('msg').style.display='block';gameState='idle';
+</script>
+</body>
+</html>

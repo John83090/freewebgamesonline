@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multiplication Grid – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#9898b8;text-decoration:none;font-size:20px}.topbar a:hover{color:#6c63ff}
+.topbar h1{font-size:18px;font-weight:600;flex:1}
+.score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:700}
+.game-area{flex:1;display:flex;flex-direction:column;align-items:center;padding:16px;gap:14px}
+.mode-tabs{display:flex;gap:0;border:1px solid #2a2a45;border-radius:10px;overflow:hidden}
+.tab{background:#1e1e30;color:#9898b8;padding:9px 22px;cursor:pointer;font-size:14px;font-weight:600}
+.tab.active{background:#6c63ff;color:#fff}
+.stats-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.sbox{background:#1e1e30;border:1px solid #2a2a45;border-radius:10px;padding:7px 16px;text-align:center}
+.sbox .v{font-size:18px;font-weight:800;color:#6c63ff}
+.sbox .l{font-size:11px;color:#9898b8}
+/* Grid mode */
+.grid-wrap{overflow-x:auto;max-width:100%}
+.mult-grid{border-collapse:collapse}
+.mult-grid th,.mult-grid td{width:46px;height:46px;text-align:center;font-size:13px;font-weight:700;border:1px solid #2a2a45}
+.mult-grid th{background:#1e1e30;color:#9898b8;font-size:12px}
+.mult-grid td{background:#111120;cursor:pointer;transition:background .15s;color:#2a2a45;font-size:14px}
+.mult-grid td:hover:not(.answered-correct):not(.answered-wrong):not(.header-cell){background:#1e1e30}
+.mult-grid td.active{background:#2a1a3e;border-color:#6c63ff;color:#6c63ff}
+.mult-grid td.answered-correct{background:#1a3a1a;color:#2ecc71;cursor:default}
+.mult-grid td.answered-wrong{background:#3a1a1a;color:#e74c3c;cursor:default}
+.mult-grid td.shown{color:#e8e8f0}
+.cell-header{background:#1e1e30 !important;color:#9898b8 !important;cursor:default !important;font-size:12px}
+/* Focus mode */
+.focus-card{background:#1e1e30;border:2px solid #6c63ff;border-radius:16px;padding:24px;text-align:center;width:min(360px,95vw)}
+.focus-problem{font-size:44px;font-weight:900;color:#6c63ff;margin-bottom:4px}
+.focus-sub{font-size:13px;color:#9898b8}
+.focus-result{font-size:18px;font-weight:700;min-height:28px;margin-top:8px}
+.focus-result.ok{color:#2ecc71}
+.focus-result.err{color:#e74c3c}
+.focus-input{background:#0d0d14;border:2px solid #2a2a45;border-radius:10px;color:#e8e8f0;font-size:26px;padding:10px;text-align:center;width:140px;outline:none;margin-top:10px}
+.focus-input:focus{border-color:#6c63ff}
+.focus-timer-bar{width:100%;height:7px;background:#0d0d14;border-radius:4px;overflow:hidden;margin-top:10px}
+.focus-timer-fill{height:100%;background:#6c63ff;border-radius:4px;transition:width .05s linear}
+.stars{font-size:28px;letter-spacing:4px}
+button.ctrl{background:#1e1e30;border:1px solid #2a2a45;color:#e8e8f0;padding:9px 20px;border-radius:8px;font-size:14px;cursor:pointer}
+button.ctrl:hover{background:#2a2a45}
+button.ctrl.primary{background:#6c63ff;border-color:#6c63ff;color:#fff}
+button.ctrl.primary:hover{background:#574fd6}
+.feedback-popup{font-size:15px;font-weight:700;min-height:22px;text-align:center}
+.feedback-popup.ok{color:#2ecc71}
+.feedback-popup.err{color:#e74c3c}
+.completion-banner{background:#1e1e30;border:1px solid #2a2a45;border-radius:14px;padding:16px;text-align:center;width:min(420px,95vw);display:none;flex-direction:column;gap:8px;align-items:center}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>✖️ Multiplication Grid</h1>
+  <span class="score-badge" id="score-badge">Best: --</span>
+</div>
+<div class="game-area">
+  <div class="mode-tabs">
+    <div class="tab active" id="tab-grid" onclick="setMode('grid')">Grid Mode</div>
+    <div class="tab" id="tab-focus" onclick="setMode('focus')">Focus Mode</div>
+  </div>
+  <!-- Grid mode -->
+  <div id="grid-mode" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:12px">
+    <div class="stats-row">
+      <div class="sbox"><div class="v" id="correct-v">0</div><div class="l">Correct</div></div>
+      <div class="sbox"><div class="v" id="accuracy-v">--</div><div class="l">Accuracy</div></div>
+      <div class="sbox"><div class="v" id="time-v">0:00</div><div class="l">Time</div></div>
+      <div class="sbox"><div class="v" id="left-v">100</div><div class="l">Left</div></div>
+    </div>
+    <div class="grid-wrap">
+      <table class="mult-grid" id="mult-grid"></table>
+    </div>
+    <div class="feedback-popup" id="grid-feedback"></div>
+    <div id="grid-input-area" style="display:none;flex-direction:column;align-items:center;gap:8px">
+      <div style="font-size:18px;font-weight:700" id="grid-problem"></div>
+      <div style="display:flex;gap:8px">
+        <input type="number" id="grid-input" inputmode="numeric" class="focus-input" style="width:120px;font-size:20px" placeholder="?">
+        <button class="ctrl primary" onclick="submitGridAnswer()">✓</button>
+      </div>
+    </div>
+    <div class="completion-banner" id="completion-banner">
+      <div class="stars" id="stars"></div>
+      <div style="font-size:18px;font-weight:700" id="comp-msg"></div>
+      <div style="color:#9898b8;font-size:14px" id="comp-detail"></div>
+      <button class="ctrl primary" onclick="startGrid()">Play Again</button>
+    </div>
+    <button class="ctrl" onclick="startGrid()">New Game</button>
+  </div>
+  <!-- Focus mode -->
+  <div id="focus-mode" style="display:none;flex-direction:column;align-items:center;gap:14px">
+    <div class="stats-row">
+      <div class="sbox"><div class="v" id="f-correct">0</div><div class="l">Correct</div></div>
+      <div class="sbox"><div class="v" id="f-streak">0</div><div class="l">Streak</div></div>
+      <div class="sbox"><div class="v" id="f-timer">15</div><div class="l">Seconds</div></div>
+    </div>
+    <div class="focus-card">
+      <div class="focus-problem" id="focus-problem">--</div>
+      <div class="focus-sub" id="focus-sub"></div>
+      <div class="focus-result" id="focus-result"></div>
+      <input type="number" inputmode="numeric" class="focus-input" id="focus-input" placeholder="?">
+      <div class="focus-timer-bar"><div class="focus-timer-fill" id="focus-fill" style="width:100%"></div></div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="ctrl primary" onclick="submitFocus()">Submit</button>
+      <button class="ctrl" onclick="startFocus()">New Game</button>
+    </div>
+  </div>
+</div>
+<script>
+let mode='grid';
+// Grid mode state
+let gridState=[],selectedCell=null,gridCorrect=0,gridWrong=0,gridLeft=100,gridTimer=0,gridInterval=null,gridStarted=false;
+let highScore=null;
+try{highScore=parseInt(localStorage.getItem('multgrid_best'))||null;}catch(e){}
+if(highScore)document.getElementById('score-badge').textContent='Best: '+fmtTime(highScore);
+
+function fmtTime(s){const m=Math.floor(s/60),ss=s%60;return m+':'+(ss<10?'0':'')+ss;}
+
+function setMode(m){
+  mode=m;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+m).classList.add('active');
+  document.getElementById('grid-mode').style.display=m==='grid'?'flex':'none';
+  document.getElementById('focus-mode').style.display=m==='focus'?'flex':'none';
+  if(m==='grid')startGrid();
+  else startFocus();
+}
+
+function startGrid(){
+  gridCorrect=0;gridWrong=0;gridLeft=100;gridTimer=0;gridStarted=false;selectedCell=null;
+  clearInterval(gridInterval);
+  document.getElementById('correct-v').textContent='0';
+  document.getElementById('accuracy-v').textContent='--';
+  document.getElementById('time-v').textContent='0:00';
+  document.getElementById('left-v').textContent='100';
+  document.getElementById('grid-feedback').textContent='';
+  document.getElementById('grid-input-area').style.display='none';
+  document.getElementById('completion-banner').style.display='none';
+  gridState=[];
+  for(let i=1;i<=10;i++){const row=[];for(let j=1;j<=10;j++)row.push({r:i,c:j,status:'hidden'});gridState.push(row);}
+  buildGridTable();
+}
+
+function buildGridTable(){
+  const tbl=document.getElementById('mult-grid');tbl.innerHTML='';
+  // Header row
+  const hrow=document.createElement('tr');
+  hrow.appendChild(Object.assign(document.createElement('th'),{textContent:'×',className:'cell-header'}));
+  for(let j=1;j<=10;j++){const th=document.createElement('th');th.textContent=j;th.style.color='#6c63ff';hrow.appendChild(th);}
+  tbl.appendChild(hrow);
+  for(let i=0;i<10;i++){
+    const row=document.createElement('tr');
+    const th=document.createElement('th');th.textContent=i+1;th.style.color='#6c63ff';row.appendChild(th);
+    for(let j=0;j<10;j++){
+      const td=document.createElement('td');
+      td.dataset.r=i;td.dataset.c=j;
+      td.textContent='?';
+      td.addEventListener('click',()=>clickCell(i,j));
+      row.appendChild(td);
+    }
+    tbl.appendChild(row);
+  }
+}
+
+function clickCell(ri,ci){
+  const cell=gridState[ri][ci];
+  if(cell.status!=='hidden')return;
+  if(!gridStarted){gridStarted=true;gridInterval=setInterval(()=>{gridTimer++;document.getElementById('time-v').textContent=fmtTime(gridTimer);},1000);}
+  selectedCell={ri,ci};
+  // Deactivate previous
+  document.querySelectorAll('.mult-grid td.active').forEach(td=>td.classList.remove('active'));
+  const td=document.querySelector(`.mult-grid td[data-r="${ri}"][data-c="${ci}"]`);
+  td.classList.add('active');
+  document.getElementById('grid-problem').textContent=(ri+1)+' × '+(ci+1)+' = ?';
+  document.getElementById('grid-input-area').style.display='flex';
+  document.getElementById('grid-input').value='';
+  document.getElementById('grid-input').focus();
+}
+
+function submitGridAnswer(){
+  if(!selectedCell)return;
+  const val=parseInt(document.getElementById('grid-input').value);
+  if(isNaN(val))return;
+  const {ri,ci}=selectedCell;
+  const correct=(ri+1)*(ci+1);
+  const td=document.querySelector(`.mult-grid td[data-r="${ri}"][data-c="${ci}"]`);
+  if(val===correct){
+    gridState[ri][ci].status='correct';
+    td.classList.remove('active');td.classList.add('answered-correct');td.textContent=correct;
+    gridCorrect++;gridLeft--;
+    document.getElementById('grid-feedback').textContent='';
+    document.getElementById('grid-feedback').className='feedback-popup ok';
+  } else {
+    gridState[ri][ci].status='wrong';
+    td.classList.remove('active');td.classList.add('answered-wrong','shown');td.textContent=correct;
+    gridWrong++;gridLeft--;
+    document.getElementById('grid-feedback').className='feedback-popup err';
+    document.getElementById('grid-feedback').textContent='Wrong! '+(ri+1)+'×'+(ci+1)+'='+correct;
+  }
+  document.getElementById('correct-v').textContent=gridCorrect;
+  document.getElementById('accuracy-v').textContent=Math.round(gridCorrect/(gridCorrect+gridWrong)*100)+'%';
+  document.getElementById('left-v').textContent=gridLeft;
+  document.getElementById('grid-input-area').style.display='none';
+  selectedCell=null;
+  if(gridLeft===0){finishGrid();}
+}
+
+document.getElementById('grid-input').addEventListener('keydown',e=>{if(e.key==='Enter')submitGridAnswer();});
+
+function finishGrid(){
+  clearInterval(gridInterval);
+  const acc=Math.round(gridCorrect/100*100);
+  let stars='';let msg='';
+  if(acc===100&&gridTimer<180){stars='⭐⭐⭐';msg='Perfect & Fast!';}
+  else if(acc===100&&gridTimer<300){stars='⭐⭐';msg='Perfect score!';}
+  else{stars='⭐';msg='Completed!';}
+  if(acc===100){
+    if(!highScore||gridTimer<highScore){highScore=gridTimer;try{localStorage.setItem('multgrid_best',highScore);}catch(e){}document.getElementById('score-badge').textContent='Best: '+fmtTime(highScore);}
+  }
+  document.getElementById('stars').textContent=stars;
+  document.getElementById('comp-msg').textContent=msg;
+  document.getElementById('comp-detail').textContent='Time: '+fmtTime(gridTimer)+' | Accuracy: '+acc+'%';
+  document.getElementById('completion-banner').style.display='flex';
+}
+
+// Focus mode
+let focusTimer=15,focusInterval=null,focusCorrect=0,focusStreak=0,focusAns=0;
+function startFocus(){
+  focusCorrect=0;focusStreak=0;
+  document.getElementById('f-correct').textContent=0;
+  document.getElementById('f-streak').textContent=0;
+  document.getElementById('focus-result').textContent='';
+  document.getElementById('focus-result').className='focus-result';
+  nextFocusQ();
+  document.getElementById('focus-input').focus();
+}
+function nextFocusQ(){
+  clearInterval(focusInterval);
+  focusTimer=15;
+  document.getElementById('focus-fill').style.width='100%';
+  const a=Math.floor(Math.random()*10)+1,b=Math.floor(Math.random()*10)+1;
+  focusAns=a*b;
+  document.getElementById('focus-problem').textContent=a+' × '+b+' = ?';
+  document.getElementById('focus-sub').textContent='What is '+a+' times '+b+'?';
+  document.getElementById('focus-input').value='';
+  focusInterval=setInterval(()=>{
+    focusTimer-=0.1;
+    document.getElementById('f-timer').textContent=Math.ceil(focusTimer);
+    document.getElementById('focus-fill').style.width=(focusTimer/15*100)+'%';
+    if(focusTimer<=0){
+      clearInterval(focusInterval);
+      focusStreak=0;
+      document.getElementById('f-streak').textContent=0;
+      document.getElementById('focus-result').className='focus-result err';
+      document.getElementById('focus-result').textContent='Time! Answer: '+focusAns;
+      setTimeout(nextFocusQ,1200);
+    }
+  },100);
+}
+function submitFocus(){
+  const val=parseInt(document.getElementById('focus-input').value);
+  if(isNaN(val))return;
+  clearInterval(focusInterval);
+  if(val===focusAns){
+    focusCorrect++;focusStreak++;
+    document.getElementById('f-correct').textContent=focusCorrect;
+    document.getElementById('f-streak').textContent=focusStreak;
+    document.getElementById('focus-result').className='focus-result ok';
+    document.getElementById('focus-result').textContent='Correct! '+(focusStreak>=3?'🔥 Streak '+focusStreak:'');
+  } else {
+    focusStreak=0;
+    document.getElementById('f-streak').textContent=0;
+    document.getElementById('focus-result').className='focus-result err';
+    document.getElementById('focus-result').textContent='Wrong! Answer: '+focusAns;
+  }
+  setTimeout(nextFocusQ,900);
+}
+document.getElementById('focus-input').addEventListener('keydown',e=>{if(e.key==='Enter')submitFocus();});
+
+startGrid();
+</script>
+</body>
+</html>

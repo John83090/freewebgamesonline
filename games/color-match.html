@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Match – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+#topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 16px;display:flex;align-items:center;gap:12px}
+#topbar a{color:#6c63ff;text-decoration:none;font-size:1.3em}
+#topbar h1{font-size:1.1em;flex:1}
+.badge{background:#2a2a45;border:1px solid #6c63ff;border-radius:20px;padding:4px 14px;font-size:.9em;color:#6c63ff;font-weight:bold}
+#game{max-width:420px;margin:0 auto;padding:14px;flex:1;display:flex;flex-direction:column;align-items:center;width:100%}
+.info-bar{display:flex;gap:8px;width:100%;margin-bottom:14px}
+.info-box{flex:1;background:#1e1e30;border:1px solid #2a2a45;border-radius:9px;padding:10px;text-align:center}
+.info-num{font-size:1.5em;font-weight:bold;color:#6c63ff}
+.info-lbl{font-size:.75em;color:#9898b8}
+.timer-wrap{width:100%;height:10px;background:#2a2a45;border-radius:5px;margin-bottom:20px;overflow:hidden}
+.timer-bar{height:100%;border-radius:5px;background:linear-gradient(90deg,#4caf50,#f39c12,#e74c3c);transition:width .1s linear}
+#wordBox{width:100%;background:#1e1e30;border:2px solid #2a2a45;border-radius:16px;padding:30px 20px;text-align:center;margin-bottom:20px;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#stroop{font-size:3em;font-weight:bold;letter-spacing:.05em;transition:color .1s}
+#instruction{font-size:.85em;color:#9898b8;margin-top:10px}
+#feedback{height:28px;font-size:1em;font-weight:bold;margin-bottom:8px;transition:opacity .3s}
+.color-btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%}
+.cbtn{padding:18px;border:3px solid transparent;border-radius:12px;font-size:1.1em;font-weight:bold;cursor:pointer;transition:all .15s;color:#fff}
+.cbtn:hover{transform:scale(1.05);filter:brightness(1.1)}
+.cbtn:active{transform:scale(.97)}
+#startBtn{width:100%;padding:14px;background:#6c63ff;border:none;border-radius:10px;color:#fff;font-size:1.05em;font-weight:bold;cursor:pointer;margin-top:10px}
+#highBox{font-size:.85em;color:#9898b8;margin-top:8px}
+.streak-badge{background:#f39c12;color:#000;border-radius:12px;padding:2px 8px;font-size:.8em;font-weight:bold;display:inline-block;margin-top:4px}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>🎨 Color Match</h1>
+  <span class="badge" id="hiBadge">Best: 0</span>
+</div>
+<div id="game">
+  <div class="info-bar">
+    <div class="info-box"><div class="info-num" id="scoreNum">0</div><div class="info-lbl">Score</div></div>
+    <div class="info-box"><div class="info-num" id="timerNum">60</div><div class="info-lbl">Seconds</div></div>
+    <div class="info-box"><div class="info-num" id="streakNum">0</div><div class="info-lbl">Streak</div></div>
+  </div>
+  <div class="timer-wrap"><div class="timer-bar" id="timerBar" style="width:100%"></div></div>
+  <div id="wordBox">
+    <div id="stroop" style="color:#e8e8f0">COLOR</div>
+    <div id="instruction">Match the INK COLOR (not the word)</div>
+  </div>
+  <div id="feedback" style="text-align:center;opacity:0">—</div>
+  <div class="color-btns" id="colorBtns"></div>
+  <button id="startBtn" onclick="startGame()">Start Game</button>
+  <div id="highBox">High Score: <span id="hiDisp">0</span></div>
+</div>
+<script>
+const COLORS=[
+  {name:'RED',hex:'#e74c3c'},
+  {name:'BLUE',hex:'#3498db'},
+  {name:'GREEN',hex:'#2ecc71'},
+  {name:'YELLOW',hex:'#f1c40f'},
+];
+let score=0,timer=60,streak=0,gameActive=false,timerInterval=null,roundStart=0,hiScore=0,currentInk=0;
+try{hiScore=parseInt(localStorage.getItem('cmatch_hi'))||0;document.getElementById('hiDisp').textContent=hiScore;document.getElementById('hiBadge').textContent='Best: '+hiScore;}catch(e){}
+
+function buildButtons(){
+  const el=document.getElementById('colorBtns');el.innerHTML='';
+  COLORS.forEach((c,i)=>{
+    const btn=document.createElement('button');btn.className='cbtn';
+    btn.style.background=c.hex;btn.style.borderColor=c.hex;btn.textContent=c.name;
+    btn.onclick=()=>answer(i);el.appendChild(btn);
+  });
+}
+
+function randInt(n){return Math.floor(Math.random()*n);}
+
+function nextRound(){
+  const word=randInt(COLORS.length);
+  currentInk=randInt(COLORS.length);
+  // Ensure ink != word sometimes (Stroop effect — often mismatch)
+  const mismatch=Math.random()<0.7;
+  const ink=mismatch?(currentInk===word?(currentInk+1)%COLORS.length:currentInk):word;
+  currentInk=ink;
+  document.getElementById('stroop').textContent=COLORS[word].name;
+  document.getElementById('stroop').style.color=COLORS[ink].hex;
+  roundStart=performance.now();
+}
+
+function answer(colorIdx){
+  if(!gameActive)return;
+  const correct=colorIdx===currentInk;
+  const elapsed=(performance.now()-roundStart)/1000;
+  let pts=0;
+  if(correct){
+    pts=10;if(elapsed<0.5)pts+=5;if(elapsed<0.3)pts+=5; // speed bonus
+    if(streak>=2)pts=Math.round(pts*(1+streak*0.1));
+    score+=pts;streak++;
+    showFeedback('+'+pts+(elapsed<0.3?' FAST!':elapsed<0.5?' Quick!':''),'#4caf50');
+  } else {
+    score=Math.max(0,score-5);streak=0;
+    showFeedback('-5 Wrong!','#e74c3c');
+  }
+  document.getElementById('scoreNum').textContent=score;
+  document.getElementById('streakNum').textContent=streak;
+  nextRound();
+}
+
+function showFeedback(msg,color){
+  const el=document.getElementById('feedback');
+  el.textContent=msg;el.style.color=color;el.style.opacity='1';
+  setTimeout(()=>el.style.opacity='0',600);
+}
+
+function startGame(){
+  score=0;timer=60;streak=0;gameActive=true;
+  document.getElementById('scoreNum').textContent=0;
+  document.getElementById('timerNum').textContent=60;
+  document.getElementById('streakNum').textContent=0;
+  document.getElementById('startBtn').style.display='none';
+  buildButtons();nextRound();
+  const startTime=performance.now();
+  timerInterval=setInterval(()=>{
+    const elapsed=(performance.now()-startTime)/1000;
+    timer=Math.max(0,60-elapsed);
+    document.getElementById('timerNum').textContent=Math.ceil(timer);
+    document.getElementById('timerBar').style.width=(timer/60*100)+'%';
+    if(timer<=0){clearInterval(timerInterval);endGame();}
+  },100);
+}
+
+function endGame(){
+  gameActive=false;
+  if(score>hiScore){hiScore=score;try{localStorage.setItem('cmatch_hi',hiScore);}catch(e){}document.getElementById('hiBadge').textContent='Best: '+hiScore;document.getElementById('hiDisp').textContent=hiScore;}
+  document.getElementById('stroop').textContent='DONE!';document.getElementById('stroop').style.color='#6c63ff';
+  document.getElementById('instruction').textContent=`Score: ${score}${score>=hiScore?' — New High Score!':''}`;
+  document.getElementById('startBtn').style.display='block';document.getElementById('startBtn').textContent='Play Again';
+}
+
+buildButtons();
+</script>
+</body>
+</html>

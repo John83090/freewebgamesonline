@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Challenge – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#9898b8;text-decoration:none;font-size:20px}.topbar a:hover{color:#6c63ff}
+.topbar h1{font-size:18px;font-weight:600;flex:1}
+.score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:700}
+.game-area{flex:1;display:flex;flex-direction:column;align-items:center;padding:20px;gap:16px}
+.setup-screen{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;max-width:480px}
+.setup-screen h2{font-size:22px;font-weight:700}
+.diff-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%}
+.diff-btn{background:#1e1e30;border:2px solid #2a2a45;border-radius:12px;padding:16px;cursor:pointer;text-align:center;transition:border-color .2s}
+.diff-btn:hover{border-color:#6c63ff}
+.diff-btn .name{font-size:17px;font-weight:700;margin-bottom:4px}
+.diff-btn .desc{font-size:12px;color:#9898b8}
+.quiz-screen{display:none;flex-direction:column;align-items:center;gap:16px;width:100%;max-width:480px}
+.meta-row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;width:100%}
+.mbox{background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;padding:7px 18px;text-align:center}
+.mbox .v{font-size:18px;font-weight:700;color:#6c63ff}
+.mbox .l{font-size:11px;color:#9898b8}
+.timer-bar-wrap{width:100%;height:8px;background:#1e1e30;border-radius:4px;overflow:hidden}
+.timer-bar{height:100%;background:#6c63ff;border-radius:4px}
+.problem-box{background:#1e1e30;border:1px solid #2a2a45;border-radius:16px;padding:28px;text-align:center;width:100%}
+.problem{font-size:42px;font-weight:900;letter-spacing:.04em}
+.result-msg{font-size:18px;font-weight:700;min-height:28px;margin-top:8px}
+.result-msg.correct{color:#2ecc71}
+.result-msg.wrong{color:#e74c3c}
+.answer-input{background:#0d0d14;border:2px solid #2a2a45;border-radius:10px;color:#e8e8f0;font-size:28px;padding:12px 20px;text-align:center;width:200px;outline:none}
+.answer-input:focus{border-color:#6c63ff}
+.numpad{display:grid;grid-template-columns:repeat(4,60px);gap:8px;justify-content:center}
+.np-btn{background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;color:#e8e8f0;font-size:18px;font-weight:700;width:60px;height:52px;cursor:pointer}
+.np-btn:hover{background:#2a2a45}
+.np-btn.primary{background:#6c63ff;border-color:#6c63ff}
+.np-btn.del{background:#2a1e30;border-color:#4a2a45;color:#e74c3c}
+button.ctrl{background:#6c63ff;border:none;color:#fff;padding:12px 32px;border-radius:10px;font-size:16px;cursor:pointer;font-weight:700}
+button.ctrl:hover{background:#574fd6}
+.end-screen{display:none;flex-direction:column;align-items:center;gap:16px;width:100%;max-width:480px}
+.end-score{font-size:56px;font-weight:900;color:#6c63ff}
+.streak-info{color:#9898b8;font-size:15px;text-align:center}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>➕ Math Challenge</h1>
+  <span class="score-badge" id="score-badge">Best: --</span>
+</div>
+<div class="game-area">
+  <div class="setup-screen" id="setup-screen">
+    <h2>Choose Difficulty</h2>
+    <div class="diff-grid">
+      <div class="diff-btn" onclick="startGame('easy')"><div class="name">Easy</div><div class="desc">Single digit</div></div>
+      <div class="diff-btn" onclick="startGame('medium')"><div class="name">Medium</div><div class="desc">Double digit</div></div>
+      <div class="diff-btn" onclick="startGame('hard')"><div class="name">Hard</div><div class="desc">Triple digit</div></div>
+      <div class="diff-btn" onclick="startGame('expert')"><div class="name">Expert</div><div class="desc">Mixed ops</div></div>
+    </div>
+  </div>
+  <div class="quiz-screen" id="quiz-screen">
+    <div class="meta-row">
+      <div class="mbox"><div class="v" id="q-num">1/10</div><div class="l">Question</div></div>
+      <div class="mbox"><div class="v" id="score-v">0</div><div class="l">Score</div></div>
+      <div class="mbox"><div class="v" id="streak-v">0</div><div class="l">Streak</div></div>
+      <div class="mbox"><div class="v" id="timer-v">30</div><div class="l">Secs</div></div>
+    </div>
+    <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
+    <div class="problem-box">
+      <div class="problem" id="problem"></div>
+      <div class="result-msg" id="result-msg"></div>
+    </div>
+    <input class="answer-input" id="answer-input" type="number" inputmode="numeric" placeholder="?" autocomplete="off">
+    <div class="numpad" id="numpad"></div>
+  </div>
+  <div class="end-screen" id="end-screen">
+    <div style="font-size:20px;font-weight:700">Round Complete!</div>
+    <div class="end-score" id="end-score">10/10</div>
+    <div class="streak-info" id="end-detail"></div>
+    <div class="streak-info" id="best-time-info"></div>
+    <button class="ctrl" onclick="backToSetup()">Play Again</button>
+  </div>
+</div>
+<script>
+let difficulty='easy',qIdx=0,score=0,streak=0,bestStreak=0,perfect=true;
+let timerVal=30,timerInt=null,answered=false,startTime=0,totalTime=0;
+let highScores={};
+try{highScores=JSON.parse(localStorage.getItem('mathquiz_best'))||{};}catch(e){}
+updateBadge();
+
+function updateBadge(){
+  const b=Object.values(highScores);
+  if(b.length)document.getElementById('score-badge').textContent='Best: '+Math.min(...b)+'s';
+}
+
+function rnd(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+function genProblem(diff){
+  let a,b,op,ans;
+  const ops=['+','-','×','÷'];
+  if(diff==='easy'){
+    op=['+','-','×'][rnd(0,2)];
+    if(op==='+'){a=rnd(1,9);b=rnd(1,9);}
+    else if(op==='-'){a=rnd(2,9);b=rnd(1,a);}
+    else{a=rnd(1,9);b=rnd(1,9);}
+  } else if(diff==='medium'){
+    op=['+','-','×','÷'][rnd(0,3)];
+    if(op==='+'){a=rnd(10,99);b=rnd(10,99);}
+    else if(op==='-'){a=rnd(20,99);b=rnd(10,a);}
+    else if(op==='×'){a=rnd(2,12);b=rnd(2,12);}
+    else{b=rnd(2,12);ans=rnd(2,12);a=b*ans;}
+  } else if(diff==='hard'){
+    op=['+','-','×'][rnd(0,2)];
+    if(op==='+'){a=rnd(100,999);b=rnd(100,999);}
+    else if(op==='-'){a=rnd(200,999);b=rnd(100,a);}
+    else{a=rnd(10,99);b=rnd(10,99);}
+  } else {
+    op=ops[rnd(0,3)];
+    if(op==='+'){a=rnd(10,999);b=rnd(10,999);}
+    else if(op==='-'){a=rnd(50,999);b=rnd(10,a);}
+    else if(op==='×'){a=rnd(2,25);b=rnd(2,25);}
+    else{b=rnd(2,20);ans=rnd(2,20);a=b*ans;}
+  }
+  let correctAns;
+  if(op==='÷')correctAns=ans||a/b;
+  else if(op==='×')correctAns=a*b;
+  else if(op==='+')correctAns=a+b;
+  else correctAns=a-b;
+  return{text:a+' '+op+' '+b+' =',answer:correctAns};
+}
+
+let currentProblem=null;
+
+function startGame(diff){
+  difficulty=diff;qIdx=0;score=0;streak=0;bestStreak=0;perfect=true;totalTime=0;
+  document.getElementById('setup-screen').style.display='none';
+  document.getElementById('quiz-screen').style.display='flex';
+  document.getElementById('end-screen').style.display='none';
+  buildNumpad();
+  startTime=Date.now();
+  nextQuestion();
+}
+
+function buildNumpad(){
+  const np=document.getElementById('numpad');np.innerHTML='';
+  const keys=['7','8','9','DEL','4','5','6','C','1','2','3','','0','00','','✓'];
+  keys.forEach(k=>{
+    const b=document.createElement('button');b.className='np-btn';b.textContent=k;
+    if(k==='✓')b.classList.add('primary');
+    if(k==='DEL'||k==='C')b.classList.add('del');
+    if(k==='')b.style.visibility='hidden';
+    b.addEventListener('click',()=>numpadPress(k));
+    np.appendChild(b);
+  });
+}
+function numpadPress(k){
+  const inp=document.getElementById('answer-input');
+  if(k==='DEL')inp.value=inp.value.slice(0,-1);
+  else if(k==='C')inp.value='';
+  else if(k==='✓')submitAnswer();
+  else inp.value+=k;
+  inp.focus();
+}
+
+function nextQuestion(){
+  answered=false;
+  currentProblem=genProblem(difficulty);
+  document.getElementById('problem').textContent=currentProblem.text;
+  document.getElementById('result-msg').textContent='';
+  document.getElementById('result-msg').className='result-msg';
+  document.getElementById('answer-input').value='';
+  document.getElementById('q-num').textContent=(qIdx+1)+'/10';
+  document.getElementById('answer-input').focus();
+  timerVal=30;
+  document.getElementById('timer-bar').style.width='100%';
+  document.getElementById('timer-v').textContent='30';
+  clearInterval(timerInt);
+  timerInt=setInterval(()=>{
+    timerVal-=0.1;
+    document.getElementById('timer-bar').style.width=(timerVal/30*100)+'%';
+    document.getElementById('timer-v').textContent=Math.ceil(timerVal);
+    if(timerVal<=0){clearInterval(timerInt);timeUp();}
+  },100);
+}
+
+function timeUp(){
+  if(answered)return;
+  answered=true;perfect=false;streak=0;
+  document.getElementById('streak-v').textContent=0;
+  document.getElementById('result-msg').className='result-msg wrong';
+  document.getElementById('result-msg').textContent='Time! Answer: '+currentProblem.answer;
+  setTimeout(advance,1400);
+}
+
+function submitAnswer(){
+  if(answered)return;
+  const val=parseFloat(document.getElementById('answer-input').value);
+  if(isNaN(val))return;
+  clearInterval(timerInt);
+  answered=true;
+  if(Math.abs(val-currentProblem.answer)<0.01){
+    score++;streak++;if(streak>bestStreak)bestStreak=streak;
+    const mult=streak>=3?2:1;
+    document.getElementById('result-msg').className='result-msg correct';
+    document.getElementById('result-msg').textContent='Correct!'+(mult>1?' x'+mult+' Streak!':'');
+    document.getElementById('score-v').textContent=score;
+    document.getElementById('streak-v').textContent=streak;
+  } else {
+    perfect=false;streak=0;
+    document.getElementById('result-msg').className='result-msg wrong';
+    document.getElementById('result-msg').textContent='Wrong! Answer: '+currentProblem.answer;
+    document.getElementById('streak-v').textContent=0;
+  }
+  setTimeout(advance,1200);
+}
+
+document.getElementById('answer-input').addEventListener('keydown',e=>{if(e.key==='Enter')submitAnswer();});
+
+function advance(){
+  qIdx++;
+  if(qIdx>=10)endGame();
+  else nextQuestion();
+}
+
+function endGame(){
+  const elapsed=Math.round((Date.now()-startTime)/1000);
+  document.getElementById('quiz-screen').style.display='none';
+  document.getElementById('end-screen').style.display='flex';
+  document.getElementById('end-score').textContent=score+'/10';
+  document.getElementById('end-detail').textContent='Best streak: '+bestStreak+' | Time: '+elapsed+'s';
+  if(perfect){
+    if(!highScores[difficulty]||elapsed<highScores[difficulty]){
+      highScores[difficulty]=elapsed;
+      try{localStorage.setItem('mathquiz_best',JSON.stringify(highScores));}catch(e){}
+      updateBadge();
+    }
+    document.getElementById('best-time-info').textContent='Perfect score! Time: '+elapsed+'s (Best: '+highScores[difficulty]+'s)';
+  } else {
+    document.getElementById('best-time-info').textContent='';
+  }
+}
+
+function backToSetup(){
+  clearInterval(timerInt);
+  document.getElementById('setup-screen').style.display='flex';
+  document.getElementById('quiz-screen').style.display='none';
+  document.getElementById('end-screen').style.display='none';
+}
+</script>
+</body>
+</html>

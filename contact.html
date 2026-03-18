@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Contact Us – FreeWebGamesOnline</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<style>
+:root{--bg:#0d0d14;--bg2:#13131f;--bg3:#1a1a2e;--card:#1e1e30;--border:#2a2a45;--accent:#6c63ff;--text:#e8e8f0;--text2:#9898b8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.7}
+nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px}
+nav a{color:var(--text2);text-decoration:none;font-size:.85rem;transition:color .15s}
+nav a:hover{color:var(--accent)}
+nav .logo{font-size:1.1rem;font-weight:900;background:linear-gradient(135deg,#a78bfa,#6c63ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;margin-right:auto}
+.container{max-width:700px;margin:0 auto;padding:60px 24px 80px}
+h1{font-size:2rem;font-weight:900;margin-bottom:8px;background:linear-gradient(135deg,#a78bfa,#6c63ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{color:var(--text2);font-size:1rem;margin-bottom:48px}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:48px}
+@media(max-width:560px){.contact-grid{grid-template-columns:1fr}}
+.contact-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;text-align:center;transition:border-color .2s}
+.contact-card:hover{border-color:var(--accent)}
+.cc-icon{font-size:2rem;margin-bottom:12px;display:block}
+.cc-title{font-weight:700;margin-bottom:6px;color:var(--text)}
+.cc-val{color:var(--accent);text-decoration:none;font-size:.9rem}
+.cc-val:hover{text-decoration:underline}
+.cc-desc{color:var(--text2);font-size:.82rem;margin-top:6px}
+.form-section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:32px}
+.form-section h2{font-size:1.1rem;font-weight:700;margin-bottom:24px;color:var(--text)}
+.form-group{margin-bottom:20px}
+label{display:block;font-size:.85rem;color:var(--text2);margin-bottom:6px;font-weight:600}
+input,textarea,select{width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:.9rem;outline:none;transition:border-color .2s;font-family:inherit}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:130px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:500px){.form-row{grid-template-columns:1fr}}
+.submit-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:12px 28px;font-size:.95rem;font-weight:700;cursor:pointer;transition:background .18s;width:100%}
+.submit-btn:hover{background:#8b7cf6}
+.success-msg{display:none;background:#16423c;border:1px solid #22c55e;border-radius:8px;padding:16px;color:#4ade80;margin-top:16px;text-align:center}
+.faq{margin-top:48px}
+.faq h2{font-size:1.1rem;font-weight:700;margin-bottom:24px;color:var(--text)}
+.faq-item{border:1px solid var(--border);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.faq-q{padding:16px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:.9rem;background:var(--card);transition:background .15s}
+.faq-q:hover{background:var(--bg3)}
+.faq-a{padding:0 20px;max-height:0;overflow:hidden;transition:max-height .3s,padding .3s;color:var(--text2);font-size:.88rem}
+.faq-item.open .faq-a{max-height:200px;padding:0 20px 16px}
+.faq-item.open .faq-arrow{transform:rotate(180deg)}
+.faq-arrow{transition:transform .3s;font-size:.8rem}
+footer{text-align:center;padding:24px;color:var(--text2);font-size:.8rem;border-top:1px solid var(--border);margin-top:60px}
+footer a{color:var(--accent)}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="logo">🎮 FreeWebGamesOnline</a>
+  <a href="/">Home</a>
+  <a href="/about.html">About</a>
+  <a href="/privacy-policy.html">Privacy</a>
+</nav>
+<div class="container">
+  <h1>Contact Us</h1>
+  <p class="sub">Have a question, suggestion, or found a bug? We'd love to hear from you!</p>
+
+  <div class="contact-grid">
+    <div class="contact-card">
+      <span class="cc-icon">📧</span>
+      <div class="cc-title">Email Us</div>
+      <a class="cc-val" href="mailto:johnpaul93478@gmail.com">johnpaul93478@gmail.com</a>
+      <div class="cc-desc">We typically respond within 24–48 hours</div>
+    </div>
+    <div class="contact-card">
+      <span class="cc-icon">🎮</span>
+      <div class="cc-title">Request a Game</div>
+      <a class="cc-val" href="mailto:johnpaul93478@gmail.com?subject=Game%20Request">Send a suggestion</a>
+      <div class="cc-desc">Tell us what game you'd like to see added</div>
+    </div>
+    <div class="contact-card">
+      <span class="cc-icon">🐛</span>
+      <div class="cc-title">Report a Bug</div>
+      <a class="cc-val" href="mailto:johnpaul93478@gmail.com?subject=Bug%20Report">Report an issue</a>
+      <div class="cc-desc">Help us improve by reporting problems</div>
+    </div>
+    <div class="contact-card">
+      <span class="cc-icon">💼</span>
+      <div class="cc-title">Business / Ads</div>
+      <a class="cc-val" href="mailto:johnpaul93478@gmail.com?subject=Business%20Inquiry">Business inquiry</a>
+      <div class="cc-desc">Partnerships, sponsorships, or ad inquiries</div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h2>Send Us a Message</h2>
+    <form id="contact-form" onsubmit="handleSubmit(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Your Name</label>
+          <input type="text" id="name" placeholder="John Doe" required/>
+        </div>
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" placeholder="you@example.com" required/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="subject">Subject</label>
+        <select id="subject">
+          <option value="general">General Question</option>
+          <option value="bug">Bug Report</option>
+          <option value="game-request">Game Request</option>
+          <option value="business">Business / Advertising</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="message">Message</label>
+        <textarea id="message" placeholder="Tell us what's on your mind..." required></textarea>
+      </div>
+      <button type="submit" class="submit-btn">Send Message 🚀</button>
+      <div class="success-msg" id="success-msg">
+        ✅ Thank you! Your message has been sent. We'll get back to you soon.
+      </div>
+    </form>
+  </div>
+
+  <div class="faq">
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        Are all games completely free? <span class="faq-arrow">▼</span>
+      </div>
+      <div class="faq-a">Yes! Every game on FreeWebGamesOnline is 100% free to play with no downloads, no sign-ups, and no in-app purchases. We're supported by Google AdSense advertisements.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        Do I need to create an account? <span class="faq-arrow">▼</span>
+      </div>
+      <div class="faq-a">No account needed! Your game progress and high scores are saved automatically in your browser's local storage. This means your saves stay private and on your device.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        Can I suggest a new game? <span class="faq-arrow">▼</span>
+      </div>
+      <div class="faq-a">Absolutely! We love hearing game requests. Email us or use the contact form above with your suggestion. We regularly add new games based on user requests.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        Why do I see ads on the site? <span class="faq-arrow">▼</span>
+      </div>
+      <div class="faq-a">Ads help us cover hosting costs and keep the games free for everyone. We use Google AdSense which serves relevant, safe ads. You can opt out of personalized ads at google.com/settings/ads.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        A game is not working — what should I do? <span class="faq-arrow">▼</span>
+      </div>
+      <div class="faq-a">Try refreshing the page or clearing your browser cache. If the issue persists, please contact us with the game name and your browser/device info so we can fix it quickly.</div>
+    </div>
+  </div>
+</div>
+<footer>
+  <p>© 2026 FreeWebGamesOnline · <a href="/privacy-policy.html">Privacy Policy</a> · <a href="/terms.html">Terms of Service</a> · <a href="/contact.html">Contact</a></p>
+</footer>
+<script>
+function handleSubmit(e){
+  e.preventDefault();
+  // In a real deployment, this would POST to a backend or form service
+  // For now, simulate success and open mailto as fallback
+  const name = document.getElementById('name').value;
+  const email = document.getElementById('email').value;
+  const subject = document.getElementById('subject').value;
+  const message = document.getElementById('message').value;
+  const sub = encodeURIComponent('[' + subject + '] Message from ' + name);
+  const body = encodeURIComponent('From: ' + name + ' (' + email + ')\n\n' + message);
+  window.location.href = 'mailto:johnpaul93478@gmail.com?subject=' + sub + '&body=' + body;
+  document.getElementById('success-msg').style.display = 'block';
+}
+function toggleFaq(el){
+  const item = el.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+  if(!isOpen) item.classList.add('open');
+}
+</script>
+</body>
+</html>

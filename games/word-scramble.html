@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Word Scramble – FreeWebGamesOnline</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
+#topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 18px;display:flex;align-items:center;gap:14px}
+#topbar a{color:#9898b8;text-decoration:none;font-size:20px}#topbar a:hover{color:#6c63ff}
+#topbar h1{font-size:18px;flex:1}
+#score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:700}
+#main{display:flex;flex-direction:column;align-items:center;padding:24px;gap:16px;max-width:520px;margin:0 auto}
+#stats-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+#stats-row span{background:#1e1e30;border:1px solid #2a2a45;padding:6px 12px;border-radius:8px;font-size:13px;color:#9898b8}
+#stats-row b{color:#e8e8f0}
+#timer-bar-wrap{width:100%;background:#1e1e30;border-radius:8px;height:8px;overflow:hidden;border:1px solid #2a2a45}
+#timer-bar{height:100%;background:#6c63ff;transition:width .5s linear;border-radius:8px}
+#category{font-size:12px;color:#9898b8;text-transform:uppercase;letter-spacing:2px}
+#tile-area{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:60px;padding:12px;background:#1e1e30;border:2px solid #2a2a45;border-radius:12px;width:100%;max-width:420px}
+.tile{width:48px;height:52px;background:#2a2a45;border:2px solid #3a3a60;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;cursor:pointer;transition:.15s;user-select:none;color:#e8e8f0}
+.tile:hover{background:#6c63ff;border-color:#8880ff;transform:translateY(-3px)}
+.tile.selected{background:#6c63ff;border-color:#fff;transform:translateY(-3px)}
+.tile.solved{background:#2ecc71;border-color:#27ae60;cursor:default}
+#answer-area{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:60px;padding:12px;background:#0d0d14;border:2px dashed #2a2a45;border-radius:12px;width:100%;max-width:420px}
+#answer-area .tile{background:#1e1e30;border-color:#2a2a45;cursor:pointer}
+#answer-area .tile:hover{background:#e74c3c;border-color:#c0392b}
+#hint-text{font-size:13px;color:#9898b8;font-style:italic;min-height:20px}
+#message{font-size:18px;font-weight:700;min-height:28px;color:#6c63ff;text-align:center}
+#controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+button.action{background:#6c63ff;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
+button.action:hover{background:#574fd6}
+button.sec{background:#1e1e30;border:1px solid #2a2a45;color:#9898b8;padding:9px 18px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
+button.sec:hover{border-color:#6c63ff;color:#6c63ff}
+#end-panel{display:none;text-align:center;font-size:22px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>&#129514; Word Scramble</h1>
+  <span id="score-badge">Score: 0</span>
+</div>
+<div id="main">
+  <div id="stats-row">
+    <span>Word: <b id="word-num">1</b>/10</span>
+    <span>Score: <b id="score">0</b></span>
+    <span>Streak: <b id="streak">0</b> 🔥</span>
+    <span>Time: <b id="time-left">20</b>s</span>
+  </div>
+  <div id="timer-bar-wrap"><div id="timer-bar" style="width:100%"></div></div>
+  <div id="category">Category</div>
+  <div style="font-size:13px;color:#9898b8">Click tiles to build the word — click placed tiles to return them</div>
+  <div id="tile-area"></div>
+  <div id="hint-text"></div>
+  <div id="answer-area"></div>
+  <div id="message"></div>
+  <div id="controls">
+    <button class="action" onclick="checkAnswer()">Submit</button>
+    <button class="sec" onclick="clearAnswer()">Clear</button>
+    <button class="sec" onclick="skipWord()">Skip</button>
+  </div>
+  <div id="end-panel"></div>
+</div>
+<script>
+const WORDS=[
+  {word:'ELEPHANT',cat:'Animal',hint:'Largest land mammal with a trunk'},
+  {word:'GUITAR',cat:'Music',hint:'Six-stringed instrument'},
+  {word:'BANANA',cat:'Fruit',hint:'Yellow curved tropical fruit'},
+  {word:'PYTHON',cat:'Programming',hint:'Popular scripting language named after a snake'},
+  {word:'SATURN',cat:'Space',hint:'Planet with famous rings'},
+  {word:'VOLCANO',cat:'Geography',hint:'Mountain that can erupt with lava'},
+  {word:'DOLPHIN',cat:'Animal',hint:'Intelligent marine mammal'},
+  {word:'TRUMPET',cat:'Music',hint:'Brass instrument played with valves'},
+  {word:'MANGO',cat:'Fruit',hint:'Sweet tropical fruit, often orange inside'},
+  {word:'GLACIER',cat:'Geography',hint:'Slow-moving mass of ice'},
+  {word:'PENGUIN',cat:'Animal',hint:'Flightless bird from Antarctica'},
+  {word:'CACTUS',cat:'Plant',hint:'Desert plant with spines'},
+  {word:'METEOR',cat:'Space',hint:'Space rock entering atmosphere'},
+  {word:'SUSHI',cat:'Food',hint:'Japanese dish with rice and fish'},
+  {word:'OXYGEN',cat:'Science',hint:'Gas essential for breathing (O)'}
+];
+
+let wordList=[],wordIdx=0,score=0,streak=0,timerID=null,timeLeft=20;
+let scrambled=[],answer=[];
+let gameRunning=false;
+
+function startGame(){
+  wordList=shuffle([...WORDS]).slice(0,10);
+  wordIdx=0;score=0;streak=0;gameRunning=true;
+  document.getElementById('score').textContent=0;document.getElementById('score-badge').textContent='Score: 0';
+  document.getElementById('streak').textContent=0;document.getElementById('end-panel').style.display='none';
+  document.getElementById('end-panel').innerHTML='';
+  nextWord();
+}
+
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+
+function scrambleWord(w){
+  let a=w.split('');
+  do{shuffle(a);}while(a.join('')===w&&w.length>1);
+  return a;
+}
+
+function nextWord(){
+  if(wordIdx>=wordList.length){endGame();return;}
+  const {word,cat,hint}=wordList[wordIdx];
+  wordIdx++;
+  document.getElementById('word-num').textContent=wordIdx;
+  document.getElementById('category').textContent=cat.toUpperCase();
+  document.getElementById('hint-text').textContent=hint;
+  document.getElementById('message').textContent='';
+  scrambled=scrambleWord(word);answer=[];
+  timeLeft=20;document.getElementById('time-left').textContent=timeLeft;
+  document.getElementById('timer-bar').style.width='100%';document.getElementById('timer-bar').style.background='#6c63ff';
+  clearInterval(timerID);
+  timerID=setInterval(()=>{
+    timeLeft--;document.getElementById('time-left').textContent=timeLeft;
+    document.getElementById('timer-bar').style.width=(timeLeft/20*100)+'%';
+    if(timeLeft<=7)document.getElementById('timer-bar').style.background='#e74c3c';
+    if(timeLeft<=0){clearInterval(timerID);timeExpired();}
+  },1000);
+  renderTiles();
+}
+
+function renderTiles(){
+  const ta=document.getElementById('tile-area');
+  ta.innerHTML=scrambled.map((l,i)=>`<div class="tile" data-idx="${i}" onclick="pickTile(${i})">${l}</div>`).join('');
+  const aa=document.getElementById('answer-area');
+  aa.innerHTML=answer.map((l,i)=>`<div class="tile" onclick="returnTile(${i})">${l}</div>`).join('');
+  if(!answer.length)aa.innerHTML='<span style="color:#2a2a45;font-size:13px">Place tiles here</span>';
+}
+
+function pickTile(idx){
+  if(!gameRunning)return;
+  const letter=scrambled[idx];
+  if(letter===null)return;
+  answer.push(letter);
+  scrambled[idx]=null;
+  renderTiles();
+  // auto-check
+  const word=wordList[wordIdx-1].word;
+  if(answer.length===word.length)autoCheck();
+}
+
+function returnTile(idx){
+  if(!gameRunning)return;
+  const letter=answer[idx];
+  // find first null in scrambled and restore
+  const slot=scrambled.indexOf(null);
+  if(slot>=0)scrambled[slot]=letter;else scrambled.push(letter);
+  answer.splice(idx,1);
+  renderTiles();
+}
+
+function clearAnswer(){
+  answer.forEach(l=>{const slot=scrambled.indexOf(null);if(slot>=0)scrambled[slot]=l;else scrambled.push(l);});
+  answer=[];renderTiles();
+}
+
+function autoCheck(){
+  const word=wordList[wordIdx-1].word;
+  const ans=answer.join('');
+  if(ans===word){clearInterval(timerID);correctAnswer();}
+}
+
+function checkAnswer(){
+  const word=wordList[wordIdx-1].word;
+  const ans=answer.join('');
+  if(ans===word){clearInterval(timerID);correctAnswer();}
+  else{document.getElementById('message').textContent='Not quite, keep trying!';document.getElementById('message').style.color='#e74c3c';}
+}
+
+function correctAnswer(){
+  const pts=Math.max(10,timeLeft*4)+(streak*5);
+  score+=pts;streak++;
+  document.getElementById('score').textContent=score;document.getElementById('score-badge').textContent='Score: '+score;
+  document.getElementById('streak').textContent=streak;
+  document.getElementById('message').textContent='Correct! +'+pts;document.getElementById('message').style.color='#2ecc71';
+  document.getElementById('tile-area').querySelectorAll('.tile').forEach(t=>t.classList.add('solved'));
+  gameRunning=false;
+  setTimeout(()=>{gameRunning=true;nextWord();},1200);
+}
+
+function timeExpired(){
+  streak=0;document.getElementById('streak').textContent=0;
+  document.getElementById('message').textContent='Time up! Word: '+wordList[wordIdx-1].word;
+  document.getElementById('message').style.color='#e74c3c';
+  gameRunning=false;
+  setTimeout(()=>{gameRunning=true;nextWord();},1600);
+}
+
+function skipWord(){clearInterval(timerID);streak=0;document.getElementById('streak').textContent=0;document.getElementById('message').textContent='Skipped: '+wordList[wordIdx-1].word;document.getElementById('message').style.color='#9898b8';gameRunning=false;setTimeout(()=>{gameRunning=true;nextWord();},1000);}
+
+function endGame(){
+  clearInterval(timerID);gameRunning=false;
+  document.getElementById('tile-area').innerHTML='';document.getElementById('answer-area').innerHTML='';
+  document.getElementById('hint-text').textContent='';document.getElementById('category').textContent='';
+  document.getElementById('message').textContent='';
+  const ep=document.getElementById('end-panel');ep.style.display='block';
+  ep.innerHTML='Game Over!<br><span style="color:#6c63ff">Score: '+score+'</span><br><button class="action" style="margin-top:16px" onclick="startGame()">Play Again</button>';
+}
+
+startGame();
+</script>
+</body>
+</html>

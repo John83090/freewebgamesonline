@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reaction Time Tester – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#9898b8;text-decoration:none;font-size:20px}
+.topbar a:hover{color:#6c63ff}
+.topbar h1{font-size:18px;font-weight:600;flex:1}
+.score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:700}
+.game-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:20px}
+#click-zone{width:min(420px,92vw);height:220px;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;user-select:none;transition:background .3s;border:2px solid #2a2a45;gap:10px}
+#click-zone.waiting{background:#1e1e30}
+#click-zone.ready{background:#27ae60}
+#click-zone.too-early{background:#c0392b}
+#click-zone.done{background:#1e1e30}
+#zone-text{font-size:28px;font-weight:800;text-align:center}
+#zone-sub{font-size:15px;color:#9898b8;text-align:center}
+.trials-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.trial-dot{width:44px;height:44px;border-radius:50%;border:2px solid #2a2a45;background:#1e1e30;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#9898b8;flex-direction:column;line-height:1.2}
+.trial-dot.done{border-color:#6c63ff;color:#e8e8f0}
+.trial-dot.active{border-color:#f1c40f;color:#f1c40f}
+.stats{background:#1e1e30;border:1px solid #2a2a45;border-radius:12px;padding:16px 24px;width:min(420px,92vw);display:none}
+.stats h3{font-size:16px;font-weight:700;margin-bottom:12px;color:#6c63ff}
+.stat-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #2a2a45;font-size:14px}
+.stat-row:last-child{border-bottom:none}
+.stat-val{font-weight:700;color:#e8e8f0}
+.rank-box{background:#6c63ff;border-radius:10px;padding:10px 20px;text-align:center;font-weight:800;font-size:18px}
+.history-section{width:min(420px,92vw)}
+.history-section h3{font-size:14px;color:#9898b8;margin-bottom:8px}
+.history-list{display:flex;gap:8px;flex-wrap:wrap}
+.history-pill{background:#1e1e30;border:1px solid #2a2a45;border-radius:20px;padding:4px 12px;font-size:13px;color:#9898b8}
+.history-pill.best{border-color:#6c63ff;color:#6c63ff}
+button.ctrl{background:#6c63ff;border:none;color:#fff;padding:10px 28px;border-radius:8px;font-size:15px;cursor:pointer;font-weight:700}
+button.ctrl:hover{background:#574fd6}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>⚡ Reaction Time Tester</h1>
+  <span class="score-badge" id="score-badge">Best: --</span>
+</div>
+<div class="game-area">
+  <div id="click-zone" class="waiting" onclick="handleClick()">
+    <div id="zone-text">Click to Start</div>
+    <div id="zone-sub">Test your reaction speed</div>
+  </div>
+  <div class="trials-row" id="trials-row"></div>
+  <div class="stats" id="stats-box">
+    <h3>Results</h3>
+    <div class="stat-row"><span>Average</span><span class="stat-val" id="avg-val">--</span></div>
+    <div class="stat-row"><span>Best</span><span class="stat-val" id="best-val">--</span></div>
+    <div class="stat-row"><span>Worst</span><span class="stat-val" id="worst-val">--</span></div>
+    <div class="rank-box" id="rank-box">--</div>
+    <br>
+    <button class="ctrl" onclick="resetGame()">Play Again</button>
+  </div>
+  <div class="history-section" id="history-section">
+    <h3>Recent attempts (best highlighted)</h3>
+    <div class="history-list" id="history-list"></div>
+  </div>
+</div>
+<script>
+const TRIALS=5;
+let state='idle',trialIdx=0,results=[],timer=null,startTime=0,waitTime=0;
+let history=[],highScore=null;
+try{history=JSON.parse(localStorage.getItem('reaction_history'))||[];}catch(e){}
+try{highScore=parseInt(localStorage.getItem('reaction_best'))||null;}catch(e){}
+if(highScore)document.getElementById('score-badge').textContent='Best: '+highScore+'ms';
+
+function renderTrials(){
+  const row=document.getElementById('trials-row');
+  row.innerHTML='';
+  for(let i=0;i<TRIALS;i++){
+    const d=document.createElement('div');
+    d.className='trial-dot'+(i<results.length?' done':i===trialIdx?' active':'');
+    if(i<results.length){d.textContent=results[i]+'ms';}
+    else{d.textContent=(i+1);}
+    row.appendChild(d);
+  }
+}
+function renderHistory(){
+  const list=document.getElementById('history-list');
+  list.innerHTML='';
+  const show=history.slice(-10);
+  const minVal=Math.min(...show);
+  show.forEach(v=>{
+    const p=document.createElement('div');
+    p.className='history-pill'+(v===minVal?' best':'');
+    p.textContent=v+'ms';
+    list.appendChild(p);
+  });
+  document.getElementById('history-section').style.display=show.length?'block':'none';
+}
+function getRank(avg){
+  if(avg<150)return'⚡ Superhuman';
+  if(avg<250)return'Excellent';
+  if(avg<350)return'Good';
+  if(avg<500)return'Average';
+  return'Slow';
+}
+function resetGame(){
+  clearTimeout(timer);
+  state='idle';trialIdx=0;results=[];
+  const z=document.getElementById('click-zone');
+  z.className='waiting';
+  document.getElementById('zone-text').textContent='Click to Start';
+  document.getElementById('zone-sub').textContent='Test your reaction speed';
+  document.getElementById('stats-box').style.display='none';
+  renderTrials();
+}
+function startTrial(){
+  const z=document.getElementById('click-zone');
+  z.className='waiting';
+  document.getElementById('zone-text').textContent='Wait...';
+  document.getElementById('zone-sub').textContent='Click when it turns green!';
+  state='waiting';
+  waitTime=1000+Math.random()*4000;
+  timer=setTimeout(()=>{
+    if(state!=='waiting')return;
+    state='ready';
+    z.className='ready';
+    document.getElementById('zone-text').textContent='CLICK NOW!';
+    document.getElementById('zone-sub').textContent='';
+    startTime=performance.now();
+  },waitTime);
+}
+function handleClick(){
+  if(state==='idle'){
+    trialIdx=0;results=[];
+    renderTrials();
+    startTrial();
+  } else if(state==='waiting'){
+    clearTimeout(timer);
+    state='too-early';
+    const z=document.getElementById('click-zone');
+    z.className='too-early';
+    document.getElementById('zone-text').textContent='Too Early!';
+    document.getElementById('zone-sub').textContent='Click to try again';
+    state='fail-wait';
+  } else if(state==='fail-wait'){
+    startTrial();
+  } else if(state==='ready'){
+    const rt=Math.round(performance.now()-startTime);
+    results.push(rt);
+    history.push(rt);
+    if(history.length>100)history=history.slice(-100);
+    try{localStorage.setItem('reaction_history',JSON.stringify(history));}catch(e){}
+    if(highScore===null||rt<highScore){
+      highScore=rt;
+      try{localStorage.setItem('reaction_best',rt);}catch(e){}
+      document.getElementById('score-badge').textContent='Best: '+rt+'ms';
+    }
+    trialIdx=results.length;
+    renderTrials();
+    renderHistory();
+    const z=document.getElementById('click-zone');
+    z.className='done';
+    document.getElementById('zone-text').textContent=rt+' ms';
+    document.getElementById('zone-sub').textContent='Trial '+results.length+' of '+TRIALS;
+    state='between';
+    if(results.length>=TRIALS){showResults();}
+    else{setTimeout(()=>{if(state==='between')startTrial();},800);}
+  } else if(state==='between'){
+    startTrial();
+  }
+}
+function showResults(){
+  state='done';
+  const avg=Math.round(results.reduce((a,b)=>a+b,0)/results.length);
+  const best=Math.min(...results);
+  const worst=Math.max(...results);
+  document.getElementById('avg-val').textContent=avg+'ms';
+  document.getElementById('best-val').textContent=best+'ms';
+  document.getElementById('worst-val').textContent=worst+'ms';
+  document.getElementById('rank-box').textContent=getRank(avg);
+  document.getElementById('stats-box').style.display='block';
+  document.getElementById('click-zone').style.display='none';
+}
+renderTrials();
+renderHistory();
+</script>
+</body>
+</html>

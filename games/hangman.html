@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hangman – FreeWebGamesOnline</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
+#topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 18px;display:flex;align-items:center;gap:14px}
+#topbar a{color:#9898b8;text-decoration:none;font-size:20px}
+#topbar a:hover{color:#6c63ff}
+#topbar h1{font-size:18px;flex:1}
+#score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:700}
+#main{display:flex;flex-direction:column;align-items:center;padding:20px;gap:16px}
+canvas{background:#1e1e30;border:1px solid #2a2a45;border-radius:10px}
+#word-display{font-size:32px;letter-spacing:12px;font-family:monospace;color:#e8e8f0;min-height:48px}
+#message{font-size:20px;font-weight:700;min-height:30px;color:#6c63ff}
+#alphabet{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;max-width:480px}
+.letter-btn{background:#1e1e30;border:1px solid #2a2a45;color:#e8e8f0;width:42px;height:42px;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer;transition:.15s}
+.letter-btn:hover:not(:disabled){background:#2a2a45;border-color:#6c63ff}
+.letter-btn:disabled{opacity:.3;cursor:default}
+.letter-btn.correct{background:#1a472a;border-color:#2ecc71;color:#2ecc71}
+.letter-btn.wrong{background:#4a1a1a;border-color:#e74c3c;color:#e74c3c}
+#controls{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+button.action{background:#6c63ff;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;transition:.15s}
+button.action:hover{background:#574fd6}
+#stats{color:#9898b8;font-size:14px}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>&#129354; Hangman</h1>
+  <span id="score-badge">W:0 L:0</span>
+</div>
+<div id="main">
+  <canvas id="canvas" width="260" height="220"></canvas>
+  <div id="word-display"></div>
+  <div id="message"></div>
+  <div id="alphabet"></div>
+  <div id="controls">
+    <button class="action" onclick="newGame()">New Game</button>
+  </div>
+  <div id="stats" id="stats"></div>
+</div>
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){r=Math.min(r,w/2,h/2);this.beginPath();this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.quadraticCurveTo(x+w,y,x+w,y+r);this.lineTo(x+w,y+h-r);this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);this.lineTo(x+r,y+h);this.quadraticCurveTo(x,y+h,x,y+h-r);this.lineTo(x,y+r);this.quadraticCurveTo(x,y,x+r,y);this.closePath();};}
+
+const WORDS=['PYTHON','JAVASCRIPT','CANVAS','BROWSER','KEYBOARD','MONITOR','SPEAKER','NETWORK','DATABASE','SERVER',
+'ELEPHANT','GIRAFFE','DOLPHIN','PENGUIN','KANGAROO','CHEETAH','GORILLA','HEDGEHOG','FLAMINGO','PANTHER',
+'MOUNTAIN','VOLCANO','GLACIER','PLATEAU','CANYON','SAVANNA','TUNDRA','WETLAND','LAGOON','PRAIRIE',
+'GUITAR','TRUMPET','VIOLIN','CLARINET','TROMBONE','SAXOPHONE','KEYBOARD','HARMONICA','BANJO','CELLO',
+'PIZZA','SPAGHETTI','BURRITO','CROISSANT','SUSHI','TACOS','LASAGNA','HUMMUS','FALAFEL','RAMEN',
+'UMBRELLA','BLANKET','LANTERN','COMPASS','BACKPACK','TELESCOPE','CALENDAR','JOURNAL','CUSHION','HELMET'];
+
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+let word='',guessed=[],wrong=0,gameOver=false;
+let wins=0,losses=0;
+try{wins=parseInt(localStorage.getItem('hm_wins')||'0');losses=parseInt(localStorage.getItem('hm_losses')||'0');}catch(e){}
+
+function drawGallows(stage){
+  ctx.clearRect(0,0,260,220);
+  ctx.strokeStyle='#6c63ff';ctx.lineWidth=3;ctx.lineCap='round';
+  // Base
+  ctx.beginPath();ctx.moveTo(30,205);ctx.lineTo(230,205);ctx.stroke();
+  // Pole
+  ctx.beginPath();ctx.moveTo(80,205);ctx.lineTo(80,20);ctx.stroke();
+  // Top
+  ctx.beginPath();ctx.moveTo(80,20);ctx.lineTo(170,20);ctx.stroke();
+  // Rope
+  ctx.beginPath();ctx.moveTo(170,20);ctx.lineTo(170,50);ctx.stroke();
+  ctx.strokeStyle='#e74c3c';ctx.fillStyle='#e74c3c';
+  if(stage>=1){// Head
+    ctx.beginPath();ctx.arc(170,65,15,0,Math.PI*2);ctx.stroke();}
+  if(stage>=2){// Body
+    ctx.beginPath();ctx.moveTo(170,80);ctx.lineTo(170,140);ctx.stroke();}
+  if(stage>=3){// Left arm
+    ctx.beginPath();ctx.moveTo(170,95);ctx.lineTo(140,120);ctx.stroke();}
+  if(stage>=4){// Right arm
+    ctx.beginPath();ctx.moveTo(170,95);ctx.lineTo(200,120);ctx.stroke();}
+  if(stage>=5){// Left leg
+    ctx.beginPath();ctx.moveTo(170,140);ctx.lineTo(145,175);ctx.stroke();}
+  if(stage>=6){// Right leg
+    ctx.beginPath();ctx.moveTo(170,140);ctx.lineTo(195,175);ctx.stroke();}
+}
+
+function renderWord(){
+  document.getElementById('word-display').textContent=word.split('').map(c=>guessed.includes(c)?c:'_').join(' ');
+}
+
+function buildAlphabet(){
+  const el=document.getElementById('alphabet');
+  el.innerHTML='';
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(c=>{
+    const btn=document.createElement('button');
+    btn.className='letter-btn';btn.textContent=c;
+    btn.onclick=()=>guess(c,btn);
+    el.appendChild(btn);
+  });
+}
+
+function guess(c,btn){
+  if(gameOver||guessed.includes(c))return;
+  guessed.push(c);
+  if(word.includes(c)){
+    btn.classList.add('correct');
+    renderWord();
+    if(word.split('').every(l=>guessed.includes(l))){endGame(true);}
+  } else {
+    btn.classList.add('wrong');
+    wrong++;
+    drawGallows(wrong);
+    if(wrong>=6)endGame(false);
+  }
+}
+
+function endGame(won){
+  gameOver=true;
+  document.querySelectorAll('.letter-btn').forEach(b=>b.disabled=true);
+  if(won){
+    wins++;document.getElementById('message').textContent='You got it! 🎉';
+    document.getElementById('message').style.color='#2ecc71';
+    try{localStorage.setItem('hm_wins',wins);}catch(e){}
+  } else {
+    losses++;document.getElementById('message').textContent='Game over! Word: '+word;
+    document.getElementById('message').style.color='#e74c3c';
+    // Reveal word
+    document.getElementById('word-display').textContent=word.split('').join(' ');
+    try{localStorage.setItem('hm_losses',losses);}catch(e){}
+  }
+  document.getElementById('score-badge').textContent='W:'+wins+' L:'+losses;
+}
+
+function newGame(){
+  word=WORDS[Math.floor(Math.random()*WORDS.length)];
+  guessed=[];wrong=0;gameOver=false;
+  drawGallows(0);renderWord();buildAlphabet();
+  document.getElementById('message').textContent='';
+  document.getElementById('message').style.color='#6c63ff';
+  document.getElementById('score-badge').textContent='W:'+wins+' L:'+losses;
+}
+
+newGame();
+</script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nim – FreeWebGamesOnline</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
+#topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 18px;display:flex;align-items:center;gap:14px}
+#topbar a{color:#9898b8;text-decoration:none;font-size:20px}#topbar a:hover{color:#6c63ff}
+#topbar h1{font-size:18px;flex:1}
+#score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:700}
+#main{display:flex;flex-direction:column;align-items:center;padding:20px;gap:18px}
+#board{background:#1e1e30;border:1px solid #2a2a45;border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px;min-width:340px}
+.nim-row{display:flex;align-items:center;gap:10px}
+.row-label{font-size:14px;color:#9898b8;width:40px}
+.sticks{display:flex;gap:6px;flex-wrap:wrap}
+.stick{width:22px;height:60px;background:linear-gradient(180deg,#8b5e3c,#6b4423);border-radius:4px;cursor:pointer;transition:.15s;border:2px solid #a06030}
+.stick:hover{background:linear-gradient(180deg,#e74c3c,#c0392b);border-color:#e74c3c;transform:scaleY(1.1)}
+.stick.selected{background:linear-gradient(180deg,#6c63ff,#574fd6);border-color:#8880ff}
+.stick.removed{opacity:0;pointer-events:none;width:0;padding:0;border:0;margin:0}
+#turn-badge{background:#2a2a45;border-radius:8px;padding:8px 18px;font-size:15px;font-weight:700;text-align:center;color:#e8e8f0}
+#turn-badge.ai{color:#e74c3c}
+#turn-badge.player{color:#2ecc71}
+#message{font-size:20px;font-weight:700;min-height:30px;color:#6c63ff;text-align:center}
+#controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+button.action{background:#6c63ff;color:#fff;border:none;padding:9px 20px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
+button.action:hover{background:#574fd6}
+.diff-btn{background:#1e1e30;border:1px solid #2a2a45;color:#9898b8;padding:7px 16px;border-radius:6px;font-size:13px;cursor:pointer}
+.diff-btn.active{border-color:#6c63ff;color:#6c63ff}
+#take-btn{background:#2ecc71;color:#fff}#take-btn:hover{background:#27ae60}
+#take-btn:disabled{background:#1e1e30;color:#9898b8;border:1px solid #2a2a45;cursor:default}
+#stats{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+#stats span{background:#1e1e30;border:1px solid #2a2a45;padding:6px 14px;border-radius:8px;font-size:13px;color:#9898b8}
+#stats b{color:#e8e8f0}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>&#129522; Nim</h1>
+  <span id="score-badge">Wins: 0 | Losses: 0</span>
+</div>
+<div id="main">
+  <div style="font-size:13px;color:#9898b8;text-align:center">Take turns removing sticks. The player who takes the LAST stick LOSES!</div>
+  <div style="display:flex;gap:8px">
+    <button class="diff-btn active" id="d-easy" onclick="setDiff('easy')">Easy AI</button>
+    <button class="diff-btn" id="d-hard" onclick="setDiff('hard')">Hard AI</button>
+  </div>
+  <div id="stats">
+    <span>Wins: <b id="wins">0</b></span>
+    <span>Losses: <b id="losses">0</b></span>
+  </div>
+  <div id="turn-badge" class="player">Your Turn</div>
+  <div id="board"></div>
+  <div id="message"></div>
+  <div id="controls">
+    <button class="action" id="take-btn" onclick="playerTake()" disabled>Take Selected</button>
+    <button class="action" onclick="newGame()">New Game</button>
+  </div>
+  <div style="font-size:12px;color:#9898b8">Click sticks in ONE row to select, then click Take Selected</div>
+</div>
+<script>
+let rows=[3,5,7],selected={row:-1,sticks:[]},playerTurn=true,gameOver=false,diff='easy';
+let wins=0,losses=0;
+try{wins=parseInt(localStorage.getItem('nim_w')||'0');losses=parseInt(localStorage.getItem('nim_l')||'0');}catch(e){}
+updateScoreBadge();
+
+function setDiff(d){diff=d;document.getElementById('d-easy').classList.toggle('active',d==='easy');document.getElementById('d-hard').classList.toggle('active',d==='hard');newGame();}
+
+function newGame(){rows=[3,5,7];selected={row:-1,sticks:[]};playerTurn=true;gameOver=false;document.getElementById('message').textContent='';document.getElementById('take-btn').disabled=true;setTurnBadge(true);render();}
+
+function render(){
+  const board=document.getElementById('board');board.innerHTML='';
+  rows.forEach((count,ri)=>{
+    const div=document.createElement('div');div.className='nim-row';
+    div.innerHTML=`<span class="row-label">Row ${ri+1}</span><div class="sticks" id="row-${ri}"></div>`;
+    board.appendChild(div);
+    const sc=div.querySelector('.sticks');
+    for(let i=0;i<count;i++){
+      const s=document.createElement('div');
+      s.className='stick'+(selected.row===ri&&selected.sticks.includes(i)?' selected':'');
+      s.onclick=()=>toggleStick(ri,i);
+      sc.appendChild(s);
+    }
+    if(count===0){sc.innerHTML='<span style="color:#2a2a45;font-size:13px">empty</span>';}
+  });
+}
+
+function toggleStick(ri,si){
+  if(!playerTurn||gameOver)return;
+  if(selected.row!==-1&&selected.row!==ri){selected={row:ri,sticks:[si]};}
+  else if(selected.row===ri){
+    const idx=selected.sticks.indexOf(si);
+    // Must select contiguous from the end (any subset of the row is fine in Nim)
+    if(idx>=0)selected.sticks.splice(idx,1);
+    else selected.sticks.push(si);
+    if(!selected.sticks.length)selected.row=-1;
+    else selected.row=ri;
+  } else {selected={row:ri,sticks:[si]};}
+  document.getElementById('take-btn').disabled=selected.sticks.length===0;
+  render();
+}
+
+function playerTake(){
+  if(!playerTurn||gameOver||selected.sticks.length===0)return;
+  const total=rows.reduce((a,b)=>a+b,0);
+  if(total===1&&selected.sticks.length===1){// Last stick — player loses
+    rows[selected.row]-=selected.sticks.length;render();endGame(false);return;
+  }
+  rows[selected.row]-=selected.sticks.length;selected={row:-1,sticks:[]};
+  document.getElementById('take-btn').disabled=true;
+  render();
+  if(rows.every(r=>r===0)){endGame(false);return;}
+  playerTurn=false;setTurnBadge(false);
+  setTimeout(aiTurn,800);
+}
+
+function aiTurn(){
+  if(gameOver)return;
+  let ri,count;
+  if(diff==='hard'){
+    // Nim strategy: XOR
+    const xor=rows.reduce((a,b)=>a^b,0);
+    if(xor!==0){
+      for(let r=0;r<rows.length;r++){const target=rows[r]^xor;if(target<rows[r]){ri=r;count=rows[r]-target;break;}}
+    }
+    // If xor=0 (losing position for us as AI), just take 1 from biggest row
+    if(ri===undefined){const maxR=rows.indexOf(Math.max(...rows));ri=maxR;count=1;}
+  } else {
+    // Easy: random
+    const nonEmpty=rows.map((v,i)=>({v,i})).filter(x=>x.v>0);
+    const pick=nonEmpty[Math.floor(Math.random()*nonEmpty.length)];
+    ri=pick.i;count=Math.floor(Math.random()*pick.v)+1;
+  }
+  const total=rows.reduce((a,b)=>a+b,0);
+  // Don't take last stick (AI tries not to lose in hard; in easy it might)
+  if(diff==='hard'&&total-count===0)count=Math.max(1,count-1);
+  rows[ri]=Math.max(0,rows[ri]-count);render();
+  document.getElementById('message').textContent=`AI took ${count} from Row ${ri+1}`;
+  if(rows.every(r=>r===0)){endGame(true);return;}// AI took last = player wins
+  playerTurn=true;setTurnBadge(true);
+  setTimeout(()=>document.getElementById('message').textContent='',1200);
+}
+
+function setTurnBadge(isPlayer){
+  const b=document.getElementById('turn-badge');
+  b.textContent=isPlayer?'Your Turn':'AI is thinking...';
+  b.className='turn-badge '+(isPlayer?'player':'ai');
+}
+
+function endGame(playerWins){
+  gameOver=true;
+  if(playerWins){wins++;document.getElementById('message').textContent='You win! AI took the last stick.';document.getElementById('message').style.color='#2ecc71';try{localStorage.setItem('nim_w',wins);}catch(e){}}
+  else{losses++;document.getElementById('message').textContent='You lose! You took the last stick.';document.getElementById('message').style.color='#e74c3c';try{localStorage.setItem('nim_l',losses);}catch(e){}}
+  document.getElementById('wins').textContent=wins;document.getElementById('losses').textContent=losses;
+  updateScoreBadge();
+}
+
+function updateScoreBadge(){document.getElementById('score-badge').textContent='Wins: '+wins+' | Losses: '+losses;}
+newGame();
+</script>
+</body>
+</html>

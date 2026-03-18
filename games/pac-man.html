@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pac-Man – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+#topbar{width:100%;background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 16px;display:flex;align-items:center;gap:12px}
+#topbar a{color:#9898b8;text-decoration:none;font-size:20px}
+#topbar a:hover{color:#6c63ff}
+#topbar .title{font-size:18px;font-weight:700;flex:1}
+#badge{background:#2a2a45;border-radius:8px;padding:4px 12px;font-size:13px;color:#9898b8}
+#badge span{color:#e8e8f0;font-weight:700}
+canvas{border:2px solid #2a2a45;border-radius:4px;margin-top:10px;display:block}
+#msg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(13,13,20,.92);border:2px solid #6c63ff;border-radius:12px;padding:24px 36px;text-align:center;display:none;z-index:10}
+#msg h2{font-size:28px;color:#6c63ff;margin-bottom:8px}
+#msg p{color:#9898b8;margin-bottom:16px}
+#msg button{background:#6c63ff;border:none;color:#fff;padding:10px 28px;border-radius:8px;font-size:16px;cursor:pointer}
+#controls{display:flex;flex-direction:column;align-items:center;gap:6px;margin:10px 0 6px}
+.ctrl-row{display:flex;gap:6px}
+.cbtn{width:48px;height:48px;background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;color:#e8e8f0;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none}
+.cbtn:active{background:#6c63ff}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <span class="title">🟡 Pac-Man</span>
+  <div id="badge">Score: <span id="scoreDisp">0</span> &nbsp; Lives: <span id="livesDisp">3</span> &nbsp; Level: <span id="levelDisp">1</span></div>
+</div>
+<div style="position:relative">
+  <canvas id="c"></canvas>
+  <div id="msg">
+    <h2 id="msgTitle">Pac-Man</h2>
+    <p id="msgText">Use arrow keys or WASD to move</p>
+    <button id="msgBtn" onclick="startGame()">Start Game</button>
+  </div>
+</div>
+<div id="controls">
+  <div class="ctrl-row"><button class="cbtn" id="btnU">▲</button></div>
+  <div class="ctrl-row"><button class="cbtn" id="btnL">◀</button><button class="cbtn" id="btnD">▼</button><button class="cbtn" id="btnR">▶</button></div>
+</div>
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.beginPath();this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.quadraticCurveTo(x+w,y,x+w,y+r);this.lineTo(x+w,y+h-r);this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);this.lineTo(x+r,y+h);this.quadraticCurveTo(x,y+h,x,y+h-r);this.lineTo(x,y+r);this.quadraticCurveTo(x,y,x+r,y);this.closePath();return this}}
+
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const CELL=20,COLS=21,ROWS=21;
+canvas.width=COLS*CELL; canvas.height=ROWS*CELL;
+
+const BASE_MAP=[
+"#####################",
+"#.........#.........#",
+"#.##.####.#.####.##.#",
+"#O##.####.#.####.##O#",
+"#.##.####.#.####.##.#",
+"#...................#",
+"#.##.#.#####.#.##.#",
+"#.##.#.#####.#.##.#",
+"#....#...#...#....#",
+"####.###.#.###.####",
+"   #.#       #.#   ",
+"####.# ##-## #.####",
+"     .  #G#  .     ",
+"####.# ##### #.####",
+"   #.#       #.#   ",
+"####.# ##### #.####",
+"#........#........#",
+"#.##.####.#.####.##.",
+"#O.#......P......#O.",
+"##.#.#.#####.#.#.##.",
+"#####################"
+];
+
+let map,dots,pellets,score,lives,level,gameState,pacX,pacY,pacDir,pacNextDir,pacMouth,ghostScareTimer,ghosts,animId,ghostEatScore;
+
+const DIRS={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
+const GHOST_COLORS=['#FF0000','#FFB8FF','#00FFFF','#FFB852'];
+const GHOST_NAMES=['blinky','pinky','inky','clyde'];
+
+function initMap(){
+  map=[];dots=0;pellets=[];
+  for(let r=0;r<ROWS;r++){
+    map[r]=[];
+    for(let c=0;c<COLS;c++){
+      const ch=BASE_MAP[r]?BASE_MAP[r][c]:' ';
+      map[r][c]=ch;
+      if(ch==='.') dots++;
+    }
+  }
+}
+
+function findChar(ch){
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) if(map[r][c]===ch) return{r,c};
+  return null;
+}
+
+function startGame(){
+  document.getElementById('msg').style.display='none';
+  score=0;lives=3;level=1;ghostScareTimer=0;ghostEatScore=200;
+  initLevel();
+  gameState='playing';
+  if(animId) cancelAnimationFrame(animId);
+  loop();
+}
+
+function initLevel(){
+  initMap();
+  const ps=findChar('P')||{r:18,c:10};
+  pacX=ps.c*CELL+CELL/2; pacY=ps.r*CELL+CELL/2;
+  map[ps.r][ps.c]='.'; dots++;
+  pacDir=null; pacNextDir=null; pacMouth=0;
+  ghosts=[
+    {x:10*CELL+CELL/2,y:13*CELL+CELL/2,dir:'left',mode:'scatter',color:GHOST_COLORS[0],scatterTarget:{r:0,c:COLS-1}},
+    {x:9*CELL+CELL/2,y:13*CELL+CELL/2,dir:'right',mode:'scatter',color:GHOST_COLORS[1],scatterTarget:{r:0,c:0}},
+    {x:10*CELL+CELL/2,y:14*CELL+CELL/2,dir:'up',mode:'scatter',color:GHOST_COLORS[2],scatterTarget:{r:ROWS-1,c:COLS-1}},
+    {x:11*CELL+CELL/2,y:13*CELL+CELL/2,dir:'left',mode:'scatter',color:GHOST_COLORS[3],scatterTarget:{r:ROWS-1,c:0}},
+  ];
+  updateHUD();
+}
+
+function updateHUD(){
+  document.getElementById('scoreDisp').textContent=score;
+  document.getElementById('livesDisp').textContent=lives;
+  document.getElementById('levelDisp').textContent=level;
+}
+
+function isWall(c,r){
+  if(r<0||r>=ROWS||c<0||c>=COLS) return true;
+  return map[r][c]==='#';
+}
+
+function isGhostWall(c,r){
+  if(r<0||r>=ROWS||c<0||c>=COLS) return true;
+  const ch=map[r][c];
+  return ch==='#'||ch==='-';
+}
+
+let lastTime=0;
+function loop(ts=0){
+  const dt=Math.min(ts-lastTime,50)/1000;
+  lastTime=ts;
+  if(gameState==='playing'){update(dt);draw();}
+  animId=requestAnimationFrame(loop);
+}
+
+function update(dt){
+  if(ghostScareTimer>0) ghostScareTimer-=dt;
+  const speed=(2+level*0.3)*CELL*dt;
+  movePac(speed);
+  moveGhosts(speed*0.8);
+  checkCollisions();
+  if(dots<=0) levelUp();
+}
+
+function movePac(speed){
+  pacMouth+=dt*5; // unused dt here but ok
+  if(pacNextDir){
+    const [dc,dr]=DIRS[pacNextDir];
+    const nc=Math.round((pacX-CELL/2)/CELL)+dc;
+    const nr=Math.round((pacY-CELL/2)/CELL)+dr;
+    if(!isWall(nc,nr)) pacDir=pacNextDir;
+  }
+  if(pacDir){
+    const [dc,dr]=DIRS[pacDir];
+    const nx=pacX+dc*speed,ny=pacY+dr*speed;
+    const gc=Math.floor(nx/CELL),gr=Math.floor(ny/CELL);
+    if(!isWall(gc,gr)){
+      pacX=nx; pacY=ny;
+      // wrap
+      if(pacX<0) pacX=COLS*CELL;
+      if(pacX>COLS*CELL) pacX=0;
+    }
+  }
+  eatDot();
+}
+
+function eatDot(){
+  const c=Math.round((pacX-CELL/2)/CELL),r=Math.round((pacY-CELL/2)/CELL);
+  if(r<0||r>=ROWS||c<0||c>=COLS) return;
+  if(map[r][c]==='.'){map[r][c]=' ';score+=10;dots--;updateHUD();}
+  else if(map[r][c]==='O'){map[r][c]=' ';score+=50;dots--;ghostScareTimer=8;ghostEatScore=200;updateHUD();ghosts.forEach(g=>g.mode='scared');}
+}
+
+function moveGhosts(speed){
+  ghosts.forEach(g=>{
+    if(g.mode==='eaten') speed*=2;
+    const [dc,dr]=DIRS[g.dir]||[0,-1];
+    const nx=g.x+dc*speed,ny=g.y+dr*speed;
+    const gc=Math.floor(nx/CELL),gr=Math.floor(ny/CELL);
+    if(!isGhostWall(gc,gr)){g.x=nx;g.y=ny;}
+    else{chooseGhostDir(g);}
+    // periodically re-decide
+    if(Math.random()<0.02) chooseGhostDir(g);
+    if(ghostScareTimer<=0&&g.mode==='scared') g.mode='chase';
+    if(g.mode==='eaten'&&Math.abs(g.x-10*CELL-CELL/2)<CELL&&Math.abs(g.y-13*CELL-CELL/2)<CELL) g.mode='chase';
+  });
+}
+
+function chooseGhostDir(g){
+  const cr=Math.round((g.y-CELL/2)/CELL),cc=Math.round((g.x-CELL/2)/CELL);
+  let target;
+  if(g.mode==='scared'){target={r:Math.floor(Math.random()*ROWS),c:Math.floor(Math.random()*COLS)};}
+  else if(g.mode==='eaten'){target={r:13,c:10};}
+  else{target={r:Math.round((pacY-CELL/2)/CELL),c:Math.round((pacX-CELL/2)/CELL)};}
+  const dirs=['up','down','left','right'];
+  const opp={up:'down',down:'up',left:'right',right:'left'};
+  let best=null,bestD=Infinity;
+  dirs.forEach(d=>{
+    if(d===opp[g.dir]) return;
+    const [dc,dr]=DIRS[d];
+    const nc=cc+dc,nr=cr+dr;
+    if(isGhostWall(nc,nr)) return;
+    const dist=(nr-target.r)**2+(nc-target.c)**2;
+    if(dist<bestD){bestD=dist;best=d;}
+  });
+  if(best) g.dir=best;
+}
+
+function checkCollisions(){
+  ghosts.forEach(g=>{
+    const dx=g.x-pacX,dy=g.y-pacY;
+    if(Math.sqrt(dx*dx+dy*dy)<CELL*0.8){
+      if(g.mode==='scared'){
+        g.mode='eaten';score+=ghostEatScore;ghostEatScore=Math.min(ghostEatScore*2,1600);updateHUD();
+      } else if(g.mode!=='eaten'){
+        loseLife();
+      }
+    }
+  });
+}
+
+function loseLife(){
+  lives--;updateHUD();
+  if(lives<=0){endGame(false);}
+  else{
+    const ps={r:18,c:10};
+    pacX=ps.c*CELL+CELL/2;pacY=ps.r*CELL+CELL/2;
+    pacDir=null;pacNextDir=null;
+    ghosts.forEach((g,i)=>{g.x=10*CELL+CELL/2;g.y=(13+i)*CELL+CELL/2;g.mode='scatter';});
+  }
+}
+
+function levelUp(){level++;initLevel();updateHUD();}
+
+function endGame(win){
+  gameState='over';
+  const msg=document.getElementById('msg');
+  document.getElementById('msgTitle').textContent=win?'Level Complete!':'Game Over';
+  document.getElementById('msgText').textContent='Score: '+score;
+  document.getElementById('msgBtn').textContent='Play Again';
+  msg.style.display='block';
+  try{const hs=parseInt(localStorage.getItem('pm_hs')||0);if(score>hs)localStorage.setItem('pm_hs',score);}catch(e){}
+}
+
+function draw(){
+  ctx.fillStyle='#0d0d14';ctx.fillRect(0,0,canvas.width,canvas.height);
+  // Map
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const x=c*CELL,y=r*CELL,ch=map[r][c];
+    if(ch==='#'){ctx.fillStyle='#1a1a6e';ctx.fillRect(x,y,CELL,CELL);ctx.strokeStyle='#2a2aaa';ctx.strokeRect(x+1,y+1,CELL-2,CELL-2);}
+    else if(ch==='.'){ctx.fillStyle='#e8e8f0';ctx.beginPath();ctx.arc(x+CELL/2,y+CELL/2,2,0,Math.PI*2);ctx.fill();}
+    else if(ch==='O'){ctx.fillStyle='#6c63ff';ctx.beginPath();ctx.arc(x+CELL/2,y+CELL/2,5,0,Math.PI*2);ctx.fill();}
+    else if(ch==='-'){ctx.fillStyle='#6c63ff';ctx.fillRect(x,y+CELL/2-1,CELL,2);}
+  }
+  // Pac
+  const mouth=Math.abs(Math.sin(Date.now()/100))*0.6+0.05;
+  const angle={right:0,left:Math.PI,up:-Math.PI/2,down:Math.PI/2}[pacDir]||0;
+  ctx.fillStyle='#FFE000';ctx.beginPath();
+  ctx.moveTo(pacX,pacY);
+  ctx.arc(pacX,pacY,CELL/2-1,angle+mouth,angle+Math.PI*2-mouth);
+  ctx.closePath();ctx.fill();
+  // Ghosts
+  ghosts.forEach(g=>{
+    const gx=g.x-CELL/2+1,gy=g.y-CELL/2+1,gw=CELL-2,gh=CELL-2;
+    if(g.mode==='scared'&&ghostScareTimer>0){
+      ctx.fillStyle=ghostScareTimer<2&&Math.floor(Date.now()/200)%2?'#fff':'#2222ff';
+    } else if(g.mode==='eaten'){ctx.fillStyle='rgba(100,100,200,0.5)';}
+    else{ctx.fillStyle=g.color;}
+    ctx.beginPath();ctx.arc(g.x,g.y-CELL/4,gw/2,Math.PI,0);ctx.lineTo(gx+gw,gy+gh);
+    const waves=3;for(let i=0;i<waves;i++){const wx=gx+gw*(1-i/waves);const wy=gy+gh-((i%2)*gw/waves/2);ctx.lineTo(wx-gw/(waves*2),wy);}
+    ctx.closePath();ctx.fill();
+    if(g.mode!=='eaten'){
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(g.x-3,g.y-CELL/3,3,0,Math.PI*2);ctx.arc(g.x+3,g.y-CELL/3,3,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#00f';ctx.beginPath();ctx.arc(g.x-3,g.y-CELL/3,1.5,0,Math.PI*2);ctx.arc(g.x+3,g.y-CELL/3,1.5,0,Math.PI*2);ctx.fill();
+    }
+  });
+}
+
+document.addEventListener('keydown',e=>{
+  const k=e.key;
+  if(k==='ArrowUp'||k==='w'||k==='W') pacNextDir='up';
+  else if(k==='ArrowDown'||k==='s'||k==='S') pacNextDir='down';
+  else if(k==='ArrowLeft'||k==='a'||k==='A') pacNextDir='left';
+  else if(k==='ArrowRight'||k==='d'||k==='D') pacNextDir='right';
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(k)) e.preventDefault();
+});
+document.getElementById('btnU').addEventListener('click',()=>pacNextDir='up');
+document.getElementById('btnD').addEventListener('click',()=>pacNextDir='down');
+document.getElementById('btnL').addEventListener('click',()=>pacNextDir='left');
+document.getElementById('btnR').addEventListener('click',()=>pacNextDir='right');
+
+document.getElementById('msg').style.display='block';
+gameState='idle';
+requestAnimationFrame(ts=>{lastTime=ts;});
+</script>
+</body>
+</html>

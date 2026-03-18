@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yahtzee – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:Arial,sans-serif;min-height:100vh}
+#topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 16px;display:flex;align-items:center;gap:12px}
+#topbar a{color:#9898b8;text-decoration:none;font-size:20px}
+#topbar a:hover{color:#6c63ff}
+#topbar .title{flex:1;font-size:18px;font-weight:bold}
+.badge{background:#6c63ff;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:bold}
+#layout{display:flex;flex-wrap:wrap;gap:12px;padding:12px;justify-content:center}
+#dice-area{display:flex;flex-direction:column;align-items:center;gap:10px;flex:1;min-width:280px}
+#dice-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.die{width:64px;height:64px;background:#e8e8f0;border-radius:10px;cursor:pointer;position:relative;border:3px solid transparent;transition:border-color 0.15s,transform 0.15s}
+.die.held{border-color:#6c63ff;transform:translateY(-6px)}
+.die canvas{width:64px;height:64px}
+#rolls-left{font-size:14px;color:#9898b8}
+#roll-btn{background:#6c63ff;border:none;color:#fff;padding:12px 36px;border-radius:10px;cursor:pointer;font-size:16px;font-weight:bold}
+#roll-btn:disabled{background:#2a2a45;color:#9898b8;cursor:not-allowed}
+#turn-info{font-size:14px;color:#9898b8;text-align:center}
+#scorecard{flex:1;min-width:260px;max-width:380px}
+#scorecard table{width:100%;border-collapse:collapse;font-size:13px}
+#scorecard th{background:#1e1e30;padding:8px;text-align:left;color:#9898b8;font-size:12px}
+#scorecard td{padding:7px 8px;border-bottom:1px solid #1e1e30;vertical-align:middle}
+#scorecard tr:hover td{background:#1e1e30}
+.cat-name{color:#9898b8}
+.cat-score{font-weight:bold;color:#6c63ff;min-width:40px;text-align:right}
+.cat-row.available td{background:#0d1a2a;cursor:pointer}
+.cat-row.available td:hover{background:#1a2a4a}
+.cat-row.available .cat-score{color:#2ecc71}
+.cat-row.scored .cat-name{color:#e8e8f0}
+.cat-row.scored .cat-score{color:#f1c40f}
+.section-header td{background:#1a1a2a;font-size:11px;color:#6c63ff;font-weight:bold;padding:4px 8px}
+#total-row td{background:#1e1e30;font-weight:bold;color:#f1c40f}
+#overlay{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1e1e30;border:2px solid #6c63ff;padding:30px 50px;border-radius:16px;text-align:center;display:none;z-index:100;font-size:20px}
+#overlay button{margin-top:14px;background:#6c63ff;border:none;color:#fff;padding:10px 28px;border-radius:8px;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <span class="title">&#127922; Yahtzee</span>
+  <span class="badge" id="badge">Turn 1/13</span>
+</div>
+<div id="layout">
+  <div id="dice-area">
+    <div id="turn-info">Roll the dice to start!</div>
+    <div id="dice-row"></div>
+    <div id="rolls-left">Rolls left: 3</div>
+    <button id="roll-btn" onclick="rollDice()">Roll Dice</button>
+    <div style="font-size:12px;color:#9898b8;text-align:center">Click dice to hold them between rolls</div>
+  </div>
+  <div id="scorecard">
+    <table>
+      <thead><tr><th>Category</th><th>Score</th></tr></thead>
+      <tbody id="score-body"></tbody>
+    </table>
+  </div>
+</div>
+<div id="overlay"><div id="ovtext"></div><div id="ovfinal" style="font-size:14px;color:#9898b8;margin-top:8px"></div><button onclick="newGame();document.getElementById('overlay').style.display='none'">Play Again</button></div>
+<script>
+const CATS=[
+  {id:'ones',name:'Ones',section:'upper',desc:'Sum of all 1s'},
+  {id:'twos',name:'Twos',section:'upper',desc:'Sum of all 2s'},
+  {id:'threes',name:'Threes',section:'upper',desc:'Sum of all 3s'},
+  {id:'fours',name:'Fours',section:'upper',desc:'Sum of all 4s'},
+  {id:'fives',name:'Fives',section:'upper',desc:'Sum of all 5s'},
+  {id:'sixes',name:'Sixes',section:'upper',desc:'Sum of all 6s'},
+  {id:'threekind',name:'Three of a Kind',section:'lower',desc:'Sum of all dice'},
+  {id:'fourkind',name:'Four of a Kind',section:'lower',desc:'Sum of all dice'},
+  {id:'fullhouse',name:'Full House',section:'lower',desc:'25 pts'},
+  {id:'smstraight',name:'Small Straight',section:'lower',desc:'30 pts'},
+  {id:'lgstraight',name:'Large Straight',section:'lower',desc:'40 pts'},
+  {id:'yahtzee',name:'Yahtzee',section:'lower',desc:'50 pts'},
+  {id:'chance',name:'Chance',section:'lower',desc:'Sum of all dice'},
+];
+
+let dice,held,rollsLeft,scores,turnNum,gameOver,yahtzeeBonuses;
+
+function newGame(){
+  dice=[1,1,1,1,1];held=[false,false,false,false,false];
+  rollsLeft=3;scores={};turnNum=1;gameOver=false;yahtzeeBonuses=0;
+  document.getElementById('overlay').style.display='none';
+  document.getElementById('roll-btn').disabled=false;
+  document.getElementById('badge').textContent='Turn 1/13';
+  document.getElementById('turn-info').textContent='Roll the dice to start!';
+  renderDice();renderScorecard();
+}
+
+function rollDice(){
+  if(rollsLeft<=0)return;
+  dice=dice.map((d,i)=>held[i]?d:Math.floor(Math.random()*6)+1);
+  rollsLeft--;
+  document.getElementById('rolls-left').textContent=`Rolls left: ${rollsLeft}`;
+  document.getElementById('roll-btn').disabled=rollsLeft<=0;
+  document.getElementById('turn-info').textContent=rollsLeft>0?'Click dice to hold, then roll again':'Select a category to score';
+  renderDice();renderScorecard();
+}
+
+function renderDice(){
+  const row=document.getElementById('dice-row');
+  row.innerHTML='';
+  const DS=64;
+  dice.forEach((val,i)=>{
+    const wrap=document.createElement('div');
+    wrap.className='die'+(held[i]?' held':'');
+    const cnv=document.createElement('canvas');
+    cnv.width=cnv.height=DS;
+    drawDie(cnv.getContext('2d'),val,DS);
+    wrap.appendChild(cnv);
+    wrap.onclick=()=>{if(rollsLeft<3&&rollsLeft>=0){held[i]=!held[i];renderDice();}};
+    row.appendChild(wrap);
+  });
+}
+
+const PIPS={
+  1:[[.5,.5]],
+  2:[[.25,.25],[.75,.75]],
+  3:[[.25,.25],[.5,.5],[.75,.75]],
+  4:[[.25,.25],[.75,.25],[.25,.75],[.75,.75]],
+  5:[[.25,.25],[.75,.25],[.5,.5],[.25,.75],[.75,.75]],
+  6:[[.25,.2],[.75,.2],[.25,.5],[.75,.5],[.25,.8],[.75,.8]]
+};
+
+function drawDie(ctx,val,sz){
+  ctx.fillStyle='#e8e8f0';
+  ctx.beginPath();ctx.roundRect(2,2,sz-4,sz-4,8);ctx.fill();
+  ctx.fillStyle='#1a1a1a';
+  PIPS[val].forEach(([px,py])=>{
+    ctx.beginPath();ctx.arc(px*sz,py*sz,sz*0.1,0,Math.PI*2);ctx.fill();
+  });
+}
+
+function calcScore(catId,ds){
+  const counts={};ds.forEach(d=>counts[d]=(counts[d]||0)+1);
+  const vals=Object.values(counts).sort((a,b)=>b-a);
+  const sum=ds.reduce((a,b)=>a+b,0);
+  const sorted=[...new Set(ds)].sort((a,b)=>a-b);
+  function hasRun(n){for(let i=0;i<=sorted.length-n;i++){let run=true;for(let j=1;j<n;j++)if(sorted[i+j]-sorted[i+j-1]!==1){run=false;break;}if(run)return true;}return false;}
+  switch(catId){
+    case'ones':return ds.filter(d=>d===1).reduce((a,b)=>a+b,0);
+    case'twos':return ds.filter(d=>d===2).reduce((a,b)=>a+b,0);
+    case'threes':return ds.filter(d=>d===3).reduce((a,b)=>a+b,0);
+    case'fours':return ds.filter(d=>d===4).reduce((a,b)=>a+b,0);
+    case'fives':return ds.filter(d=>d===5).reduce((a,b)=>a+b,0);
+    case'sixes':return ds.filter(d=>d===6).reduce((a,b)=>a+b,0);
+    case'threekind':return vals[0]>=3?sum:0;
+    case'fourkind':return vals[0]>=4?sum:0;
+    case'fullhouse':return(vals[0]===3&&vals[1]===2)||vals[0]===5?25:0;
+    case'smstraight':return hasRun(4)?30:0;
+    case'lgstraight':return hasRun(5)?40:0;
+    case'yahtzee':return vals[0]===5?50:0;
+    case'chance':return sum;
+    default:return 0;
+  }
+}
+
+function renderScorecard(){
+  const tbody=document.getElementById('score-body');
+  tbody.innerHTML='';
+  let lastSection='';
+  let upperTotal=0,upperScored=0;
+  CATS.forEach(cat=>{
+    if(cat.section!==lastSection){
+      const hdr=document.createElement('tr');
+      hdr.innerHTML=`<td colspan="2" class="section-header">${cat.section==='upper'?'Upper Section':'Lower Section'}</td>`;
+      tbody.appendChild(hdr);
+      lastSection=cat.section;
+    }
+    const tr=document.createElement('tr');
+    const isScored=scores[cat.id]!==undefined;
+    const canScore=!isScored&&rollsLeft<3;
+    const preview=canScore?calcScore(cat.id,dice):null;
+    tr.className='cat-row '+(isScored?'scored':canScore?'available':'');
+    tr.innerHTML=`<td class="cat-name" title="${cat.desc}">${cat.name}</td><td class="cat-score">${isScored?scores[cat.id]:canScore?preview:'-'}</td>`;
+    if(canScore){tr.onclick=()=>scoreCategory(cat.id,preview);}
+    tbody.appendChild(tr);
+    if(cat.section==='upper'&&isScored){upperTotal+=scores[cat.id];upperScored++;}
+  });
+  // upper bonus
+  const bonusEarned=upperTotal>=63;
+  const bonusTr=document.createElement('tr');
+  bonusTr.className='cat-row';
+  bonusTr.innerHTML=`<td class="cat-name">Upper Bonus (≥63)</td><td class="cat-score">${upperTotal>=63?'+35':`${upperTotal}/63`}</td>`;
+  tbody.appendChild(bonusTr);
+  // yahtzee bonuses
+  if(yahtzeeBonuses>0){
+    const ytr=document.createElement('tr');
+    ytr.innerHTML=`<td class="cat-name">Yahtzee Bonus</td><td class="cat-score">+${yahtzeeBonuses*100}</td>`;
+    tbody.appendChild(ytr);
+  }
+  // total
+  const total=Object.values(scores).reduce((a,b)=>a+b,0)+(upperTotal>=63?35:0)+yahtzeeBonuses*100;
+  const totalTr=document.createElement('tr');
+  totalTr.id='total-row';totalTr.innerHTML=`<td>Total Score</td><td class="cat-score">${total}</td>`;
+  tbody.appendChild(totalTr);
+}
+
+function scoreCategory(catId,val){
+  if(rollsLeft===3){alert('You must roll first!');return;}
+  // yahtzee bonus check
+  if(catId!=='yahtzee'&&scores['yahtzee']===50&&calcScore('yahtzee',dice)===50){yahtzeeBonuses++;}
+  scores[catId]=val;
+  held=[false,false,false,false,false];
+  rollsLeft=3;
+  document.getElementById('rolls-left').textContent='Rolls left: 3';
+  document.getElementById('roll-btn').disabled=false;
+  if(Object.keys(scores).length>=13){finishGame();return;}
+  turnNum++;
+  document.getElementById('badge').textContent=`Turn ${turnNum}/13`;
+  document.getElementById('turn-info').textContent='Roll the dice to start!';
+  renderDice();renderScorecard();
+}
+
+function finishGame(){
+  const upper=CATS.filter(c=>c.section==='upper').reduce((a,c)=>a+(scores[c.id]||0),0);
+  const bonus=upper>=63?35:0;
+  const total=Object.values(scores).reduce((a,b)=>a+b,0)+bonus+yahtzeeBonuses*100;
+  document.getElementById('ovtext').textContent='Game Over!';
+  document.getElementById('ovfinal').textContent=`Final Score: ${total} points${bonus?` (includes +35 upper bonus)`:''}`;
+  document.getElementById('overlay').style.display='block';
+}
+
+// polyfill roundRect
+if(!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
+    this.beginPath();this.moveTo(x+r,y);this.lineTo(x+w-r,y);
+    this.quadraticCurveTo(x+w,y,x+w,y+r);this.lineTo(x+w,y+h-r);
+    this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);this.lineTo(x+r,y+h);
+    this.quadraticCurveTo(x,y+h,x,y+h-r);this.lineTo(x,y+r);
+    this.quadraticCurveTo(x,y,x+r,y);this.closePath();
+  };
+}
+
+newGame();
+</script>
+</body>
+</html>

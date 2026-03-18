@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Number Guessing – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#9898b8;text-decoration:none;font-size:20px}.topbar a:hover{color:#6c63ff}
+.topbar h1{font-size:18px;font-weight:600;flex:1}
+.score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:700}
+.game-area{flex:1;display:flex;flex-direction:column;align-items:center;padding:20px;gap:16px;max-width:520px;margin:0 auto;width:100%}
+.mode-tabs{display:flex;gap:0;border:1px solid #2a2a45;border-radius:10px;overflow:hidden}
+.tab{background:#1e1e30;color:#9898b8;padding:10px 20px;cursor:pointer;font-size:14px;font-weight:600;flex:1;text-align:center}
+.tab.active{background:#6c63ff;color:#fff}
+.range-bar{width:100%;height:36px;background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;position:relative;overflow:hidden}
+.range-fill{height:100%;background:linear-gradient(90deg,#6c63ff44,#6c63ff);border-radius:8px;transition:width .3s,left .3s}
+.range-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;font-weight:700;color:#e8e8f0;white-space:nowrap}
+.guess-box{background:#1e1e30;border:1px solid #2a2a45;border-radius:16px;padding:24px;text-align:center;width:100%}
+.hint{font-size:32px;font-weight:900;color:#6c63ff;min-height:48px}
+.hint.low{color:#e74c3c}
+.hint.high{color:#3498db}
+.hint.correct{color:#2ecc71}
+.sub-hint{font-size:14px;color:#9898b8;margin-top:6px}
+.input-row{display:flex;gap:10px;width:100%;align-items:center;justify-content:center}
+input.guess-input{background:#0d0d14;border:2px solid #2a2a45;border-radius:10px;color:#e8e8f0;font-size:22px;padding:10px 16px;text-align:center;width:160px;outline:none}
+input.guess-input:focus{border-color:#6c63ff}
+button.guess-btn{background:#6c63ff;border:none;color:#fff;padding:10px 24px;border-radius:10px;font-size:16px;cursor:pointer;font-weight:700}
+button.guess-btn:hover{background:#574fd6}
+.history{width:100%;background:#1e1e30;border:1px solid #2a2a45;border-radius:12px;padding:12px}
+.history h3{font-size:13px;color:#9898b8;margin-bottom:8px}
+.history-pills{display:flex;gap:6px;flex-wrap:wrap}
+.hpill{border-radius:16px;padding:4px 12px;font-size:13px;font-weight:700}
+.hpill.low{background:#e74c3c22;border:1px solid #e74c3c;color:#e74c3c}
+.hpill.high{background:#3498db22;border:1px solid #3498db;color:#3498db}
+.hpill.correct{background:#2ecc7122;border:1px solid #2ecc71;color:#2ecc71}
+.stat-row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.sbox{background:#1e1e30;border:1px solid #2a2a45;border-radius:10px;padding:8px 18px;text-align:center}
+.sbox .v{font-size:20px;font-weight:800;color:#6c63ff}
+.sbox .l{font-size:11px;color:#9898b8}
+button.ctrl{background:#1e1e30;border:1px solid #2a2a45;color:#e8e8f0;padding:9px 22px;border-radius:8px;font-size:14px;cursor:pointer}
+button.ctrl:hover{background:#2a2a45}
+button.ctrl.primary{background:#6c63ff;border-color:#6c63ff;color:#fff}
+button.ctrl.primary:hover{background:#574fd6}
+/* AI reverse mode */
+.ai-section{width:100%;background:#1e1e30;border:1px solid #2a2a45;border-radius:12px;padding:16px;text-align:center;display:none}
+.ai-guess{font-size:40px;font-weight:900;color:#6c63ff}
+.ai-sub{font-size:14px;color:#9898b8;margin-top:4px}
+.ai-btns{display:flex;gap:10px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>🔢 Number Guessing</h1>
+  <span class="score-badge" id="score-badge">Best: --</span>
+</div>
+<div class="game-area">
+  <div class="mode-tabs">
+    <div class="tab active" id="tab-player" onclick="setMode('player')">You Guess</div>
+    <div class="tab" id="tab-easy" onclick="setMode('hard')">Hard (1-1000)</div>
+    <div class="tab" id="tab-ai" onclick="setMode('ai')">AI Guesses</div>
+  </div>
+  <!-- Player mode -->
+  <div id="player-mode" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:14px">
+    <div class="stat-row">
+      <div class="sbox"><div class="v" id="guesses-v">0</div><div class="l">Guesses</div></div>
+      <div class="sbox"><div class="v" id="range-v">1-100</div><div class="l">Range</div></div>
+      <div class="sbox"><div class="v" id="best-v">--</div><div class="l">Best</div></div>
+    </div>
+    <div class="range-bar" id="range-bar">
+      <div class="range-fill" id="range-fill" style="left:0%;width:100%"></div>
+      <div class="range-label" id="range-label">1 to 100</div>
+    </div>
+    <div class="guess-box">
+      <div class="hint" id="hint">Pick a number!</div>
+      <div class="sub-hint" id="sub-hint">I'm thinking of a number between 1 and 100</div>
+    </div>
+    <div class="input-row">
+      <input class="guess-input" id="guess-input" type="number" min="1" max="1000" placeholder="?" inputmode="numeric">
+      <button class="guess-btn" onclick="makeGuess()">Guess</button>
+    </div>
+    <div class="history" id="history"><h3>Guesses</h3><div class="history-pills" id="history-pills"></div></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+      <button class="ctrl primary" onclick="newGame()">New Game</button>
+    </div>
+  </div>
+  <!-- AI mode -->
+  <div class="ai-section" id="ai-mode">
+    <p style="color:#9898b8;font-size:14px;margin-bottom:12px">Think of a number between 1 and 100. I'll guess it!</p>
+    <div class="ai-guess" id="ai-guess">--</div>
+    <div class="ai-sub" id="ai-sub">Press Start</div>
+    <div class="ai-btns">
+      <button class="ctrl" onclick="aiAnswer('low')">Too Low</button>
+      <button class="ctrl primary" onclick="aiAnswer('correct')">Correct!</button>
+      <button class="ctrl" onclick="aiAnswer('high')">Too High</button>
+    </div>
+    <div style="margin-top:12px">
+      <button class="ctrl" onclick="aiStart()">Restart</button>
+      <span id="ai-guess-count" style="color:#9898b8;font-size:13px;margin-left:12px">Guesses: 0</span>
+    </div>
+  </div>
+</div>
+<script>
+let mode='player',secretNum=0,maxNum=100,guessCount=0,lo=1,hi=100,won=false;
+let guessHistory=[];
+let bestScores={100:null,1000:null};
+try{bestScores=JSON.parse(localStorage.getItem('numguess_best'))||{100:null,1000:null};}catch(e){}
+updateBadge();
+
+function updateBadge(){
+  const b100=bestScores[100],b1000=bestScores[1000];
+  const vals=[b100,b1000].filter(v=>v!==null);
+  if(vals.length)document.getElementById('score-badge').textContent='Best: '+Math.min(...vals)+' guesses';
+}
+
+function setMode(m){
+  mode=m;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(m==='player'){
+    document.getElementById('tab-player').classList.add('active');
+    maxNum=100;
+    document.getElementById('player-mode').style.display='flex';
+    document.getElementById('ai-mode').style.display='none';
+    newGame();
+  } else if(m==='hard'){
+    document.getElementById('tab-easy').classList.add('active');
+    maxNum=1000;
+    document.getElementById('player-mode').style.display='flex';
+    document.getElementById('ai-mode').style.display='none';
+    newGame();
+  } else {
+    document.getElementById('tab-ai').classList.add('active');
+    document.getElementById('player-mode').style.display='none';
+    document.getElementById('ai-mode').style.display='flex';
+    aiStart();
+  }
+}
+
+function newGame(){
+  secretNum=Math.floor(Math.random()*maxNum)+1;
+  guessCount=0;lo=1;hi=maxNum;won=false;guessHistory=[];
+  document.getElementById('guesses-v').textContent='0';
+  document.getElementById('range-v').textContent='1-'+maxNum;
+  document.getElementById('hint').textContent='Pick a number!';
+  document.getElementById('hint').className='hint';
+  document.getElementById('sub-hint').textContent='I\'m thinking of a number between 1 and '+maxNum;
+  document.getElementById('history-pills').innerHTML='';
+  document.getElementById('guess-input').value='';
+  document.getElementById('best-v').textContent=bestScores[maxNum]||'--';
+  updateRangeBar();
+}
+
+function updateRangeBar(){
+  const pctLeft=(lo-1)/maxNum*100;
+  const pctWidth=(hi-lo+1)/maxNum*100;
+  document.getElementById('range-fill').style.left=pctLeft+'%';
+  document.getElementById('range-fill').style.width=pctWidth+'%';
+  document.getElementById('range-label').textContent=lo+' to '+hi;
+}
+
+function makeGuess(){
+  if(won)return;
+  const val=parseInt(document.getElementById('guess-input').value);
+  if(isNaN(val)||val<1||val>maxNum)return;
+  document.getElementById('guess-input').value='';
+  guessCount++;
+  document.getElementById('guesses-v').textContent=guessCount;
+  guessHistory.push(val);
+  const pill=document.createElement('div');
+  pill.className='hpill';
+  if(val<secretNum){
+    pill.classList.add('low');pill.textContent=val+' ↑';
+    if(val>lo)lo=val+1;
+    document.getElementById('hint').textContent='Too Low!';
+    document.getElementById('hint').className='hint low';
+    document.getElementById('sub-hint').textContent='Higher than '+val;
+  } else if(val>secretNum){
+    pill.classList.add('high');pill.textContent=val+' ↓';
+    if(val<hi)hi=val-1;
+    document.getElementById('hint').textContent='Too High!';
+    document.getElementById('hint').className='hint high';
+    document.getElementById('sub-hint').textContent='Lower than '+val;
+  } else {
+    pill.classList.add('correct');pill.textContent=val+' ✓';
+    won=true;
+    document.getElementById('hint').textContent='Correct! 🎉';
+    document.getElementById('hint').className='hint correct';
+    document.getElementById('sub-hint').textContent='Found it in '+guessCount+' guesses! Optimal: '+Math.ceil(Math.log2(maxNum));
+    if(!bestScores[maxNum]||guessCount<bestScores[maxNum]){
+      bestScores[maxNum]=guessCount;
+      try{localStorage.setItem('numguess_best',JSON.stringify(bestScores));}catch(e){}
+      updateBadge();
+    }
+    document.getElementById('best-v').textContent=bestScores[maxNum];
+  }
+  document.getElementById('range-v').textContent=lo+'-'+hi;
+  updateRangeBar();
+  document.getElementById('history-pills').appendChild(pill);
+  document.getElementById('guess-input').focus();
+}
+
+document.getElementById('guess-input').addEventListener('keydown',e=>{if(e.key==='Enter')makeGuess();});
+
+// AI mode
+let aiLo=1,aiHi=100,aiGuesses=0;
+function aiStart(){
+  aiLo=1;aiHi=100;aiGuesses=0;
+  document.getElementById('ai-guess-count').textContent='Guesses: 0';
+  aiNextGuess();
+}
+function aiNextGuess(){
+  const g=Math.floor((aiLo+aiHi)/2);
+  document.getElementById('ai-guess').textContent=g;
+  document.getElementById('ai-sub').textContent='Is your number '+g+'?';
+}
+function aiAnswer(result){
+  const g=parseInt(document.getElementById('ai-guess').textContent);
+  aiGuesses++;
+  document.getElementById('ai-guess-count').textContent='Guesses: '+aiGuesses;
+  if(result==='correct'){
+    document.getElementById('ai-guess').textContent='🎉';
+    document.getElementById('ai-sub').textContent='Got it in '+aiGuesses+' guess'+(aiGuesses>1?'es':'')+'!';
+  } else if(result==='low'){
+    aiLo=g+1;aiNextGuess();
+  } else {
+    aiHi=g-1;aiNextGuess();
+  }
+}
+newGame();
+</script>
+</body>
+</html>

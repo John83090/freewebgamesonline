@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Towers of Hanoi – FreeWebGamesOnline</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
+#topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 18px;display:flex;align-items:center;gap:14px}
+#topbar a{color:#9898b8;text-decoration:none;font-size:20px}#topbar a:hover{color:#6c63ff}
+#topbar h1{font-size:18px;flex:1}
+#score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:700}
+#main{display:flex;flex-direction:column;align-items:center;padding:20px;gap:16px}
+#stats-row{display:flex;gap:20px;flex-wrap:wrap;justify-content:center}
+#stats-row span{background:#1e1e30;border:1px solid #2a2a45;padding:6px 14px;border-radius:8px;font-size:14px;color:#9898b8}
+#stats-row b{color:#e8e8f0}
+canvas{background:#1e1e30;border:1px solid #2a2a45;border-radius:10px;cursor:pointer;max-width:100%}
+#message{font-size:20px;font-weight:700;min-height:30px;color:#6c63ff}
+#controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+button.action{background:#6c63ff;color:#fff;border:none;padding:9px 20px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s}
+button.action:hover{background:#574fd6}
+button.action.active{background:#2ecc71;color:#fff}
+#hint{font-size:13px;color:#9898b8;text-align:center}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>&#129695; Towers of Hanoi</h1>
+  <span id="score-badge">Moves: 0</span>
+</div>
+<div id="main">
+  <div id="stats-row">
+    <span>Moves: <b id="moves">0</b></span>
+    <span>Optimal: <b id="optimal">0</b></span>
+    <span>Discs: <b id="disc-count">3</b></span>
+  </div>
+  <canvas id="canvas" width="560" height="300"></canvas>
+  <div id="message">Click a peg to select, then click destination</div>
+  <div id="controls">
+    <button class="action" onclick="setDiscs(3)">3 Discs</button>
+    <button class="action" onclick="setDiscs(4)">4 Discs</button>
+    <button class="action" onclick="setDiscs(5)">5 Discs</button>
+    <button class="action" onclick="setDiscs(6)">6 Discs</button>
+    <button class="action" onclick="newGame()">Reset</button>
+  </div>
+  <div id="hint">Click a peg to pick up the top disc, then click destination peg</div>
+</div>
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){r=Math.min(r,w/2,h/2);this.beginPath();this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.quadraticCurveTo(x+w,y,x+w,y+r);this.lineTo(x+w,y+h-r);this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);this.lineTo(x+r,y+h);this.quadraticCurveTo(x,y+h,x,y+h-r);this.lineTo(x,y+r);this.quadraticCurveTo(x,y,x+r,y);this.closePath();};}
+
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+const W=560,H=300;
+const PEG_X=[W/6,W/2,5*W/6];
+const BASE_Y=H-40,PEG_H=180,PEG_W=10;
+const COLORS=['#e74c3c','#e67e22','#f1c40f','#2ecc71','#3498db','#9b59b6'];
+let pegs=[[],[],[]],numDiscs=3,selected=-1,moves=0;
+
+function newGame(){
+  moves=0;selected=-1;
+  pegs=[[],[],[]];
+  for(let i=numDiscs;i>=1;i--)pegs[0].push(i);
+  document.getElementById('moves').textContent=0;
+  document.getElementById('optimal').textContent=Math.pow(2,numDiscs)-1;
+  document.getElementById('disc-count').textContent=numDiscs;
+  document.getElementById('score-badge').textContent='Moves: 0';
+  document.getElementById('message').textContent='Click a peg to select';
+  draw();
+}
+
+function setDiscs(n){numDiscs=n;newGame();}
+
+function discWidth(d){return 30+d*22;}
+function discColor(d){return COLORS[(d-1)%COLORS.length];}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  // Base platform
+  ctx.fillStyle='#2a2a45';
+  ctx.roundRect(20,BASE_Y+2,W-40,18,4);ctx.fill();
+  // Pegs
+  PEG_X.forEach((px,i)=>{
+    ctx.fillStyle=selected===i?'#6c63ff':'#9898b8';
+    ctx.fillRect(px-PEG_W/2,BASE_Y-PEG_H,PEG_W,PEG_H+2);
+    // Label
+    ctx.fillStyle=selected===i?'#6c63ff':'#9898b8';
+    ctx.font='14px Segoe UI';ctx.textAlign='center';
+    ctx.fillText(['A','B','C'][i],px,H-10);
+  });
+  // Discs
+  pegs.forEach((peg,pi)=>{
+    peg.forEach((disc,di)=>{
+      const w=discWidth(disc);
+      const x=PEG_X[pi]-w/2;
+      const y=BASE_Y-20*(di+1);
+      ctx.fillStyle=discColor(disc);
+      ctx.roundRect(x,y,w,18,6);ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=1;ctx.stroke();
+      ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font='bold 11px Segoe UI';ctx.textAlign='center';
+      ctx.fillText(disc,PEG_X[pi],y+13);
+    });
+  });
+  // Glow selected peg
+  if(selected>=0&&pegs[selected].length>0){
+    const top=pegs[selected][pegs[selected].length-1];
+    const w=discWidth(top);
+    const x=PEG_X[selected]-w/2;
+    const y=BASE_Y-20*pegs[selected].length;
+    ctx.strokeStyle='#fff';ctx.lineWidth=2;
+    ctx.roundRect(x,y,w,18,6);ctx.stroke();
+  }
+}
+
+canvas.addEventListener('click',e=>{
+  const rect=canvas.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(W/rect.width);
+  let clicked=-1;
+  PEG_X.forEach((px,i)=>{if(Math.abs(mx-px)<W/6)clicked=i;});
+  if(clicked<0)return;
+  if(selected<0){
+    if(pegs[clicked].length>0){selected=clicked;draw();document.getElementById('message').textContent='Now click destination peg';}
+    else document.getElementById('message').textContent='That peg is empty!';
+  } else {
+    if(clicked===selected){selected=-1;draw();document.getElementById('message').textContent='Deselected. Click a peg to select';}
+    else {
+      const from=pegs[selected],to=pegs[clicked];
+      const disc=from[from.length-1];
+      if(to.length===0||to[to.length-1]>disc){
+        to.push(from.pop());moves++;
+        document.getElementById('moves').textContent=moves;
+        document.getElementById('score-badge').textContent='Moves: '+moves;
+        selected=-1;draw();
+        if(pegs[2].length===numDiscs){
+          document.getElementById('message').textContent='Solved in '+moves+' moves! Optimal: '+(Math.pow(2,numDiscs)-1);
+        } else {
+          document.getElementById('message').textContent='Click a peg to select';
+        }
+      } else {
+        document.getElementById('message').textContent='Cannot place larger disc on smaller!';
+      }
+    }
+  }
+});
+
+newGame();
+</script>
+</body>
+</html>

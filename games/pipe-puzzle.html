@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pipe Puzzle – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#9898b8;text-decoration:none;font-size:20px}
+.topbar a:hover{color:#6c63ff}
+.topbar h1{font-size:18px;font-weight:600;flex:1}
+.score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:700}
+.game-area{flex:1;display:flex;flex-direction:column;align-items:center;padding:16px;gap:14px}
+.meta{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.stat{background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;padding:6px 16px;text-align:center}
+.stat .v{font-size:18px;font-weight:700;color:#6c63ff}
+.stat .l{font-size:11px;color:#9898b8}
+canvas{border:2px solid #2a2a45;border-radius:6px;cursor:pointer}
+.controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.ctrl-btn{background:#1e1e30;border:1px solid #2a2a45;color:#e8e8f0;padding:8px 18px;border-radius:8px;font-size:14px;cursor:pointer}
+.ctrl-btn:hover{background:#2a2a45}
+.ctrl-btn.primary{background:#6c63ff;border-color:#6c63ff;color:#fff}
+.ctrl-btn.primary:hover{background:#574fd6}
+.win-banner{background:#6c63ff;border-radius:12px;padding:12px 28px;font-size:18px;font-weight:800;text-align:center;display:none}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>🔧 Pipe Puzzle</h1>
+  <span class="score-badge" id="score-badge">Level 1</span>
+</div>
+<div class="game-area">
+  <div class="meta">
+    <div class="stat"><div class="v" id="level-v">1</div><div class="l">Level</div></div>
+    <div class="stat"><div class="v" id="moves-v">0</div><div class="l">Moves</div></div>
+    <div class="stat"><div class="v" id="time-v">0:00</div><div class="l">Time</div></div>
+  </div>
+  <canvas id="c"></canvas>
+  <div class="win-banner" id="win-banner">Level Complete! 🎉</div>
+  <div class="controls">
+    <button class="ctrl-btn" onclick="prevLevel()">◀ Prev</button>
+    <button class="ctrl-btn primary" onclick="loadLevel(currentLevel)">Restart</button>
+    <button class="ctrl-btn" onclick="nextLevel()">Next ▶</button>
+  </div>
+  <div style="color:#9898b8;font-size:13px;text-align:center">Click tiles to rotate • Connect tap to drain</div>
+</div>
+<script>
+// Pipe types: each has connection array [N,E,S,W] (1=open, 0=closed)
+// Types: straight(H), straight(V), elbow(NE,ES,SW,WN), T(NES,ESW,SWN,WNE), cross
+const TYPES={
+  SH:{c:[0,1,0,1]},SV:{c:[1,0,1,0]},
+  NE:{c:[1,1,0,0]},ES:{c:[0,1,1,0]},SW:{c:[0,0,1,1]},WN:{c:[1,0,0,1]},
+  TN:{c:[1,1,1,0]},TE:{c:[0,1,1,1]},TS:{c:[1,0,1,1]},TW:{c:[1,1,0,1]},
+  CR:{c:[1,1,1,1]},
+  END:{c:[1,0,0,0]},// source/drain (rotatable)
+};
+function rotateConn(c){return[c[3],c[0],c[1],c[2]];}
+function rotateTile(tile){return{...tile,conn:rotateConn(tile.conn),rot:(tile.rot+1)%4};}
+
+// Level definitions: grid of type keys + rotation, source pos, drain pos
+const LEVELS=[
+  {size:4,grid:[
+    ['ES','SH','SH','SW'],
+    ['SV','NE','ES','SV'],
+    ['NE','TW','SH','SW'],
+    ['SH','SH','SH','WN'],
+  ],src:{x:0,y:0,dir:2},drn:{x:3,y:3,dir:0}},
+  {size:4,grid:[
+    ['ES','SH','SW','SV'],
+    ['NE','ES','TW','SV'],
+    ['SV','NE','SH','SW'],
+    ['TN','SH','SH','WN'],
+  ],src:{x:0,y:0,dir:2},drn:{x:3,y:3,dir:0}},
+  {size:5,grid:[
+    ['ES','SH','ES','SH','SW'],
+    ['NE','ES','TN','ES','SV'],
+    ['SV','TN','CR','TN','SV'],
+    ['SV','SV','TE','SV','SV'],
+    ['NE','SH','SH','SH','WN'],
+  ],src:{x:0,y:0,dir:2},drn:{x:4,y:4,dir:0}},
+  {size:5,grid:[
+    ['ES','SH','SH','SH','SW'],
+    ['SV','NE','ES','SW','SV'],
+    ['SV','SV','NE','WN','SV'],
+    ['SV','TN','SH','ES','SV'],
+    ['NE','SH','SH','SH','WN'],
+  ],src:{x:0,y:0,dir:2},drn:{x:4,y:4,dir:0}},
+  {size:5,grid:[
+    ['ES','SH','ES','SH','SW'],
+    ['NE','SH','TW','ES','SV'],
+    ['SV','NE','CR','SW','SV'],
+    ['SV','SV','TE','WN','SV'],
+    ['NE','SH','SH','SH','WN'],
+  ],src:{x:0,y:0,dir:2},drn:{x:4,y:4,dir:0}},
+  {size:6,grid:[
+    ['ES','SH','SH','SH','SH','SW'],
+    ['SV','NE','ES','SH','SW','SV'],
+    ['SV','SV','NE','ES','WN','SV'],
+    ['SV','TN','SH','TW','SH','SV'],
+    ['SV','SV','NE','SH','SW','SV'],
+    ['NE','SH','SH','SH','SH','WN'],
+  ],src:{x:0,y:0,dir:2},drn:{x:5,y:5,dir:0}},
+];
+for(let i=6;i<10;i++)LEVELS.push(LEVELS[Math.min(i,LEVELS.length-1)]);
+
+let currentLevel=0,grid=[],moves=0,elapsed=0,timerInt=null,won=false;
+const CS=72;// cell size
+const canvas=document.getElementById('c');
+const ctx=canvas.getContext('2d');
+
+function loadLevel(li){
+  won=false;moves=0;elapsed=0;
+  clearInterval(timerInt);
+  timerInt=setInterval(()=>{if(!won){elapsed++;updateTimer();}},1000);
+  const L=LEVELS[Math.min(li,LEVELS.length-1)];
+  const N=L.size;
+  canvas.width=N*CS;canvas.height=N*CS;
+  // Build grid with randomized rotations
+  grid=[];
+  for(let y=0;y<N;y++){
+    const row=[];
+    for(let x=0;x<N;x++){
+      const key=L.grid[y][x];
+      const baseConn=[...TYPES[key].c];
+      const rots=Math.floor(Math.random()*4);
+      let conn=baseConn;
+      for(let r=0;r<rots;r++)conn=rotateConn(conn);
+      row.push({key,conn,rot:rots,src:false,drn:false});
+    }
+    grid.push(row);
+  }
+  // Mark source/drain as fixed corners
+  grid[L.src.y][L.src.x].src=true;
+  grid[L.drn.y][L.drn.x].drn=true;
+  // Give source/drain correct orientation
+  const srcKey=L.grid[L.src.y][L.src.x];
+  let sc=[...TYPES[srcKey].c];
+  for(let r=0;r<L.src.dir;r++)sc=rotateConn(sc);
+  grid[L.src.y][L.src.x].conn=sc;
+  const drnKey=L.grid[L.drn.y][L.drn.x];
+  let dc=[...TYPES[drnKey].c];
+  for(let r=0;r<L.drn.dir;r++)dc=rotateConn(dc);
+  grid[L.drn.y][L.drn.x].conn=dc;
+
+  document.getElementById('level-v').textContent=li+1;
+  document.getElementById('score-badge').textContent='Level '+(li+1);
+  document.getElementById('moves-v').textContent='0';
+  document.getElementById('win-banner').style.display='none';
+  render();
+}
+
+function updateTimer(){
+  const m=Math.floor(elapsed/60),s=elapsed%60;
+  document.getElementById('time-v').textContent=m+':'+(s<10?'0':'')+s;
+}
+
+function getFlow(){
+  const N=grid.length;
+  const visited=Array.from({length:N},()=>new Array(N).fill(false));
+  const connected=Array.from({length:N},()=>new Array(N).fill(false));
+  const L=LEVELS[Math.min(currentLevel,LEVELS.length-1)];
+  const queue=[[L.src.x,L.src.y]];
+  visited[L.src.y][L.src.x]=true;
+  connected[L.src.y][L.src.x]=true;
+  const dirs=[[0,-1,0,2],[1,0,1,3],[0,1,2,0],[-1,0,3,1]];// dx,dy,myDir,theirDir
+  while(queue.length){
+    const [x,y]=queue.shift();
+    for(const [dx,dy,myDir,theirDir] of dirs){
+      const nx=x+dx,ny=y+dy;
+      if(nx<0||nx>=N||ny<0||ny>=N)continue;
+      if(visited[ny][nx])continue;
+      if(grid[y][x].conn[myDir]&&grid[ny][nx].conn[theirDir]){
+        visited[ny][nx]=true;connected[ny][nx]=true;
+        queue.push([nx,ny]);
+      }
+    }
+  }
+  return connected;
+}
+
+function render(){
+  const N=grid.length;
+  const flow=getFlow();
+  ctx.fillStyle='#0d0d14';ctx.fillRect(0,0,canvas.width,canvas.height);
+  for(let y=0;y<N;y++){
+    for(let x=0;x<N;x++){
+      const tile=grid[y][x];
+      const lit=flow[y][x];
+      const X=x*CS,Y=y*CS;
+      // Cell bg
+      ctx.fillStyle=lit?'#1a1a2e':'#111120';
+      ctx.fillRect(X+1,Y+1,CS-2,CS-2);
+      // Draw pipes
+      drawPipe(X,Y,tile.conn,lit,tile.src,tile.drn);
+    }
+  }
+}
+
+function drawPipe(X,Y,conn,lit,isSrc,isDrn){
+  const pc=lit?'#6c63ff':'#3a3a5a';
+  const pw=CS*0.28;
+  const cx=X+CS/2,cy=Y+CS/2;
+  // Center circle
+  ctx.fillStyle=pc;
+  ctx.beginPath();ctx.arc(cx,cy,pw/2,0,Math.PI*2);ctx.fill();
+  // Connections: N,E,S,W
+  const ends=[[cx,Y+2,cx,cy],[X+CS-2,cy,cx,cy],[cx,Y+CS-2,cx,cy],[X+2,cy,cx,cy]];
+  for(let i=0;i<4;i++){
+    if(!conn[i])continue;
+    ctx.fillStyle=pc;
+    ctx.fillRect(Math.min(ends[i][0],ends[i][2])-pw/2,Math.min(ends[i][1],ends[i][3])-pw/2,
+      Math.abs(ends[i][0]-ends[i][2])+pw,Math.abs(ends[i][1]-ends[i][3])+pw);
+  }
+  if(isSrc){ctx.fillStyle='#f1c40f';ctx.font='bold 20px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('💧',cx,cy);}
+  if(isDrn){ctx.fillStyle='#2ecc71';ctx.font='bold 20px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🚿',cx,cy);}
+}
+
+canvas.addEventListener('click',e=>{
+  if(won)return;
+  const r=canvas.getBoundingClientRect();
+  const scX=canvas.width/r.width,scY=canvas.height/r.height;
+  const mx=(e.clientX-r.left)*scX,my=(e.clientY-r.top)*scY;
+  const gx=Math.floor(mx/CS),gy=Math.floor(my/CS);
+  const N=grid.length;
+  if(gx<0||gx>=N||gy<0||gy>=N)return;
+  const tile=grid[gy][gx];
+  if(tile.src||tile.drn)return;
+  tile.conn=rotateConn(tile.conn);tile.rot=(tile.rot+1)%4;
+  moves++;document.getElementById('moves-v').textContent=moves;
+  render();
+  // Check win
+  const L=LEVELS[Math.min(currentLevel,LEVELS.length-1)];
+  const flow=getFlow();
+  if(flow[L.drn.y][L.drn.x]){
+    won=true;clearInterval(timerInt);
+    document.getElementById('win-banner').style.display='block';
+    setTimeout(()=>nextLevel(),2000);
+  }
+});
+
+function prevLevel(){currentLevel=Math.max(0,currentLevel-1);loadLevel(currentLevel);}
+function nextLevel(){currentLevel=Math.min(LEVELS.length-1,currentLevel+1);loadLevel(currentLevel);}
+loadLevel(0);
+</script>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brick Breaker Deluxe – FreeWebGamesOnline</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+  #topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+  #topbar a{color:#9898b8;text-decoration:none;font-size:20px}
+  #topbar a:hover{color:#6c63ff}
+  #title{flex:1;font-size:18px;font-weight:700}
+  #score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-weight:700;font-size:15px}
+  #game-wrap{flex:1;display:flex;justify-content:center;align-items:center;position:relative}
+  canvas{display:block;touch-action:none}
+  #overlay{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:rgba(13,13,20,.88);gap:14px}
+  #overlay h2{font-size:30px;color:#6c63ff}
+  #overlay p{color:#9898b8;font-size:14px;text-align:center;max-width:300px}
+  #overlay .hs{color:#e8e8f0;font-size:17px}
+  #start-btn{background:#6c63ff;color:#fff;border:none;padding:11px 30px;border-radius:8px;font-size:16px;cursor:pointer;font-weight:700}
+  #start-btn:hover{background:#5a52e0}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <span id="title">🧱 Brick Breaker Deluxe</span>
+  <span id="score-badge">Score: 0</span>
+</div>
+<div id="game-wrap">
+  <canvas id="c"></canvas>
+  <div id="overlay">
+    <h2>Brick Breaker Deluxe</h2>
+    <p>Move mouse to control paddle. Break all bricks!<br>Catch power-ups for bonuses.</p>
+    <div class="hs" id="hs-display"></div>
+    <button id="start-btn">Play</button>
+  </div>
+</div>
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){r=Math.min(r,w/2,h/2);this.beginPath();this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.arcTo(x+w,y,x+w,y+r,r);this.lineTo(x+w,y+h-r);this.arcTo(x+w,y+h,x+w-r,y+h,r);this.lineTo(x+r,y+h);this.arcTo(x,y+h,x,y+h-r,r);this.lineTo(x,y+r);this.arcTo(x,y,x+r,y,r);this.closePath();return this};}
+
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),scoreBadge=document.getElementById('score-badge');
+const W=480,H=560,PADDLE_H=10,BALL_R=7,BRICK_ROWS=8,BRICK_COLS=10,BRICK_GAP=3;
+canvas.width=W;canvas.height=H;
+
+const BRICK_W=(W-20)/BRICK_COLS-BRICK_GAP;
+const BRICK_H=18;
+const BRICK_OFF_X=10;const BRICK_OFF_Y=50;
+const PW_TYPES=['wide','multi','laser','slow','narrow','fast'];
+const PW_COLORS={wide:'#43d9ad',multi:'#6c63ff',laser:'#ff9f43',slow:'#f9ca24',narrow:'#ff6584',fast:'#ff4757'};
+
+let paddle,balls,bricks,score,lives,gameRunning,animId,powerups,activePW,pwTimer,laserBeams,level,mouseX;
+
+function getHS(){try{return parseInt(localStorage.getItem('bb2_hs')||'0')}catch(e){return 0}}
+function saveHS(s){try{localStorage.setItem('bb2_hs',s)}catch(e){}}
+
+function setupCanvas(){
+  const wrap=document.getElementById('game-wrap');
+  const scale=Math.min(wrap.clientWidth/W,wrap.clientHeight/H);
+  canvas.style.width=W*scale+'px';canvas.style.height=H*scale+'px';
+}
+window.addEventListener('resize',setupCanvas);setupCanvas();
+
+function getBrickColor(hp){
+  const colors=['#2a2a45','#3a3a65','#6c63ff','#a29bfe','#ff9f43','#ff6584','#f9ca24','#43d9ad'];
+  return colors[Math.min(hp,colors.length-1)];
+}
+
+function initBricks(){
+  bricks=[];
+  for(let r=0;r<BRICK_ROWS;r++){
+    for(let c=0;c<BRICK_COLS;c++){
+      const hp=r<2?1:r<4?2:r<6?3:r<7?4:5;
+      const x=BRICK_OFF_X+c*(BRICK_W+BRICK_GAP);
+      const y=BRICK_OFF_Y+r*(BRICK_H+BRICK_GAP);
+      bricks.push({x,y,w:BRICK_W,h:BRICK_H,hp,maxHp:hp,alive:true});
+    }
+  }
+}
+
+function initGame(){
+  score=0;lives=3;level=1;powerups=[];activePW=null;pwTimer=0;laserBeams=[];mouseX=W/2;
+  paddle={x:W/2,w:90,h:PADDLE_H,y:H-30};
+  balls=[{x:W/2,y:H-50,vx:3,vy:-4,r:BALL_R}];
+  initBricks();scoreBadge.textContent='Score: 0';
+}
+
+function spawnPowerup(x,y){
+  if(Math.random()>0.25)return;
+  const type=PW_TYPES[Math.floor(Math.random()*PW_TYPES.length)];
+  powerups.push({x,y,type,vy:2,r:10,alive:true});
+}
+
+function applyPowerup(type){
+  activePW=type;pwTimer=Date.now()+7000;
+  if(type==='wide')paddle.w=Math.min(160,paddle.w+50);
+  else if(type==='narrow')paddle.w=Math.max(40,paddle.w-30);
+  else if(type==='multi'){
+    const b=balls[0];
+    balls.push({x:b.x,y:b.y,vx:b.vx+1.5,vy:b.vy,r:BALL_R});
+    balls.push({x:b.x,y:b.y,vx:b.vx-1.5,vy:b.vy,r:BALL_R});
+  }
+  else if(type==='slow')balls.forEach(b=>{const s=Math.hypot(b.vx,b.vy);b.vx=b.vx/s*Math.max(2,s*0.65);b.vy=b.vy/s*Math.max(2,s*0.65);});
+  else if(type==='fast')balls.forEach(b=>{const s=Math.hypot(b.vx,b.vy);b.vx=b.vx/s*(s*1.5);b.vy=b.vy/s*(s*1.5);});
+}
+
+function firelaser(){
+  laserBeams.push({x:paddle.x-2,y:paddle.y,h:H,alive:true});
+  laserBeams.push({x:paddle.x+paddle.w-2,y:paddle.y,h:H,alive:true});
+}
+
+function gameLoop(){
+  if(!gameRunning)return;
+  const px=mouseX-paddle.w/2;
+  paddle.x=Math.max(0,Math.min(W-paddle.w,px));
+  // pw timer
+  if(activePW&&Date.now()>pwTimer){activePW=null;}
+  if(activePW==='laser'&&Math.random()<0.05)firelaser();
+  // laser
+  laserBeams=laserBeams.filter(lb=>{
+    lb.y-=12;if(lb.y+lb.h<0){return false;}
+    bricks.forEach(b=>{
+      if(!b.alive)return;
+      if(lb.x>b.x&&lb.x<b.x+b.w&&lb.y<b.y+b.h){
+        b.hp--;if(b.hp<=0){b.alive=false;score+=b.maxHp*15;spawnPowerup(b.x+b.w/2,b.y);}
+        lb.alive=false;
+      }
+    });
+    return lb.alive;
+  });
+  // powerups
+  powerups=powerups.filter(pw=>{
+    if(!pw.alive)return false;
+    pw.y+=pw.vy;
+    if(pw.y>H)return false;
+    if(pw.x>paddle.x&&pw.x<paddle.x+paddle.w&&pw.y>paddle.y){
+      applyPowerup(pw.type);pw.alive=false;return false;
+    }
+    return true;
+  });
+  // balls
+  balls=balls.filter(b=>{
+    b.x+=b.vx;b.y+=b.vy;
+    if(b.x-b.r<0){b.x=b.r;b.vx*=-1;}
+    if(b.x+b.r>W){b.x=W-b.r;b.vx*=-1;}
+    if(b.y-b.r<0){b.y=b.r;b.vy*=-1;}
+    if(b.y>H+30)return false;
+    // paddle
+    if(b.vy>0&&b.y+b.r>paddle.y&&b.y+b.r<paddle.y+PADDLE_H+10&&b.x>paddle.x-b.r&&b.x<paddle.x+paddle.w+b.r){
+      b.vy=-Math.abs(b.vy);
+      const hit=(b.x-(paddle.x+paddle.w/2))/(paddle.w/2);
+      b.vx=hit*6;const spd=Math.hypot(b.vx,b.vy);const maxSpd=8;
+      if(spd>maxSpd){b.vx=b.vx/spd*maxSpd;b.vy=b.vy/spd*maxSpd;}
+      if(Math.abs(b.vy)<1.5)b.vy=-1.5;
+    }
+    // bricks
+    bricks.forEach(brick=>{
+      if(!brick.alive)return;
+      if(b.x+b.r>brick.x&&b.x-b.r<brick.x+brick.w&&b.y+b.r>brick.y&&b.y-b.r<brick.y+brick.h){
+        const overlapLeft=b.x+b.r-brick.x,overlapRight=brick.x+brick.w-b.x+b.r;
+        const overlapTop=b.y+b.r-brick.y,overlapBottom=brick.y+brick.h-b.y+b.r;
+        const minX=Math.min(overlapLeft,overlapRight),minY=Math.min(overlapTop,overlapBottom);
+        if(minX<minY)b.vx*=-1;else b.vy*=-1;
+        brick.hp--;if(brick.hp<=0){brick.alive=false;score+=brick.maxHp*15;spawnPowerup(brick.x+brick.w/2,brick.y);scoreBadge.textContent='Score: '+score;}
+      }
+    });
+    return true;
+  });
+  if(balls.length===0){
+    lives--;if(lives<=0){endGame();return;}
+    balls=[{x:paddle.x+paddle.w/2,y:paddle.y-20,vx:3*(Math.random()<0.5?1:-1),vy:-4,r:BALL_R}];
+  }
+  if(bricks.filter(b=>b.alive).length===0){nextLevel();}
+  draw();animId=requestAnimationFrame(gameLoop);
+}
+
+function nextLevel(){level++;initBricks();balls=[{x:W/2,y:H-50,vx:3,vy:-4.5,r:BALL_R}];paddle.w=90;}
+
+function draw(){
+  ctx.fillStyle='#0d0d14';ctx.fillRect(0,0,W,H);
+  // bricks
+  bricks.forEach(b=>{
+    if(!b.alive)return;
+    ctx.fillStyle=getBrickColor(b.hp-1);
+    ctx.roundRect(b.x+1,b.y+1,b.w-2,b.h-2,3);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=1;ctx.stroke();
+    if(b.maxHp>1){
+      ctx.fillStyle='rgba(255,255,255,0.7)';ctx.font='bold 9px sans-serif';ctx.textAlign='center';
+      ctx.fillText(b.hp,b.x+b.w/2,b.y+b.h/2+3);
+    }
+  });
+  // laser
+  laserBeams.forEach(lb=>{
+    ctx.fillStyle='rgba(255,159,67,0.7)';ctx.fillRect(lb.x,0,4,lb.y);
+  });
+  // powerups
+  powerups.forEach(pw=>{
+    ctx.beginPath();ctx.arc(pw.x,pw.y,pw.r,0,Math.PI*2);
+    ctx.fillStyle=PW_COLORS[pw.type];ctx.fill();
+    ctx.fillStyle='#fff';ctx.font='bold 8px sans-serif';ctx.textAlign='center';
+    ctx.fillText(pw.type[0].toUpperCase(),pw.x,pw.y+3);
+  });
+  // paddle
+  ctx.fillStyle=activePW?PW_COLORS[activePW]:'#6c63ff';
+  ctx.roundRect(paddle.x,paddle.y,paddle.w,PADDLE_H,5);ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.3)';ctx.lineWidth=1;ctx.stroke();
+  // balls
+  balls.forEach(b=>{
+    ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+    ctx.fillStyle='#e8e8f0';ctx.fill();
+    ctx.strokeStyle='#9898b8';ctx.lineWidth=1;ctx.stroke();
+  });
+  // HUD
+  ctx.fillStyle='rgba(0,0,0,.4)';ctx.roundRect(8,8,180,30,6);ctx.fill();
+  ctx.fillStyle='#e8e8f0';ctx.font='14px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('Lives: '+'●'.repeat(lives),14,28);
+  ctx.textAlign='right';ctx.fillText('Lv '+level,W-10,28);
+  if(activePW){ctx.fillStyle=PW_COLORS[activePW];ctx.font='bold 12px Segoe UI';ctx.textAlign='center';ctx.fillText(activePW.toUpperCase()+'!',W/2,30);}
+}
+
+function endGame(){
+  gameRunning=false;cancelAnimationFrame(animId);
+  const h=getHS();if(score>h)saveHS(score);
+  overlay.querySelector('h2').textContent='Game Over!';
+  overlay.querySelector('p').textContent='Score: '+score;
+  document.getElementById('hs-display').textContent='Best: '+Math.max(score,h);
+  document.getElementById('start-btn').textContent='Play Again';
+  overlay.style.display='flex';
+}
+
+document.getElementById('start-btn').addEventListener('click',()=>{
+  overlay.style.display='none';gameRunning=true;initGame();gameLoop();
+});
+canvas.addEventListener('mousemove',e=>{const r=canvas.getBoundingClientRect();mouseX=(e.clientX-r.left)*(W/r.width);});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();mouseX=(e.touches[0].clientX-r.left)*(W/r.width);},{passive:false});
+document.getElementById('hs-display').textContent='Best: '+getHS();
+setupCanvas();
+</script>
+</body>
+</html>

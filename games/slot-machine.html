@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slot Machine – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
+#topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 16px;display:flex;align-items:center;gap:12px}
+#topbar a{color:#6c63ff;text-decoration:none;font-size:1.3em}
+#topbar h1{font-size:1.1em;flex:1}
+.badge{background:#2a2a45;border:1px solid #6c63ff;border-radius:20px;padding:4px 14px;font-size:.9em;color:#6c63ff;font-weight:bold}
+#game{max-width:420px;margin:0 auto;padding:16px}
+.machine{background:#1e1e30;border:2px solid #6c63ff;border-radius:20px;padding:20px;margin-bottom:14px;box-shadow:0 0 30px rgba(108,99,255,.2)}
+.reels{display:flex;gap:10px;justify-content:center;margin-bottom:16px}
+.reel-wrap{background:#0d0d14;border:2px solid #2a2a45;border-radius:10px;width:90px;height:90px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center}
+.reel-inner{position:absolute;width:100%;display:flex;flex-direction:column;align-items:center;transition:none}
+.sym{font-size:2.2em;height:90px;display:flex;align-items:center;justify-content:center;width:100%}
+.win-line{position:absolute;top:50%;left:0;right:0;height:90px;transform:translateY(-50%);border:2px solid #6c63ff;border-radius:8px;pointer-events:none;opacity:0;transition:opacity .3s}
+.win-line.show{opacity:1}
+.bet-row{display:flex;gap:8px;justify-content:center;margin-bottom:14px}
+.bet-btn{background:#2a2a45;border:1px solid #3a3a55;color:#e8e8f0;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:.9em;transition:all .2s}
+.bet-btn.active,.bet-btn:hover{background:#6c63ff;border-color:#6c63ff}
+#spinBtn{width:100%;padding:16px;background:linear-gradient(135deg,#6c63ff,#a855f7);border:none;border-radius:12px;color:#fff;font-size:1.2em;font-weight:bold;cursor:pointer;letter-spacing:.05em;transition:all .2s}
+#spinBtn:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(108,99,255,.4)}
+#spinBtn:disabled{background:#3a3a55;transform:none;box-shadow:none;cursor:not-allowed}
+#status{text-align:center;padding:10px;margin:10px 0;min-height:44px;font-size:1em;background:#2a2a45;border-radius:8px}
+.info-row{display:flex;justify-content:space-between;font-size:.85em;color:#9898b8;margin-bottom:4px}
+.paytable{background:#0d0d14;border-radius:10px;padding:10px;margin-top:10px}
+.paytable h4{color:#6c63ff;font-size:.8em;margin-bottom:6px;text-transform:uppercase}
+.pay-row{display:flex;justify-content:space-between;font-size:.8em;padding:2px 0;border-bottom:1px solid #2a2a45}
+.free-badge{display:none;background:#f0a500;color:#000;border-radius:6px;padding:2px 8px;font-size:.8em;font-weight:bold;margin-left:8px}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>🎰 Slot Machine <span id="freeBadge" class="free-badge">FREE SPINS</span></h1>
+  <span class="badge" id="credBadge">100 credits</span>
+</div>
+<div id="game">
+  <div class="machine">
+    <div class="reels">
+      <div class="reel-wrap"><div class="reel-inner" id="r0"></div><div class="win-line" id="wl"></div></div>
+      <div class="reel-wrap"><div class="reel-inner" id="r1"></div></div>
+      <div class="reel-wrap"><div class="reel-inner" id="r2"></div></div>
+    </div>
+    <div class="info-row"><span>Bet:</span><span id="betLabel">1 credit</span></div>
+    <div class="info-row"><span>Free Spins:</span><span id="freeLabel">0</span></div>
+  </div>
+  <div id="status">Choose your bet and spin!</div>
+  <div class="bet-row">
+    <button class="bet-btn active" onclick="setBet(1,this)">1</button>
+    <button class="bet-btn" onclick="setBet(5,this)">5</button>
+    <button class="bet-btn" onclick="setBet(10,this)">10</button>
+    <button class="bet-btn" onclick="setBet(25,this)">25</button>
+  </div>
+  <button id="spinBtn" onclick="doSpin()">🎰 SPIN</button>
+  <div class="paytable">
+    <h4>Payout Table</h4>
+    <div class="pay-row"><span>7️⃣ 7️⃣ 7️⃣</span><span>JACKPOT 100x</span></div>
+    <div class="pay-row"><span>💎 💎 💎</span><span>50x</span></div>
+    <div class="pay-row"><span>⭐ + any 2</span><span>Wild — matches all</span></div>
+    <div class="pay-row"><span>🍇 🍇 🍇</span><span>20x</span></div>
+    <div class="pay-row"><span>🍊 🍊 🍊</span><span>15x</span></div>
+    <div class="pay-row"><span>🍋 🍋 🍋</span><span>10x</span></div>
+    <div class="pay-row"><span>🍒 🍒 🍒</span><span>8x</span></div>
+    <div class="pay-row"><span>Any 2 match</span><span>2x</span></div>
+    <div class="pay-row"><span>🍒 in reel 1</span><span>1x</span></div>
+    <div class="pay-row"><span>3x ⭐ scatter</span><span>10 Free Spins</span></div>
+  </div>
+</div>
+<script>
+const SYMS=['🍒','🍋','🍊','🍇','⭐','💎','7️⃣'];
+const WEIGHTS=[30,22,18,14,8,5,3]; // weighted pool
+const PAYS={3:100,2:50,1:20,0:15,'-1':10,'-2':8};// by index match (7,💎,🍇,🍊,🍋,🍒)
+// Build weighted symbol array
+let POOL=[];WEIGHTS.forEach((w,i)=>{for(let j=0;j<w;j++)POOL.push(i);});
+
+let credits=100,bet=1,spinning=false,freeSpins=0;
+try{const s=localStorage.getItem('slot_cred');if(s)credits=parseInt(s)||100;}catch(e){}
+function save(){try{localStorage.setItem('slot_cred',credits);}catch(e){}}
+
+const reels=[document.getElementById('r0'),document.getElementById('r1'),document.getElementById('r2')];
+
+function initReels(){
+  reels.forEach(r=>{
+    r.innerHTML='';
+    for(let i=0;i<5;i++){const d=document.createElement('div');d.className='sym';d.textContent=SYMS[Math.floor(Math.random()*SYMS.length)];r.appendChild(d);}
+  });
+}
+
+function getSymbol(){return POOL[Math.floor(Math.random()*POOL.length)];}
+
+function setBet(v,el){bet=v;document.querySelectorAll('.bet-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');document.getElementById('betLabel').textContent=v+' credit'+(v>1?'s':'');}
+
+function setStatus(msg,cls){const el=document.getElementById('status');el.textContent=msg;el.style.color=cls==='win'?'#4caf50':cls==='lose'?'#f44336':cls==='jackpot'?'#ffd700':'#e8e8f0';}
+
+function spinReel(reelEl,finalSym,delay){
+  return new Promise(resolve=>{
+    const frames=12+delay*3;let f=0;
+    const ticker=setInterval(()=>{
+      const syms=reelEl.querySelectorAll('.sym');
+      syms.forEach(s=>s.textContent=SYMS[Math.floor(Math.random()*SYMS.length)]);
+      f++;if(f>=frames){
+        clearInterval(ticker);
+        // Set final - show 3 around center
+        const arr=Array.from(reelEl.querySelectorAll('.sym'));
+        arr[2].textContent=SYMS[finalSym];
+        resolve();
+      }
+    },80);
+  });
+}
+
+async function doSpin(){
+  if(spinning)return;
+  const cost=freeSpins>0?0:bet;
+  if(cost>0&&credits<cost){setStatus('Not enough credits!');return;}
+  spinning=true;credits-=cost;if(freeSpins>0)freeSpins--;
+  document.getElementById('spinBtn').disabled=true;
+  document.getElementById('credBadge').textContent=credits+' credits';
+  document.getElementById('freeLabel').textContent=freeSpins;
+  document.getElementById('freeBadge').style.display=freeSpins>0?'inline':'none';
+  document.getElementById('wl').classList.remove('show');
+
+  const r=[getSymbol(),getSymbol(),getSymbol()];
+  await spinReel(reels[0],r[0],0);
+  await spinReel(reels[1],r[1],1);
+  await spinReel(reels[2],r[2],2);
+
+  // Evaluate
+  const s=r.map(i=>i);
+  const stars=s.filter(x=>x===4).length; // ⭐ index 4
+  let multi=0,msg='',cls='';
+
+  // 3 stars = free spins bonus
+  if(stars===3){freeSpins+=10;document.getElementById('freeLabel').textContent=freeSpins;document.getElementById('freeBadge').style.display='inline';msg='⭐⭐⭐ BONUS! 10 Free Spins awarded!';cls='win';}
+  else {
+    // Replace stars (wilds) for pay calc
+    const effective=s.map(x=>x===4?-99:x);
+    // check 3 of kind with wilds
+    const nonWild=effective.filter(x=>x!==-99);
+    let payout=0;
+    if(nonWild.length===0){payout=bet*100;msg='🎰 JACKPOT! Wild triple!';cls='jackpot';}
+    else if(nonWild.every(x=>x===nonWild[0])){
+      const sym=nonWild[0];
+      const symIdx=SYMS.length-1-sym; // reverse: 7=idx6 → pay key "3" (largest)
+      const payMulti=[8,10,15,20,50,100][sym]||2;
+      payout=bet*payMulti;
+      msg=`🎉 Triple ${SYMS[sym]}! Win ${payout} credits!`;cls=sym===6?'jackpot':'win';
+    } else if(nonWild.length>=2&&nonWild[0]===nonWild[1]||nonWild.length>=2&&nonWild[nonWild.length-1]===nonWild[nonWild.length-2]){
+      payout=bet*2;msg=`Two matching! Win ${payout} credits.`;cls='win';
+    } else if(s[0]===0){// cherry in reel 1
+      payout=bet*1;msg=`🍒 Cherry! Win ${payout} credit.`;cls='win';
+    } else {msg=`No match. Lost ${cost} credits.`;cls='lose';}
+    if(payout>0){credits+=payout;document.getElementById('wl').classList.add('show');}
+  }
+  setStatus(msg,cls);save();
+  document.getElementById('credBadge').textContent=credits+' credits';
+  spinning=false;document.getElementById('spinBtn').disabled=false;
+  if(credits<=0&&freeSpins===0){credits=100;save();setStatus('Out of credits! Refilled to 100.');document.getElementById('credBadge').textContent='100 credits';}
+}
+
+initReels();
+</script>
+</body>
+</html>

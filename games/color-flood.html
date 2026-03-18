@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Flood – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
+#topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 16px;display:flex;align-items:center;gap:12px}
+#topbar a{color:#6c63ff;text-decoration:none;font-size:1.3em}
+#topbar h1{font-size:1.1em;flex:1}
+.badge{background:#2a2a45;border:1px solid #6c63ff;border-radius:20px;padding:4px 14px;font-size:.9em;color:#6c63ff;font-weight:bold}
+#game{max-width:420px;margin:0 auto;padding:12px}
+.info-bar{display:flex;gap:8px;margin-bottom:10px}
+.info-box{flex:1;background:#1e1e30;border:1px solid #2a2a45;border-radius:9px;padding:8px;text-align:center}
+.info-num{font-size:1.4em;font-weight:bold;color:#6c63ff}
+.info-lbl{font-size:.75em;color:#9898b8}
+canvas{display:block;margin:0 auto;border-radius:10px;border:2px solid #2a2a45}
+.color-btns{display:flex;gap:8px;justify-content:center;margin:12px 0;flex-wrap:wrap}
+.cbtn{width:50px;height:50px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:all .2s;flex-shrink:0}
+.cbtn:hover{transform:scale(1.15);border-color:#fff}
+.cbtn.active{border-color:#fff;transform:scale(1.2);box-shadow:0 0 12px rgba(255,255,255,.4)}
+#status{text-align:center;padding:10px;background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;margin-bottom:10px;min-height:42px;font-size:.95em}
+#newBtn{width:100%;padding:11px;background:#6c63ff;border:none;border-radius:9px;color:#fff;font-weight:bold;cursor:pointer;font-size:.95em}
+.progress-wrap{height:8px;background:#2a2a45;border-radius:4px;margin-bottom:10px;overflow:hidden}
+.progress-bar{height:100%;border-radius:4px;background:#6c63ff;transition:width .3s}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>🌊 Color Flood</h1>
+  <span class="badge" id="bestBadge">Best: —</span>
+</div>
+<div id="game">
+  <div class="info-bar">
+    <div class="info-box"><div class="info-num" id="movesNum">25</div><div class="info-lbl">Moves Left</div></div>
+    <div class="info-box"><div class="info-num" id="fillNum">0%</div><div class="info-lbl">Filled</div></div>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progBar" style="width:0%"></div></div>
+  <canvas id="c" width="384" height="384"></canvas>
+  <div class="color-btns" id="colorBtns"></div>
+  <div id="status">Click a color to flood-fill from the top-left!</div>
+  <button id="newBtn" onclick="newGame()">New Game</button>
+</div>
+<script>
+const COLS=12,ROWS=12,SZ=32;
+const MAX_MOVES=25;
+const COLORS=['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6'];
+const canvas=document.getElementById('c');
+const ctx=canvas.getContext('2d');
+let grid=[],moves=0,gameOver=false;
+let best=null;
+try{best=localStorage.getItem('flood_best');document.getElementById('bestBadge').textContent='Best: '+(best?best+' moves':'—');}catch(e){}
+
+function randColor(){return Math.floor(Math.random()*COLORS.length);}
+
+function newGame(){
+  moves=0;gameOver=false;
+  grid=[];
+  for(let r=0;r<ROWS;r++){grid.push([]);for(let c=0;c<COLS;c++)grid[r].push(randColor());}
+  buildColorBtns();updateUI();draw();
+  document.getElementById('status').textContent='Click a color to flood-fill from the top-left!';
+}
+
+function buildColorBtns(){
+  const el=document.getElementById('colorBtns');el.innerHTML='';
+  COLORS.forEach((col,i)=>{
+    const btn=document.createElement('div');btn.className='cbtn';btn.style.background=col;
+    btn.onclick=()=>flood(i);el.appendChild(btn);
+  });
+  highlightActive(grid[0][0]);
+}
+
+function highlightActive(idx){
+  document.querySelectorAll('.cbtn').forEach((b,i)=>{b.classList.toggle('active',i===idx);});
+}
+
+function flood(newColor){
+  if(gameOver)return;
+  const baseColor=grid[0][0];
+  if(newColor===baseColor){document.getElementById('status').textContent='That\'s already the base color!';return;}
+  // BFS flood fill
+  const visited=Array.from({length:ROWS},()=>new Array(COLS).fill(false));
+  const queue=[[0,0]];visited[0][0]=true;
+  while(queue.length>0){
+    const[r,c]=queue.shift();
+    if(grid[r][c]===baseColor){
+      grid[r][c]=newColor;
+      [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].forEach(([nr,nc])=>{
+        if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&!visited[nr][nc]&&grid[nr][nc]===baseColor){visited[nr][nc]=true;queue.push([nr,nc]);}
+      });
+    }
+  }
+  moves++;
+  highlightActive(newColor);
+  draw();updateUI();checkWin();
+}
+
+function fillCount(){
+  const base=grid[0][0];let count=0;
+  // connected cells from top-left
+  const visited=Array.from({length:ROWS},()=>new Array(COLS).fill(false));
+  const queue=[[0,0]];visited[0][0]=true;count++;
+  while(queue.length>0){
+    const[r,c]=queue.shift();
+    [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].forEach(([nr,nc])=>{
+      if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&!visited[nr][nc]&&grid[nr][nc]===base){visited[nr][nc]=true;count++;queue.push([nr,nc]);}
+    });
+  }
+  return count;
+}
+
+function checkWin(){
+  const base=grid[0][0];
+  const allSame=grid.every(row=>row.every(c=>c===base));
+  if(allSame){
+    gameOver=true;
+    const movesUsed=moves;
+    if(!best||movesUsed<parseInt(best)){best=movesUsed;try{localStorage.setItem('flood_best',best);}catch(e){}document.getElementById('bestBadge').textContent='Best: '+best+' moves';}
+    document.getElementById('status').textContent=`You win! Completed in ${moves} moves! ${moves===best?'New Best!':''}`;
+    return;
+  }
+  if(moves>=MAX_MOVES){gameOver=true;document.getElementById('status').textContent=`Out of moves! The board is ${Math.round(fillCount()/ROWS/COLS*100)}% filled. Try again!`;}
+}
+
+function updateUI(){
+  const remaining=MAX_MOVES-moves;
+  document.getElementById('movesNum').textContent=remaining;
+  document.getElementById('movesNum').style.color=remaining<=5?'#f44336':remaining<=10?'#ff9800':'#6c63ff';
+  const pct=Math.round(fillCount()/(ROWS*COLS)*100);
+  document.getElementById('fillNum').textContent=pct+'%';
+  document.getElementById('progBar').style.width=pct+'%';
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    ctx.fillStyle=COLORS[grid[r][c]];
+    ctx.fillRect(c*SZ+1,r*SZ+1,SZ-2,SZ-2);
+    if(r===0&&c===0){ctx.strokeStyle='rgba(255,255,255,0.6)';ctx.lineWidth=2;ctx.strokeRect(c*SZ+2,r*SZ+2,SZ-4,SZ-4);}
+  }
+}
+
+newGame();
+</script>
+</body>
+</html>

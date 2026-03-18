@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Number Sequence – FreeWebGamesOnline</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
+#topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 18px;display:flex;align-items:center;gap:14px}
+#topbar a{color:#9898b8;text-decoration:none;font-size:20px}#topbar a:hover{color:#6c63ff}
+#topbar h1{font-size:18px;flex:1}
+#score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:700}
+#main{display:flex;flex-direction:column;align-items:center;padding:28px;gap:20px;max-width:520px;margin:0 auto}
+#stats-row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+#stats-row span{background:#1e1e30;border:1px solid #2a2a45;padding:7px 16px;border-radius:8px;font-size:14px;color:#9898b8}
+#stats-row b{color:#e8e8f0}
+#timer-bar-wrap{width:100%;max-width:400px;background:#1e1e30;border-radius:8px;height:10px;overflow:hidden;border:1px solid #2a2a45}
+#timer-bar{height:100%;background:#6c63ff;transition:width .4s linear;border-radius:8px}
+#type-badge{background:#2a2a45;padding:5px 16px;border-radius:20px;font-size:12px;color:#9898b8;text-transform:uppercase;letter-spacing:1px}
+#sequence{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center;min-height:70px}
+.num-tile{background:#1e1e30;border:2px solid #2a2a45;border-radius:10px;padding:12px 18px;font-size:28px;font-weight:900;color:#e8e8f0;min-width:56px;text-align:center}
+.num-tile.missing{background:#6c63ff22;border:2px dashed #6c63ff;color:#6c63ff;font-size:28px}
+#input-row{display:flex;gap:12px;align-items:center;width:100%;max-width:380px;justify-content:center}
+#answer{padding:14px 18px;background:#1e1e30;border:2px solid #2a2a45;color:#e8e8f0;border-radius:10px;font-size:24px;font-weight:700;outline:none;text-align:center;width:160px}
+#answer:focus{border-color:#6c63ff}
+#answer.correct{border-color:#2ecc71;background:#1a2e1a}
+#answer.wrong{border-color:#e74c3c;background:#2e1a1a}
+button.action{background:#6c63ff;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer}
+button.action:hover{background:#574fd6}
+#message{font-size:20px;font-weight:700;min-height:30px;text-align:center;color:#6c63ff}
+#explanation{font-size:13px;color:#9898b8;text-align:center;min-height:20px;font-style:italic}
+#highscore{font-size:13px;color:#9898b8}
+#end-panel{display:none;text-align:center;font-size:22px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>&#128290; Number Sequence</h1>
+  <span id="score-badge">Score: 0</span>
+</div>
+<div id="main">
+  <div id="stats-row">
+    <span>Round: <b id="round">1</b>/10</span>
+    <span>Score: <b id="score">0</b></span>
+    <span>Time: <b id="time-left">15</b>s</span>
+  </div>
+  <div id="timer-bar-wrap"><div id="timer-bar" style="width:100%"></div></div>
+  <div id="type-badge">Arithmetic</div>
+  <div id="sequence"></div>
+  <div id="explanation"></div>
+  <div id="input-row">
+    <input id="answer" type="number" placeholder="?" autocomplete="off">
+    <button class="action" onclick="submitAnswer()">Submit</button>
+  </div>
+  <div id="message"></div>
+  <div id="highscore">High Score: <b id="hs">--</b></div>
+  <div id="end-panel"></div>
+</div>
+<script>
+let round=0,score=0,timerID=null,timeLeft=15,currentAnswer=null,gameRunning=false;
+let hs=null;
+try{hs=localStorage.getItem('ns_hs');}catch(e){}
+if(hs)document.getElementById('hs').textContent=hs;
+
+// Sequence generators: return {nums (with null for missing), answer, type, explanation}
+function genArithmetic(difficulty){
+  const d=Math.floor(Math.random()*(2+difficulty*2))+1;
+  const start=Math.floor(Math.random()*(5*difficulty))+1;
+  const nums=Array.from({length:6},(_,i)=>start+d*i);
+  const missingIdx=Math.floor(Math.random()*6);
+  const answer=nums[missingIdx];
+  const display=nums.map((v,i)=>i===missingIdx?null:v);
+  return{display,answer,type:'Arithmetic',explanation:`Add ${d} each time`};
+}
+
+function genGeometric(difficulty){
+  const r=[2,3,4,5][Math.floor(Math.random()*Math.min(4,difficulty+1))];
+  const start=Math.floor(Math.random()*3)+1;
+  const nums=Array.from({length:5},(_,i)=>start*Math.pow(r,i));
+  const missingIdx=Math.floor(Math.random()*5);
+  const answer=nums[missingIdx];
+  const display=nums.map((v,i)=>i===missingIdx?null:v);
+  return{display,answer,type:'Geometric',explanation:`Multiply by ${r} each time`};
+}
+
+function genFibonacci(){
+  const a=Math.floor(Math.random()*3)+1,b=Math.floor(Math.random()*3)+1;
+  const nums=[a,b];for(let i=2;i<7;i++)nums.push(nums[i-1]+nums[i-2]);
+  const missingIdx=Math.floor(Math.random()*7);
+  const answer=nums[missingIdx];
+  const display=nums.map((v,i)=>i===missingIdx?null:v);
+  return{display,answer,type:'Fibonacci',explanation:'Each number = sum of previous two'};
+}
+
+function genSquares(difficulty){
+  const offset=Math.floor(Math.random()*(difficulty*2));
+  const nums=Array.from({length:6},(_,i)=>Math.pow(i+1+offset,2));
+  const missingIdx=Math.floor(Math.random()*6);
+  const answer=nums[missingIdx];
+  const display=nums.map((v,i)=>i===missingIdx?null:v);
+  return{display,answer,type:'Perfect Squares',explanation:`Squares of ${1+offset}, ${2+offset}, ...`};
+}
+
+function genPrimes(){
+  const primes=[2,3,5,7,11,13,17,19,23,29];
+  const start=Math.floor(Math.random()*5);
+  const nums=primes.slice(start,start+6);
+  const missingIdx=Math.floor(Math.random()*6);
+  const answer=nums[missingIdx];
+  const display=nums.map((v,i)=>i===missingIdx?null:v);
+  return{display,answer,type:'Prime Numbers',explanation:'Sequence of prime numbers'};
+}
+
+function genTriangular(){
+  const nums=Array.from({length:6},(_,i)=>(i+1)*(i+2)/2);
+  const missingIdx=Math.floor(Math.random()*6);
+  const answer=nums[missingIdx];
+  const display=nums.map((v,i)=>i===missingIdx?null:v);
+  return{display,answer,type:'Triangular Numbers',explanation:'1, 3, 6, 10... (add 2,3,4,...)'};
+}
+
+function generateQuestion(difficulty){
+  const types=[genArithmetic,genGeometric,genFibonacci,genSquares,genPrimes,genTriangular];
+  const weights=[40,20,20,15,5,10];
+  // Weighted pick based on difficulty
+  const pool=[];
+  weights.forEach((w,i)=>pool.push(...Array(w).fill(i)));
+  const idx=pool[Math.floor(Math.random()*pool.length)];
+  const fn=types[idx];
+  if(fn===genArithmetic||fn===genGeometric)return fn(difficulty);
+  return fn();
+}
+
+function startGame(){
+  round=0;score=0;gameRunning=true;
+  document.getElementById('score').textContent=0;document.getElementById('score-badge').textContent='Score: 0';
+  document.getElementById('end-panel').style.display='none';document.getElementById('end-panel').innerHTML='';
+  document.getElementById('input-row').style.display='flex';
+  nextRound();
+}
+
+function nextRound(){
+  if(round>=10){endGame();return;}
+  round++;
+  document.getElementById('round').textContent=round;
+  document.getElementById('message').textContent='';
+  document.getElementById('answer').value='';document.getElementById('answer').className='';
+  const difficulty=Math.floor((round-1)/3);
+  const q=generateQuestion(difficulty);
+  currentAnswer=q.answer;
+  document.getElementById('type-badge').textContent=q.type;
+  document.getElementById('explanation').textContent='Hint type shown after answer';
+  // Render sequence
+  const seq=document.getElementById('sequence');
+  seq.innerHTML=q.display.map(v=>v===null?`<div class="num-tile missing">?</div>`:`<div class="num-tile">${v}</div>`).join('');
+  // Time based on difficulty
+  timeLeft=Math.max(8,15-difficulty*2);
+  document.getElementById('time-left').textContent=timeLeft;
+  document.getElementById('timer-bar').style.width='100%';
+  document.getElementById('timer-bar').style.background='#6c63ff';
+  clearInterval(timerID);
+  const totalTime=timeLeft;
+  timerID=setInterval(()=>{
+    timeLeft--;document.getElementById('time-left').textContent=timeLeft;
+    document.getElementById('timer-bar').style.width=(timeLeft/totalTime*100)+'%';
+    if(timeLeft<=5)document.getElementById('timer-bar').style.background='#e74c3c';
+    if(timeLeft<=0){clearInterval(timerID);timeExpired(q.explanation);}
+  },1000);
+  document.getElementById('answer').focus();
+}
+
+function submitAnswer(){
+  if(!gameRunning||currentAnswer===null)return;
+  const val=parseInt(document.getElementById('answer').value);
+  if(isNaN(val))return;
+  clearInterval(timerID);
+  if(val===currentAnswer){
+    const pts=Math.max(10,timeLeft*10);score+=pts;
+    document.getElementById('score').textContent=score;document.getElementById('score-badge').textContent='Score: '+score;
+    document.getElementById('answer').className='correct';
+    document.getElementById('message').textContent='Correct! +'+pts+' points';document.getElementById('message').style.color='#2ecc71';
+    document.getElementById('explanation').textContent='';
+    // Reveal answer in sequence
+    document.querySelector('.num-tile.missing').textContent=currentAnswer;
+    document.querySelector('.num-tile.missing').style.background='#1a3e1a';
+    gameRunning=false;setTimeout(()=>{gameRunning=true;nextRound();},1200);
+  } else {
+    document.getElementById('answer').className='wrong';
+    document.getElementById('message').textContent='Wrong! Answer was '+currentAnswer;document.getElementById('message').style.color='#e74c3c';
+    document.querySelector('.num-tile.missing').textContent=currentAnswer;
+    document.getElementById('explanation').textContent='Pattern: ';
+    gameRunning=false;setTimeout(()=>{gameRunning=true;nextRound();},1800);
+  }
+}
+
+function timeExpired(exp){
+  document.getElementById('message').textContent='Time up! Answer: '+currentAnswer;document.getElementById('message').style.color='#e74c3c';
+  document.getElementById('explanation').textContent=exp;
+  document.querySelector('.num-tile.missing').textContent=currentAnswer;
+  gameRunning=false;setTimeout(()=>{gameRunning=true;nextRound();},1800);
+}
+
+function endGame(){
+  clearInterval(timerID);gameRunning=false;
+  if(!hs||score>parseInt(hs)){
+    try{localStorage.setItem('ns_hs',score);}catch(e){}
+    hs=score;document.getElementById('hs').textContent=score;
+  }
+  document.getElementById('input-row').style.display='none';
+  document.getElementById('message').textContent='';
+  const ep=document.getElementById('end-panel');ep.style.display='block';
+  ep.innerHTML='Game Over!<br><span style="color:#6c63ff;font-size:28px">Score: '+score+'</span><br><span style="color:#9898b8;font-size:14px">High Score: '+hs+'</span><br><button class="action" style="margin-top:16px" onclick="startGame()">Play Again</button>';
+}
+
+document.getElementById('answer').addEventListener('keydown',e=>{if(e.key==='Enter')submitAnswer();});
+startGame();
+</script>
+</body>
+</html>

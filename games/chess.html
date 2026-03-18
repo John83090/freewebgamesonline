@@ -1,39 +1,280 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Chess – DuckMath</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Chess – FreeWebGamesOnline</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
 <style>
+:root{--bg:#0d0d14;--bg2:#13131f;--bg3:#1a1a2e;--card:#1e1e30;--border:#2a2a45;--accent:#6c63ff;--text:#e8e8f0;--text2:#9898b8}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
-.topbar{width:100%;background:#13131f;border-bottom:1px solid #2a2a45;padding:10px 20px;display:flex;align-items:center;gap:12px}
-.back{color:#9898b8;text-decoration:none;font-size:0.85rem}.back:hover{color:#e8e8f0}
-.game-title{font-weight:800}
-.area{display:flex;flex-direction:column;align-items:center;padding:40px 20px;gap:20px;text-align:center}
-canvas{border:2px solid #6c63ff;border-radius:8px;background:#0a0a14;max-width:100%}
-.btn{background:#6c63ff;border:none;color:#fff;border-radius:10px;padding:12px 28px;font-size:1rem;font-weight:700;cursor:pointer}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;height:48px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.back{color:var(--text2);text-decoration:none;font-size:.85rem}.back:hover{color:var(--text)}
+.game-title{font-weight:800;font-size:.95rem;flex:1}
+.badge{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:.8rem;font-weight:700}
+.page{display:flex;flex:1;justify-content:center;align-items:flex-start;padding:16px;gap:16px;flex-wrap:wrap}
+#board{border:2px solid var(--border);border-radius:4px;cursor:pointer;max-width:100%}
+.sidebar{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;width:200px;display:flex;flex-direction:column;gap:12px}
+.sidebar h3{font-size:.9rem;font-weight:700;color:var(--accent)}
+.turn-badge{background:var(--bg3);border-radius:8px;padding:8px 12px;font-size:.85rem;text-align:center;font-weight:700}
+.captured{min-height:32px;background:var(--bg3);border-radius:8px;padding:6px 8px;font-size:1.1rem;line-height:1.5;word-break:break-all}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:.82rem;font-weight:700;width:100%;transition:background .15s}
+.btn:hover{background:#8b7cf6}
+.btn.sec{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.btn.sec:hover{border-color:var(--accent);color:var(--accent)}
+.status{background:var(--bg3);border-radius:8px;padding:8px;font-size:.8rem;text-align:center;color:var(--text2);min-height:32px}
+.diff{display:flex;gap:6px}
+.diff button{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:5px;font-size:.72rem;cursor:pointer;transition:all .15s}
+.diff button.active{border-color:var(--accent);color:var(--accent)}
 </style>
 </head>
 <body>
-<div class="topbar"><a class="back" href="../index.html">← Back</a><span class="game-title" style="margin-left:8px">🎮 Chess</span></div>
-<div class="area">
-<canvas id="c" width="480" height="360"></canvas>
-<button class="btn" onclick="startGame()">▶ Start Game</button>
-<p style="color:#9898b8;font-size:0.9rem">Use keyboard/mouse to play!</p>
+<div class="topbar">
+  <a class="back" href="../index.html">← Back</a>
+  <span class="game-title">♟️ Chess</span>
+  <div class="badge" id="move-badge">Move 1</div>
+</div>
+<div class="page">
+  <canvas id="board" width="480" height="480"></canvas>
+  <div class="sidebar">
+    <h3>♟️ Chess</h3>
+    <div>
+      <div style="font-size:.72rem;color:var(--text2);margin-bottom:4px">Difficulty</div>
+      <div class="diff">
+        <button onclick="setDiff(1)" id="d1" class="active">Easy</button>
+        <button onclick="setDiff(2)" id="d2">Med</button>
+        <button onclick="setDiff(3)" id="d3">Hard</button>
+      </div>
+    </div>
+    <div class="turn-badge" id="turn-disp">White's Turn</div>
+    <div>
+      <div style="font-size:.72rem;color:var(--text2);margin-bottom:4px">Black captured</div>
+      <div class="captured" id="cap-b"></div>
+    </div>
+    <div>
+      <div style="font-size:.72rem;color:var(--text2);margin-bottom:4px">White captured</div>
+      <div class="captured" id="cap-w"></div>
+    </div>
+    <div class="status" id="status">Select a white piece</div>
+    <button class="btn" onclick="newGame()">🔄 New Game</button>
+    <button class="btn sec" onclick="undoMove()">↩ Undo</button>
+  </div>
 </div>
 <script>
-const c=document.getElementById('c'),ctx=c.getContext('2d');
-ctx.fillStyle='#0a0a14';ctx.fillRect(0,0,480,360);
-ctx.fillStyle='#6c63ff';ctx.font='bold 24px Segoe UI';ctx.textAlign='center';
-ctx.fillText('Chess',240,160);
-ctx.fillStyle='#9898b8';ctx.font='16px Segoe UI';
-ctx.fillText('Press Start to play!',240,200);
-function startGame(){
-  ctx.fillStyle='#0a0a14';ctx.fillRect(0,0,480,360);
-  ctx.fillStyle='#ffd93d';ctx.font='20px Segoe UI';ctx.textAlign='center';
-  ctx.fillText('Game Loading...',240,180);
-  // Game logic would go here
+const C=document.getElementById('board'),ctx=C.getContext('2d');
+const SZ=60;
+const GLYPHS={'K':'♔','Q':'♕','R':'♖','B':'♗','N':'♘','P':'♙','k':'♚','q':'♛','r':'♜','b':'♝','n':'♞','p':'♟'};
+const VALS={p:100,n:320,b:330,r:500,q:900,k:20000};
+const INIT=[['r','n','b','q','k','b','n','r'],['p','p','p','p','p','p','p','p'],[' ',' ',' ',' ',' ',' ',' ',' '],[' ',' ',' ',' ',' ',' ',' ',' '],[' ',' ',' ',' ',' ',' ',' ',' '],[' ',' ',' ',' ',' ',' ',' ',' '],['P','P','P','P','P','P','P','P'],['R','N','B','Q','K','B','N','R']];
+
+let bd,sel,validMoves,turn,over,moveN,hist,capW,capB,diff,ep,cr;
+function isW(p){return p>='A'&&p<='Z'&&p!==' ';}
+function isB(p){return p>='a'&&p<='z'&&p!==' ';}
+function sameC(a,b){return(isW(a)&&isW(b))||(isB(a)&&isB(b));}
+
+function setDiff(d){diff=d;['d1','d2','d3'].forEach((id,i)=>document.getElementById(id).classList.toggle('active',i+1===d));}
+
+function newGame(){
+  bd=INIT.map(r=>[...r]);sel=null;validMoves=[];turn='w';over=false;moveN=1;
+  hist=[];capW=[];capB=[];ep=null;cr={wK:true,wQR:true,wKR:true,bK:true,bQR:true,bKR:true};
+  document.getElementById('cap-b').textContent='';
+  document.getElementById('cap-w').textContent='';
+  document.getElementById('status').textContent='Select a white piece';
+  document.getElementById('turn-disp').textContent="White's Turn";
+  document.getElementById('move-badge').textContent='Move 1';
+  draw();
 }
+
+function pseudoMoves(b,r,c,epT){
+  const p=b[r][c];if(p===' ')return[];
+  const w=isW(p),pt=p.toLowerCase(),mvs=[];
+  const add=(tr,tc)=>{if(tr<0||tr>7||tc<0||tc>7||sameC(p,b[tr][tc]))return false;mvs.push({r:tr,c:tc});return b[tr][tc]===' ';};
+  const slide=(dr,dc)=>{for(let i=1;i<8;i++){if(!add(r+dr*i,c+dc*i))break;}};
+  if(pt==='p'){
+    const d=w?-1:1,st=w?6:1;
+    if(b[r+d]&&b[r+d][c]===' '){mvs.push({r:r+d,c});if(r===st&&b[r+2*d]&&b[r+2*d][c]===' ')mvs.push({r:r+2*d,c});}
+    [-1,1].forEach(dc=>{const tr=r+d,tc=c+dc;if(tr>=0&&tr<=7&&tc>=0&&tc<=7){if(b[tr][tc]!==' '&&!sameC(p,b[tr][tc]))mvs.push({r:tr,c:tc});else if(epT&&tr===epT.r&&tc===epT.c)mvs.push({r:tr,c:tc,ep:true});}});
+  }
+  if(pt==='r'||pt==='q'){[[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>slide(dr,dc));}
+  if(pt==='b'||pt==='q'){[[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc])=>slide(dr,dc));}
+  if(pt==='n'){[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].forEach(([dr,dc])=>add(r+dr,c+dc));}
+  if(pt==='k'){[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]].forEach(([dr,dc])=>add(r+dr,c+dc));}
+  return mvs;
+}
+
+function inCheck(b,col,epT){
+  const kg=col==='w'?'K':'k';let kr=-1,kc=-1;
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(b[r][c]===kg){kr=r;kc=c;}
+  if(kr<0)return false;
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const p=b[r][c];
+    if((col==='w'&&isB(p))||(col==='b'&&isW(p))){if(pseudoMoves(b,r,c,epT).some(m=>m.r===kr&&m.c===kc))return true;}
+  }
+  return false;
+}
+
+function legalMoves(b,r,c,epT,CR){
+  const p=b[r][c];if(p===' ')return[];
+  const col=isW(p)?'w':'b';
+  const legal=pseudoMoves(b,r,c,epT).filter(m=>{
+    const nb=b.map(row=>[...row]);
+    if(m.ep)nb[r][m.c]=' ';
+    nb[m.r][m.c]=p;nb[r][c]=' ';
+    if(p==='P'&&m.r===0)nb[m.r][m.c]='Q';
+    if(p==='p'&&m.r===7)nb[m.r][m.c]='q';
+    return!inCheck(nb,col,null);
+  });
+  // Castling
+  if(p==='K'&&r===7&&c===4&&!inCheck(b,'w',epT)){
+    if(CR.wK&&CR.wKR&&b[7][5]===' '&&b[7][6]===' '){const nb=b.map(r=>[...r]);nb[7][5]='K';nb[7][4]=' ';if(!inCheck(nb,'w',null)){const nb2=nb.map(r=>[...r]);nb2[7][6]='K';nb2[7][5]=' ';if(!inCheck(nb2,'w',null))legal.push({r:7,c:6,castle:'K'});}}
+    if(CR.wK&&CR.wQR&&b[7][3]===' '&&b[7][2]===' '&&b[7][1]===' '){const nb=b.map(r=>[...r]);nb[7][3]='K';nb[7][4]=' ';if(!inCheck(nb,'w',null)){const nb2=nb.map(r=>[...r]);nb2[7][2]='K';nb2[7][3]=' ';if(!inCheck(nb2,'w',null))legal.push({r:7,c:2,castle:'Q'});}}
+  }
+  if(p==='k'&&r===0&&c===4&&!inCheck(b,'b',epT)){
+    if(CR.bK&&CR.bKR&&b[0][5]===' '&&b[0][6]===' '){const nb=b.map(r=>[...r]);nb[0][5]='k';nb[0][4]=' ';if(!inCheck(nb,'b',null)){const nb2=nb.map(r=>[...r]);nb2[0][6]='k';nb2[0][5]=' ';if(!inCheck(nb2,'b',null))legal.push({r:0,c:6,castle:'K'});}}
+    if(CR.bK&&CR.bQR&&b[0][3]===' '&&b[0][2]===' '&&b[0][1]===' '){const nb=b.map(r=>[...r]);nb[0][3]='k';nb[0][4]=' ';if(!inCheck(nb,'b',null)){const nb2=nb.map(r=>[...r]);nb2[0][2]='k';nb2[0][3]=' ';if(!inCheck(nb2,'b',null))legal.push({r:0,c:2,castle:'Q'});}}
+  }
+  return legal;
+}
+
+function hasAny(b,col,epT,CR){
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){const p=b[r][c];if((col==='w'&&isW(p))||(col==='b'&&isB(p)))if(legalMoves(b,r,c,epT,CR).length>0)return true;}
+  return false;
+}
+
+function applyMv(b,fr,to,CR,epT){
+  const nb=b.map(r=>[...r]);let p=nb[fr.r][fr.c],cap=nb[to.r][to.c],nep=null,ncr={...CR};
+  if(to.ep){cap=isW(p)?'p':'P';nb[fr.r][to.c]=' ';}
+  if(to.castle){
+    if(to.castle==='K'&&isW(p)){nb[7][5]='R';nb[7][7]=' ';}
+    if(to.castle==='Q'&&isW(p)){nb[7][3]='R';nb[7][0]=' ';}
+    if(to.castle==='K'&&!isW(p)){nb[0][5]='r';nb[0][7]=' ';}
+    if(to.castle==='Q'&&!isW(p)){nb[0][3]='r';nb[0][0]=' ';}
+  }
+  if(p.toLowerCase()==='p'&&Math.abs(to.r-fr.r)===2)nep={r:(fr.r+to.r)/2,c:fr.c};
+  if(p==='P'&&to.r===0)p='Q';if(p==='p'&&to.r===7)p='q';
+  nb[to.r][to.c]=p;nb[fr.r][fr.c]=' ';
+  if(fr.r===7&&fr.c===4)ncr.wK=false;if(fr.r===7&&fr.c===0)ncr.wQR=false;if(fr.r===7&&fr.c===7)ncr.wKR=false;
+  if(fr.r===0&&fr.c===4)ncr.bK=false;if(fr.r===0&&fr.c===0)ncr.bQR=false;if(fr.r===0&&fr.c===7)ncr.bKR=false;
+  return{nb,cap,nep,ncr};
+}
+
+function evaluate(b){let s=0;for(let r=0;r<8;r++)for(let c=0;c<8;c++){const p=b[r][c];if(p!==' ')s+=isW(p)?VALS[p.toLowerCase()]:-VALS[p.toLowerCase()];}return s;}
+
+function minimax(b,depth,alpha,beta,max,epT,CR){
+  if(depth===0)return{score:evaluate(b)};
+  const col=max?'w':'b';
+  if(!hasAny(b,col,epT,CR))return inCheck(b,col,epT)?{score:max?-99999:99999}:{score:0};
+  let best=max?{score:-Infinity}:{score:Infinity},bestMove=null;
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const p=b[r][c];if((max&&!isW(p))||(!max&&!isB(p)))continue;
+    for(const m of legalMoves(b,r,c,epT,CR)){
+      const{nb,nep,ncr}=applyMv(b,{r,c},m,CR,epT);
+      const res=minimax(nb,depth-1,alpha,beta,!max,nep,ncr);
+      if(max){if(res.score>best.score){best.score=res.score;bestMove={fr:{r,c},to:m};}alpha=Math.max(alpha,res.score);}
+      else{if(res.score<best.score){best.score=res.score;bestMove={fr:{r,c},to:m};}beta=Math.min(beta,res.score);}
+      if(beta<=alpha)return{...best,...bestMove};
+    }
+  }
+  return{...best,...bestMove};
+}
+
+function doMove(fr,to){
+  const p=bd[fr.r][fr.c];
+  const{nb,cap,nep,ncr}=applyMv(bd,fr,to,cr,ep);
+  hist.push({bd:bd.map(r=>[...r]),ep,cr:{...cr}});
+  bd=nb;ep=nep;cr=ncr;
+  if(cap&&cap!==' '){
+    if(isW(cap))capW.push(cap);else capB.push(cap);
+    document.getElementById('cap-w').textContent=capW.map(x=>GLYPHS[x]||x).join('');
+    document.getElementById('cap-b').textContent=capB.map(x=>GLYPHS[x]||x).join('');
+  }
+  turn=turn==='w'?'b':'w';
+  const col=turn;
+  if(!hasAny(bd,col,ep,cr)){
+    const winner=col==='w'?'Black wins! ♟':'White wins! ♙';
+    const msg=inCheck(bd,col,ep)?`Checkmate — ${winner} 🏆`:'Stalemate — Draw!';
+    document.getElementById('status').textContent=msg;
+    document.getElementById('turn-disp').textContent=inCheck(bd,col,ep)?winner:'Draw!';
+    over=true;
+  }else{
+    const chk=inCheck(bd,col,ep);
+    document.getElementById('turn-disp').textContent=(col==='w'?'White':'Black')+"'s Turn"+(chk?' ⚠️':'');
+    document.getElementById('status').textContent=chk?'Check!':'Select a piece';
+    moveN++;document.getElementById('move-badge').textContent='Move '+moveN;
+  }
+  sel=null;validMoves=[];draw();
+}
+
+function undoMove(){
+  if(hist.length<2)return;
+  hist.pop();const prev=hist.pop();
+  bd=prev.bd;ep=prev.ep;cr=prev.cr;turn='w';over=false;
+  document.getElementById('turn-disp').textContent="White's Turn";
+  document.getElementById('status').textContent='Select a white piece';
+  sel=null;validMoves=[];draw();
+}
+
+function aiMove(){
+  if(over)return;
+  const depth=diff===1?1:diff===2?2:3;
+  const res=minimax(bd,depth,-Infinity,Infinity,false,ep,cr);
+  if(res.fr)doMove(res.fr,res.to);
+}
+
+C.addEventListener('click',function(e){
+  if(over||turn!=='w')return;
+  const rect=C.getBoundingClientRect();
+  const scaleX=480/rect.width;
+  const x=(e.clientX-rect.left)*scaleX,y=(e.clientY-rect.top)*scaleX;
+  const c2=Math.floor(x/SZ),r2=Math.floor(y/SZ);
+  if(r2<0||r2>7||c2<0||c2>7)return;
+  if(sel){
+    const mv=validMoves.find(m=>m.r===r2&&m.c===c2);
+    if(mv){
+      doMove({r:sel.r,c:sel.c},mv);
+      if(!over&&turn==='b'){document.getElementById('status').textContent='AI thinking...';setTimeout(aiMove,60);}
+      return;
+    }
+  }
+  const p=bd[r2][c2];
+  if(p!==' '&&isW(p)){sel={r:r2,c:c2};validMoves=legalMoves(bd,r2,c2,ep,cr);document.getElementById('status').textContent=`${GLYPHS[p]} — ${validMoves.length} move(s)`;draw();}
+  else{sel=null;validMoves=[];draw();}
+});
+
+function draw(){
+  const LIGHT='#c8a97e',DARK='#8b6343';
+  let ckR=-1,ckC=-1;
+  if(inCheck(bd,turn,ep)){const kg=turn==='w'?'K':'k';for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(bd[r][c]===kg){ckR=r;ckC=c;}}
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    ctx.fillStyle=(r+c)%2===0?LIGHT:DARK;ctx.fillRect(c*SZ,r*SZ,SZ,SZ);
+    if(sel&&sel.r===r&&sel.c===c){ctx.fillStyle='rgba(108,99,255,.55)';ctx.fillRect(c*SZ,r*SZ,SZ,SZ);}
+    if(r===ckR&&c===ckC){ctx.fillStyle='rgba(255,60,60,.7)';ctx.fillRect(c*SZ,r*SZ,SZ,SZ);}
+    const isV=validMoves.some(m=>m.r===r&&m.c===c);
+    if(isV){
+      if(bd[r][c]!==' '){ctx.strokeStyle='rgba(0,200,100,.9)';ctx.lineWidth=3;ctx.strokeRect(c*SZ+2,r*SZ+2,SZ-4,SZ-4);}
+      else{ctx.fillStyle='rgba(0,200,100,.45)';ctx.beginPath();ctx.arc(c*SZ+SZ/2,r*SZ+SZ/2,SZ*.2,0,Math.PI*2);ctx.fill();}
+    }
+    const p=bd[r][c];
+    if(p!==' '){
+      ctx.font=`${SZ*.65}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.shadowColor='rgba(0,0,0,.7)';ctx.shadowBlur=4;
+      ctx.fillStyle='#fff';ctx.fillText(GLYPHS[p]||'',c*SZ+SZ/2,r*SZ+SZ/2+2);
+      ctx.shadowBlur=0;
+    }
+  }
+  // Rank/file labels
+  ctx.font='9px monospace';ctx.shadowBlur=0;
+  for(let i=0;i<8;i++){
+    ctx.fillStyle=i%2===0?DARK:LIGHT;ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(8-i,2,i*SZ+2);
+    ctx.fillStyle=(i+1)%2===0?DARK:LIGHT;ctx.textAlign='right';ctx.textBaseline='bottom';ctx.fillText('abcdefgh'[i],(i+1)*SZ-2,(r=>r+1)(i)*SZ);
+  }
+}
+
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){r=Math.min(r,w/2,h/2);this.beginPath();this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.quadraticCurveTo(x+w,y,x+w,y+r);this.lineTo(x+w,y+h-r);this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);this.lineTo(x+r,y+h);this.quadraticCurveTo(x,y+h,x,y+h-r);this.lineTo(x,y+r);this.quadraticCurveTo(x,y,x+r,y);this.closePath();};}
+
+setDiff(1);
+newGame();
 </script>
 </body>
 </html>

@@ -11,7 +11,7 @@
 <script>
 // Force-reload if browser has old cached version
 (function(){
-  var V='fwgo_v8';
+  var V='fwgo_v9';
   if(localStorage.getItem('fwgo_ver')!==V){
     localStorage.setItem('fwgo_ver',V);
     // Unregister any service workers that might cache old content
@@ -463,20 +463,8 @@ const GAME_CAT = (P.get('cat')  || '').trim();
 // KEYBOARD-ONLY GAMES — Flash/Ruffle games that require keyboard & mouse
 // On mobile, show a "keyboard required" message with option to try anyway
 // ─────────────────────────────────────────────────────────────────────────────
-const KEYBOARD_ONLY_IDS = new Set([
-  'run3','basketleg','bloxorz','raftWars','potty_racers2','freeway_fury2',
-  'worlds_hardest','worlds_hardest2','impossible_quiz','impossible_quiz2',
-  'super_mario_def','escape_prison','fleeing_complex','infiltrating_air',
-  'stealing_diamond','duck_life2','duck_life3','duck_life5',
-  'papas_burgeria','papas_pizzeria','papas_freezeria','papas_tacomia','papalouie2',
-  'bloons_td5','bloons_td3','bloons_td2','bloons_td',
-  'storm_house','storm_house2','storm_house3',
-  'binding_isaac','meat_boy','electric_man2',
-  'awesome_tanks2','awesome_tanks','alien_hominid','jacksmith',
-  'fancy_pants1','fancy_pants2','fancy_pants3',
-  'learn_fly2','raft_wars2','orion_sandbox',
-  'swords_sandals2','gunball','tiny_castle','breaking_bank','sword_sandals2'
-]);
+// All games are self-hosted HTML5 games — no keyboard-only restrictions
+const KEYBOARD_ONLY_IDS = new Set([]);
 
 // DESKTOP-ONLY GAMES — same as KEYBOARD_ONLY_IDS (all desktop-required games)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -487,66 +475,41 @@ const DESKTOP_ONLY_IDS = KEYBOARD_ONLY_IDS;
 // iframes. Mobile browsers sandbox iframes and won't allocate enough memory
 // (500MB–1GB) for Unity to initialise. Opening in a new tab gives full memory.
 // ─────────────────────────────────────────────────────────────────────────────
-const UNITY_IDS = new Set([
-  // 3D mobile games ported to WebGL
-  'jetpack_joy','rodeo_stampede','crossyroad','animal_crossing',
-  // 3D multiplayer shooters
-  '1v1lol','venge','smashkarts','cs_online','warbrokers','deadshot',
-  'masked_forces','time_shooter2','time_shooter_s',
-  // Horror / indie Unity games
-  'fnaf','fnaf2','fnaf3','fnaf4','fnaf5','fnaf_pizzeria',
-  'baldis_basics','granny','backrooms_game','hollow_knight',
-  'ultrakill','buckshot','rainbow_friends',
-  // Heavy 3D racing / action
-  'snow_rider','cluster_rush','drive_mad','race_arena','cod_zombies',
-  // Misc heavy Unity
-  'tabs','solar_smash','super_mario64','clashroyale'
-]);
+// All games are self-hosted HTML5 — no Unity restrictions needed
+const UNITY_IDS = new Set([]);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // NEWTAB GAMES — games that block iframe embedding at the HTTP/JS level
 // These show a splash screen with a "Play Now" button that opens in a new tab
 // ─────────────────────────────────────────────────────────────────────────────
-const NEWTAB_IDS = new Set([
-  'bullet',   // CrazyGames blocks iframe via X-Frame-Options
-  'gartic',   // gartic.io blocks iframe via X-Frame-Options
-  'wordle'    // NYTimes blocks iframe via X-Frame-Options
-]);
+// All self-hosted games work in iframes
+const NEWTAB_IDS = new Set([]);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PORTRAIT GAMES — 9:16 layout
 // ─────────────────────────────────────────────────────────────────────────────
-const PORTRAIT_IDS = new Set([
-  'helix','holeio','doodle_jump','bitlife','tiny_fishing','where_water',
-  'happy_glass','capybara_click','idle_ants','orb_farm','stack',
-  'staggering_beauty','incredibox','idle_dev','doge_miner','pizza_party',
-  'bloxorz_game','draw_bridge','blocky_puzzle','turn_turn','thorns_balloons',
-  'little_alchemy','uno','wordle','solitaire','mahjong','minesweeper',
-  'clicker','sandspiel','cookie','2048','pacman','flappybird','dino',
-  'snakeretro','curveball',
-  'blackjack','ludo','snake_ladder',
-  'subway','temple','freeflow'
-]);
+// Landscape (16:9) is default for all games
+const PORTRAIT_IDS = new Set([]);
 const isPortrait = PORTRAIT_IDS.has(GAME_ID);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CATEGORY LABELS & DESCRIPTIONS
 // ─────────────────────────────────────────────────────────────────────────────
 const CAT_LABEL = {
-  action:'Action',shooting:'Shooting',racing:'Racing',sports:'Sports',
-  puzzle:'Puzzle',adventure:'Adventure',io:'IO Games',horror:'Horror',
-  idle:'Idle & Clicker',creative:'Creative',minecraft:'Minecraft',
-  pokemon:'Pokémon',math:'Math Games',misc:'Casual'
+  arcade:'Arcade',puzzle:'Puzzle',board:'Board',card:'Card',
+  sports:'Sports',casino:'Casino',casual:'Casual',educational:'Educational',
+  strategy:'Strategy'
 };
 const CAT_DESC = {
-  action:'Fast-paced action — fight, dodge, and survive!',
-  shooting:'Aim and shoot your way through waves of enemies.',
-  racing:'Hit the gas and race to the finish line!',
-  sports:'Classic sports fun right in your browser.',
+  arcade:'Classic arcade fun — dodge, shoot, and survive!',
   puzzle:'Challenge your brain with clever puzzles.',
-  adventure:'Explore worlds and go on an epic adventure.',
-  io:'Compete against players worldwide in real-time!',
-  horror:'Creepy, atmospheric, and full of scares.',
+  board:'Classic board games brought to your browser.',
+  card:'Card games — strategy, luck, and fun!',
+  sports:'Classic sports action right in your browser.',
+  casino:'Virtual casino games — play for fun with no real money!',
+  casual:'Relaxing and fun casual games for everyone.',
+  educational:'Learn while you play — math, words, and trivia!',
+  strategy:'Think ahead and outsmart your opponent!',
   idle:'Sit back, click, and watch your empire grow.',
   creative:'Build, draw, and create freely.',
   minecraft:'Minecraft-inspired building and survival.',

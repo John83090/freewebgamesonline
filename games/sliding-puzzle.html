@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>15-Puzzle – FreeWebGamesOnline</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
+#topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 18px;display:flex;align-items:center;gap:14px}
+#topbar a{color:#9898b8;text-decoration:none;font-size:20px}#topbar a:hover{color:#6c63ff}
+#topbar h1{font-size:18px;flex:1}
+#score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:700}
+#main{display:flex;flex-direction:column;align-items:center;padding:24px;gap:18px}
+#stats-row{display:flex;gap:24px;font-size:15px;color:#9898b8}
+#stats-row span{background:#1e1e30;border:1px solid #2a2a45;padding:6px 16px;border-radius:8px}
+#stats-row b{color:#e8e8f0}
+#board{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:316px;height:316px}
+.tile{background:linear-gradient(135deg,#6c63ff,#574fd6);color:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;cursor:pointer;transition:transform .1s,background .2s;user-select:none;border:2px solid #8880ff}
+.tile:hover{transform:scale(1.04);background:linear-gradient(135deg,#7c73ff,#6c63ff)}
+.tile.empty{background:transparent;border:2px dashed #2a2a45;cursor:default;pointer-events:none}
+.tile.solved{background:linear-gradient(135deg,#2ecc71,#1a9e55);border-color:#2ecc71}
+#message{font-size:22px;font-weight:700;color:#2ecc71;min-height:32px}
+#controls{display:flex;gap:12px}
+button.action{background:#6c63ff;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;transition:.15s}
+button.action:hover{background:#574fd6}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>&#129529; 15-Puzzle</h1>
+  <span id="score-badge">Moves: 0</span>
+</div>
+<div id="main">
+  <div id="stats-row">
+    <span>Moves: <b id="moves">0</b></span>
+    <span>Time: <b id="timer">0:00</b></span>
+    <span>Best: <b id="best">--</b></span>
+  </div>
+  <div id="board"></div>
+  <div id="message"></div>
+  <div id="controls">
+    <button class="action" onclick="shuffle()">Shuffle</button>
+    <button class="action" onclick="resetBoard()">Reset</button>
+  </div>
+</div>
+<script>
+let tiles=[],moves=0,elapsed=0,timerID=null,won=false;
+let best=null;
+try{best=localStorage.getItem('sp_best');}catch(e){}
+if(best)document.getElementById('best').textContent=best;
+
+function initSolved(){tiles=[];for(let i=1;i<=15;i++)tiles.push(i);tiles.push(0);}
+
+function isSolvable(arr){
+  let inv=0;
+  const a=arr.filter(x=>x!==0);
+  for(let i=0;i<a.length;i++)for(let j=i+1;j<a.length;j++)if(a[i]>a[j])inv++;
+  const emptyRow=Math.floor(arr.indexOf(0)/4);
+  return (inv+emptyRow)%2===1;
+}
+
+function shuffle(){
+  won=false;
+  document.getElementById('message').textContent='';
+  do{for(let i=tiles.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[tiles[i],tiles[j]]=[tiles[j],tiles[i]];}}
+  while(!isSolvable(tiles)||isSolved());
+  moves=0;elapsed=0;
+  clearInterval(timerID);
+  timerID=setInterval(tick,1000);
+  render();
+}
+
+function resetBoard(){initSolved();shuffle();}
+
+function isSolved(){return tiles.every((v,i)=>v===(i===15?0:i+1));}
+
+function tick(){elapsed++;const m=Math.floor(elapsed/60),s=elapsed%60;document.getElementById('timer').textContent=m+':'+(s<10?'0':'')+s;}
+
+function clickTile(idx){
+  if(won)return;
+  const empty=tiles.indexOf(0);
+  const r1=Math.floor(idx/4),c1=idx%4,r2=Math.floor(empty/4),c2=empty%4;
+  if((Math.abs(r1-r2)+Math.abs(c1-c2))===1){
+    [tiles[idx],tiles[empty]]=[tiles[empty],tiles[idx]];
+    moves++;render();
+    document.getElementById('moves').textContent=moves;
+    document.getElementById('score-badge').textContent='Moves: '+moves;
+    if(isSolved()){endGame();}
+  }
+}
+
+function endGame(){
+  won=true;clearInterval(timerID);
+  const m=Math.floor(elapsed/60),s=elapsed%60;
+  document.getElementById('message').textContent='Solved in '+moves+' moves! ';
+  // animate tiles
+  document.querySelectorAll('.tile:not(.empty)').forEach(t=>t.classList.add('solved'));
+  if(!best||moves<parseInt(best)){
+    try{localStorage.setItem('sp_best',moves);}catch(e){}
+    best=moves;document.getElementById('best').textContent=moves;
+  }
+}
+
+function render(){
+  const board=document.getElementById('board');
+  board.innerHTML='';
+  tiles.forEach((v,i)=>{
+    const d=document.createElement('div');
+    d.className='tile'+(v===0?' empty':'');
+    if(v!==0)d.textContent=v;
+    d.onclick=()=>clickTile(i);
+    board.appendChild(d);
+  });
+}
+
+initSolved();shuffle();
+</script>
+</body>
+</html>

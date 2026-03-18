@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Darts 501 – FreeWebGamesOnline</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;height:100vh;overflow:hidden;cursor:crosshair}
+  #topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0;cursor:default}
+  #topbar a{color:#9898b8;text-decoration:none;font-size:20px;cursor:pointer}
+  #topbar a:hover{color:#6c63ff}
+  #title{flex:1;font-size:18px;font-weight:700}
+  #score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-weight:700;font-size:15px}
+  #game-wrap{flex:1;display:flex;gap:0;overflow:hidden}
+  #sidebar{background:#1e1e30;border-right:1px solid #2a2a45;padding:16px;min-width:160px;display:flex;flex-direction:column;gap:12px;cursor:default}
+  .player-card{background:#2a2a45;border-radius:8px;padding:10px;border:2px solid transparent}
+  .player-card.active{border-color:#6c63ff}
+  .player-card h3{font-size:13px;color:#9898b8;margin-bottom:4px}
+  .player-card .pts{font-size:28px;font-weight:700;color:#e8e8f0}
+  .player-card .darts-thrown{font-size:12px;color:#9898b8}
+  #turn-info{background:#0d0d14;border-radius:6px;padding:8px;font-size:12px;color:#9898b8;text-align:center}
+  #msg{font-size:13px;color:#f9ca24;text-align:center;min-height:20px}
+  #canvas-wrap{flex:1;display:flex;justify-content:center;align-items:center;position:relative}
+  canvas{display:block}
+  #overlay{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:rgba(13,13,20,.9);gap:14px;cursor:default}
+  #overlay h2{font-size:30px;color:#6c63ff}
+  #overlay p{color:#9898b8;font-size:14px;text-align:center;max-width:280px}
+  #start-btn{background:#6c63ff;color:#fff;border:none;padding:11px 30px;border-radius:8px;font-size:16px;cursor:pointer;font-weight:700}
+  #start-btn:hover{background:#5a52e0}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <span id="title">🎯 Darts 501</span>
+  <span id="score-badge">501</span>
+</div>
+<div id="game-wrap">
+  <div id="sidebar">
+    <div class="player-card active" id="card-p1">
+      <h3>You</h3>
+      <div class="pts" id="pts-p1">501</div>
+      <div class="darts-thrown" id="darts-p1">Darts: 0</div>
+    </div>
+    <div class="player-card" id="card-p2">
+      <h3>CPU</h3>
+      <div class="pts" id="pts-p2">501</div>
+      <div class="darts-thrown" id="darts-p2">Darts: 0</div>
+    </div>
+    <div id="turn-info" id="turn-info">Your turn<br><span id="darts-left">3 darts left</span></div>
+    <div id="msg"></div>
+  </div>
+  <div id="canvas-wrap">
+    <canvas id="c"></canvas>
+    <div id="overlay">
+      <h2>Darts 501</h2>
+      <p>Click the dartboard to throw. Reduce from 501 to exactly 0. Must finish on a double!</p>
+      <button id="start-btn">Play</button>
+    </div>
+  </div>
+</div>
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){r=Math.min(r,w/2,h/2);this.beginPath();this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.arcTo(x+w,y,x+w,y+r,r);this.lineTo(x+w,y+h-r);this.arcTo(x+w,y+h,x+w-r,y+h,r);this.lineTo(x+r,y+h);this.arcTo(x,y+h,x,y+h-r,r);this.lineTo(x,y+r);this.arcTo(x,y,x+r,y,r);this.closePath();return this};}
+
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay');
+const NUMS=[20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5];
+const W=400,H=400,CX=W/2,CY=H/2,R=170;
+canvas.width=W;canvas.height=H;
+
+let p1={score:501,darts:0},p2={score:501,darts:0};
+let currentPlayer=1,dartsInTurn=0,turnDarts=[],gameRunning=false,aiThinking=false;
+let lastMsg='';
+
+function setupCanvas(){
+  const wrap=document.getElementById('canvas-wrap');
+  const size=Math.min(wrap.clientWidth,wrap.clientHeight);
+  const scale=size/W;
+  canvas.style.width=W*scale+'px';canvas.style.height=H*scale+'px';
+}
+window.addEventListener('resize',setupCanvas);setupCanvas();
+
+function getAngle(n){return NUMS.indexOf(n)*Math.PI*2/20-Math.PI/2;}
+
+function getScore(px,py){
+  const dx=px-CX,dy=py-CY;
+  const dist=Math.hypot(dx,dy);
+  if(dist<12)return{value:50,mult:1,label:'Bull'};
+  if(dist<22)return{value:25,mult:1,label:'25'};
+  if(dist>R)return{value:0,mult:0,label:'Miss'};
+  const angle=(Math.atan2(dy,dx)+Math.PI/2+Math.PI*2)%(Math.PI*2);
+  const seg=Math.floor(angle/(Math.PI*2/20));
+  const num=NUMS[seg];
+  const isDouble=dist>=R*0.84&&dist<=R;
+  const isTriple=dist>=R*0.52&&dist<=R*0.62;
+  if(isDouble)return{value:num,mult:2,label:'D'+num};
+  if(isTriple)return{value:num,mult:3,label:'T'+num};
+  return{value:num,mult:1,label:''+num};
+}
+
+function wobble(){return(Math.random()-0.5)*18;}
+
+function throwDart(x,y,player){
+  const wx=x+wobble(),wy=y+wobble();
+  const s=getScore(wx,wy);
+  const pts=s.value*s.mult;
+  const p=player===1?p1:p2;
+  const prev=p.score;
+  let msg='';
+  if(pts===0){msg='Miss!';turnDarts.push({x:wx,y:wy,label:'Miss',color:'#9898b8'});}
+  else if(p.score-pts<0){msg='Bust! (Over)';turnDarts=[];}
+  else if(p.score-pts===1){msg='Bust! (Need double)';turnDarts=[];}
+  else if(p.score-pts===0){
+    if(s.mult===2||s.value===50){p.score=0;p.darts+=dartsInTurn+1;msg='CHECKOUT! Win!';turnDarts.push({x:wx,y:wy,label:s.label,color:'#f9ca24'});endGame(player);return;}
+    else{msg='Need double to finish!';turnDarts=[];}
+  } else {
+    p.score-=pts;msg=s.label+' = '+pts;
+    turnDarts.push({x:wx,y:wy,label:s.label,color:s.mult===3?'#f9ca24':s.mult===2?'#43d9ad':'#e8e8f0'});
+  }
+  lastMsg=msg;document.getElementById('msg').textContent=msg;
+  updateUI();
+  dartsInTurn++;
+  if(dartsInTurn>=3){setTimeout(endTurn,600);}
+}
+
+function endTurn(){
+  const p=currentPlayer===1?p1:p2;
+  p.darts+=dartsInTurn;dartsInTurn=0;turnDarts=[];
+  currentPlayer=currentPlayer===1?2:1;
+  updateUI();
+  if(currentPlayer===2)setTimeout(aiTurn,700);
+}
+
+function aiTurn(){
+  if(!gameRunning)return;
+  const p=p2;
+  for(let i=dartsInTurn;i<3;i++){
+    // AI aims at triple 20 or adjusts based on score
+    let targetVal=20,targetMult=3;
+    if(p.score<=40&&p.score%2===0){targetVal=p.score/2;targetMult=2;}
+    else if(p.score<=60){targetVal=Math.min(20,Math.floor(p.score/3));targetMult=p.score%2===0?2:1;}
+    const seg=NUMS.indexOf(targetVal);
+    const baseAngle=seg*Math.PI*2/20-Math.PI/2;
+    const midAngle=baseAngle+Math.PI/20;
+    let radius=targetMult===3?R*0.57:targetMult===2?R*0.92:R*0.4;
+    if(targetVal===50)radius=8;
+    const ax=CX+Math.cos(midAngle)*radius+wobble()*0.8;
+    const ay=CY+Math.sin(midAngle)*radius+wobble()*0.8;
+    throwDart(ax,ay,2);
+    if(!gameRunning)return;
+    dartsInTurn++;
+    if(dartsInTurn>=3)break;
+  }
+  if(gameRunning){dartsInTurn=0;turnDarts=[];currentPlayer=1;updateUI();}
+}
+
+function updateUI(){
+  document.getElementById('pts-p1').textContent=p1.score;
+  document.getElementById('pts-p2').textContent=p2.score;
+  document.getElementById('darts-p1').textContent='Darts: '+p1.darts;
+  document.getElementById('darts-p2').textContent='Darts: '+p2.darts;
+  document.getElementById('card-p1').className='player-card'+(currentPlayer===1?' active':'');
+  document.getElementById('card-p2').className='player-card'+(currentPlayer===2?' active':'');
+  document.getElementById('darts-left').textContent=(3-dartsInTurn)+' darts left';
+  document.getElementById('turn-info').innerHTML=(currentPlayer===1?'Your turn':'CPU turn')+'<br><span id="darts-left">'+(3-dartsInTurn)+' darts left</span>';
+  document.getElementById('score-badge').textContent=(currentPlayer===1?p1.score:p2.score);
+}
+
+function endGame(winner){
+  gameRunning=false;
+  overlay.querySelector('h2').textContent=winner===1?'You Win!':'CPU Wins!';
+  overlay.querySelector('p').textContent='You: '+p1.darts+' darts | CPU: '+p2.darts+' darts';
+  document.getElementById('start-btn').textContent='Play Again';
+  overlay.style.display='flex';
+}
+
+function drawBoard(){
+  const colors1=['#e8e8f0','#0d0d14'],colors2=['#43d9ad','#ff6584'];
+  const rings=[R,R*0.84,R*0.62,R*0.52,R*0.22,R*0.12];
+  for(let r=0;r<20;r++){
+    const a1=r*Math.PI*2/20-Math.PI/2;
+    const a2=(r+1)*Math.PI*2/20-Math.PI/2;
+    // segments
+    for(let ri=0;ri<rings.length-1;ri++){
+      const isScoring=ri===1||ri===3;
+      ctx.beginPath();ctx.moveTo(CX,CY);
+      ctx.arc(CX,CY,rings[ri],a1,a2);ctx.closePath();
+      ctx.fillStyle=isScoring?colors2[r%2]:colors1[r%2];ctx.fill();
+      ctx.strokeStyle='rgba(0,0,0,0.4)';ctx.lineWidth=0.5;ctx.stroke();
+    }
+  }
+  // bull
+  ctx.beginPath();ctx.arc(CX,CY,rings[4],0,Math.PI*2);ctx.fillStyle='#43d9ad';ctx.fill();
+  ctx.beginPath();ctx.arc(CX,CY,rings[5],0,Math.PI*2);ctx.fillStyle='#ff6584';ctx.fill();
+  // outer border
+  ctx.beginPath();ctx.arc(CX,CY,R+8,0,Math.PI*2);ctx.strokeStyle='#3a3a55';ctx.lineWidth=12;ctx.stroke();
+  // numbers
+  ctx.fillStyle='#e8e8f0';ctx.font='bold 11px Segoe UI';ctx.textAlign='center';
+  NUMS.forEach((n,i)=>{
+    const a=i*Math.PI*2/20-Math.PI/2+Math.PI/20;
+    const nx=CX+Math.cos(a)*(R+18),ny=CY+Math.sin(a)*(R+18);
+    ctx.fillText(n,nx,ny+4);
+  });
+}
+
+function draw(){
+  ctx.fillStyle='#1e1e30';ctx.fillRect(0,0,W,H);
+  drawBoard();
+  // darts on board
+  turnDarts.forEach(d=>{
+    ctx.beginPath();ctx.arc(d.x,d.y,5,0,Math.PI*2);ctx.fillStyle=d.color;ctx.fill();
+    ctx.strokeStyle='#0d0d14';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.fillStyle=d.color;ctx.font='bold 9px sans-serif';ctx.textAlign='center';ctx.fillText(d.label,d.x,d.y-8);
+  });
+}
+
+canvas.addEventListener('click',e=>{
+  if(!gameRunning||currentPlayer!==1||dartsInTurn>=3)return;
+  const rect=canvas.getBoundingClientRect();
+  const scaleX=W/rect.width,scaleY=H/rect.height;
+  const x=(e.clientX-rect.left)*scaleX,y=(e.clientY-rect.top)*scaleY;
+  throwDart(x,y,1);
+  draw();
+});
+
+document.getElementById('start-btn').addEventListener('click',()=>{
+  p1={score:501,darts:0};p2={score:501,darts:0};
+  currentPlayer=1;dartsInTurn=0;turnDarts=[];gameRunning=true;lastMsg='';
+  updateUI();document.getElementById('msg').textContent='Click to throw!';
+  overlay.style.display='none';draw();
+});
+setupCanvas();draw();
+</script>
+</body>
+</html>

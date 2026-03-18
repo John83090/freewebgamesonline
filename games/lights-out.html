@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lights Out – FreeWebGamesOnline</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
+#topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 18px;display:flex;align-items:center;gap:14px}
+#topbar a{color:#9898b8;text-decoration:none;font-size:20px}#topbar a:hover{color:#6c63ff}
+#topbar h1{font-size:18px;flex:1}
+#score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:700}
+#main{display:flex;flex-direction:column;align-items:center;padding:24px;gap:18px}
+#grid{display:grid;grid-template-columns:repeat(5,72px);gap:8px}
+.light{width:72px;height:72px;border-radius:12px;cursor:pointer;border:2px solid transparent;transition:all .15s;position:relative}
+.light.on{background:radial-gradient(circle,#ffe066,#f1c40f);border-color:#f39c12;box-shadow:0 0 18px #f1c40f88}
+.light.off{background:#1e1e30;border-color:#2a2a45}
+.light.hint{border-color:#6c63ff!important;box-shadow:0 0 14px #6c63ff88!important}
+.light:hover{transform:scale(1.06)}
+#message{font-size:20px;font-weight:700;min-height:30px;color:#2ecc71}
+#stats-row{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+#stats-row span{background:#1e1e30;border:1px solid #2a2a45;padding:6px 14px;border-radius:8px;font-size:14px;color:#9898b8}
+#stats-row b{color:#e8e8f0}
+#controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+button.action{background:#6c63ff;color:#fff;border:none;padding:9px 20px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
+button.action:hover{background:#574fd6}
+#level-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.lvl-btn{background:#1e1e30;border:1px solid #2a2a45;color:#9898b8;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer}
+.lvl-btn.active{border-color:#6c63ff;color:#6c63ff}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>&#128161; Lights Out</h1>
+  <span id="score-badge">Moves: 0</span>
+</div>
+<div id="main">
+  <div id="level-row"></div>
+  <div id="stats-row">
+    <span>Moves: <b id="moves">0</b></span>
+    <span>Lights On: <b id="on-count">0</b></span>
+  </div>
+  <div id="grid"></div>
+  <div id="message"></div>
+  <div id="controls">
+    <button class="action" onclick="showHint()">Hint</button>
+    <button class="action" onclick="loadLevel(currentLevel)">Reset</button>
+    <button class="action" onclick="randomPuzzle()">Random</button>
+  </div>
+  <div style="font-size:12px;color:#9898b8">Goal: Turn ALL lights OFF. Clicking a light toggles it and adjacent lights.</div>
+</div>
+<script>
+// Preset puzzles (1=on, 0=off)
+const PUZZLES=[
+  [1,0,1,0,1, 0,1,0,1,0, 1,0,1,0,1, 0,1,0,1,0, 1,0,1,0,1],
+  [0,1,1,1,0, 1,0,0,0,1, 1,0,0,0,1, 1,0,0,0,1, 0,1,1,1,0],
+  [1,1,1,1,1, 1,0,0,0,1, 1,0,1,0,1, 1,0,0,0,1, 1,1,1,1,1],
+  [1,0,0,0,1, 0,1,0,1,0, 0,0,1,0,0, 0,1,0,1,0, 1,0,0,0,1],
+  [1,1,0,1,1, 1,0,1,0,1, 0,1,0,1,0, 1,0,1,0,1, 1,1,0,1,1]
+];
+
+let grid=[],moves=0,hintCell=-1,currentLevel=0;
+
+function loadLevel(idx){
+  currentLevel=idx;moves=0;hintCell=-1;grid=[...PUZZLES[idx]];
+  document.getElementById('moves').textContent=0;document.getElementById('score-badge').textContent='Moves: 0';
+  document.getElementById('message').textContent='';updateOnCount();render();
+  document.querySelectorAll('.lvl-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+}
+
+function randomPuzzle(){
+  moves=0;hintCell=-1;grid=Array(25).fill(0);
+  // Make a random solvable puzzle by applying random clicks
+  for(let i=0;i<15;i++)applyToggle(Math.floor(Math.random()*25),true);
+  document.getElementById('moves').textContent=0;document.getElementById('score-badge').textContent='Moves: 0';
+  document.getElementById('message').textContent='';updateOnCount();render();
+  document.querySelectorAll('.lvl-btn').forEach(b=>b.classList.remove('active'));
+}
+
+function applyToggle(idx,silent=false){
+  const r=Math.floor(idx/5),c=idx%5;
+  [[0,0],[0,-1],[0,1],[-1,0],[1,0]].forEach(([dr,dc])=>{
+    const nr=r+dr,nc=c+dc;
+    if(nr>=0&&nr<5&&nc>=0&&nc<5)grid[nr*5+nc]^=1;
+  });
+  if(!silent){
+    moves++;document.getElementById('moves').textContent=moves;document.getElementById('score-badge').textContent='Moves: '+moves;
+    updateOnCount();hintCell=-1;render();
+    if(grid.every(v=>v===0))document.getElementById('message').textContent='Solved! All lights out!';
+  }
+}
+
+function updateOnCount(){document.getElementById('on-count').textContent=grid.filter(v=>v===1).length;}
+
+function showHint(){
+  // Simple hint: find first cell whose toggle reduces on-count
+  let best=-1,bestScore=Infinity;
+  for(let i=0;i<25;i++){
+    const tmp=[...grid];
+    const r=Math.floor(i/5),c=i%5;
+    [[0,0],[0,-1],[0,1],[-1,0],[1,0]].forEach(([dr,dc])=>{const nr=r+dr,nc=c+dc;if(nr>=0&&nr<5&&nc>=0&&nc<5)tmp[nr*5+nc]^=1;});
+    const score=tmp.filter(v=>v===1).length;
+    if(score<bestScore){bestScore=score;best=i;}
+  }
+  hintCell=best;render();
+}
+
+function render(){
+  const el=document.getElementById('grid');el.innerHTML='';
+  grid.forEach((v,i)=>{
+    const d=document.createElement('div');
+    d.className='light '+(v?'on':'off')+(i===hintCell?' hint':'');
+    d.onclick=()=>applyToggle(i);
+    el.appendChild(d);
+  });
+}
+
+// Level buttons
+const lr=document.getElementById('level-row');
+PUZZLES.forEach((_,i)=>{const b=document.createElement('button');b.className='lvl-btn';b.textContent='Puzzle '+(i+1);b.onclick=()=>loadLevel(i);lr.appendChild(b);});
+loadLevel(0);
+</script>
+</body>
+</html>

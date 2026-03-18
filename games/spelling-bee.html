@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spelling Bee – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.topbar a{color:#9898b8;text-decoration:none;font-size:20px}.topbar a:hover{color:#6c63ff}
+.topbar h1{font-size:18px;font-weight:600;flex:1}
+.score-badge{background:#6c63ff;color:#fff;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:700}
+.game-area{flex:1;display:flex;flex-direction:column;align-items:center;padding:20px;gap:16px;max-width:560px;margin:0 auto;width:100%}
+.score-row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;width:100%}
+.sbox{background:#1e1e30;border:1px solid #2a2a45;border-radius:10px;padding:8px 18px;text-align:center}
+.sbox .v{font-size:20px;font-weight:800;color:#6c63ff}
+.sbox .l{font-size:11px;color:#9898b8}
+.hive{display:flex;flex-direction:column;align-items:center;gap:0}
+.hive-row{display:flex;gap:6px}
+.hex{width:70px;height:70px;background:#1e1e30;border:2px solid #2a2a45;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;cursor:pointer;color:#e8e8f0;transition:background .15s,border-color .15s;user-select:none;text-transform:uppercase}
+.hex:hover{background:#2a2a45}
+.hex.center{background:#6c63ff;border-color:#5a52ef;color:#fff}
+.hex.center:hover{background:#574fd6}
+.input-box{background:#1e1e30;border:2px solid #2a2a45;border-radius:12px;padding:12px 20px;font-size:24px;font-weight:700;text-align:center;min-width:260px;letter-spacing:.12em;min-height:56px;color:#e8e8f0;text-transform:uppercase}
+.feedback{font-size:16px;font-weight:700;min-height:24px;text-align:center}
+.feedback.ok{color:#2ecc71}
+.feedback.err{color:#e74c3c}
+.feedback.pangram{color:#f1c40f}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.btn{background:#1e1e30;border:1px solid #2a2a45;border-radius:8px;color:#e8e8f0;padding:9px 20px;font-size:14px;cursor:pointer;font-weight:600}
+.btn:hover{background:#2a2a45}
+.btn.primary{background:#6c63ff;border-color:#6c63ff}
+.btn.primary:hover{background:#574fd6}
+.words-area{width:100%;background:#1e1e30;border:1px solid #2a2a45;border-radius:12px;padding:14px}
+.words-area h3{font-size:13px;color:#9898b8;margin-bottom:8px}
+.words-list{display:flex;flex-wrap:wrap;gap:6px}
+.word-pill{background:#2a2a45;border-radius:16px;padding:4px 12px;font-size:13px;color:#e8e8f0}
+.word-pill.pangram{background:#f1c40f20;border:1px solid #f1c40f;color:#f1c40f}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>🐝 Spelling Bee</h1>
+  <span class="score-badge" id="score-badge">Score: 0</span>
+</div>
+<div class="game-area">
+  <div class="score-row">
+    <div class="sbox"><div class="v" id="score-v">0</div><div class="l">Score</div></div>
+    <div class="sbox"><div class="v" id="words-v">0</div><div class="l">Words</div></div>
+    <div class="sbox"><div class="v" id="max-v">?</div><div class="l">Max Pts</div></div>
+  </div>
+  <div class="hive" id="hive"></div>
+  <div class="input-box" id="input-box"></div>
+  <div class="feedback" id="feedback"></div>
+  <div class="btn-row">
+    <button class="btn" onclick="deleteLetter()">⌫ Delete</button>
+    <button class="btn" onclick="shuffleOuter()">🔀 Shuffle</button>
+    <button class="btn primary" onclick="submitWord()">Enter ↵</button>
+    <button class="btn" onclick="nextPuzzle()">Next 🔄</button>
+  </div>
+  <div class="words-area">
+    <h3>Found Words (<span id="found-count">0</span>)</h3>
+    <div class="words-list" id="words-list"></div>
+  </div>
+</div>
+<script>
+const PUZZLES=[
+  {center:'R',outer:['A','E','I','N','G','T'],hint:'GRAIN'},
+  {center:'O',outer:['L','V','E','W','R','D'],hint:'WORLD'},
+  {center:'S',outer:['T','A','R','E','N','I'],hint:'TRAINS'},
+  {center:'E',outer:['A','R','T','H','N','D'],hint:'THREAD'},
+  {center:'I',outer:['N','G','H','T','F','L'],hint:'FLIGHT'},
+];
+
+const DICTIONARY=['able','acne','acre','acrid','acting','action','active','admit','adorn',
+'agree','aging','agile','alert','alien','align','alone','alter','angel','anger','angle',
+'angler','animal','anime','ankle','annex','anoint','answer','antler','anvil','apron',
+'arena','argue','arise','armor','arson','artisan','aspire','astride','attain','attend',
+'eager','eagle','early','earn','earth','eaten','egret','eight','elder','elate',
+'elite','enter','entire','errand','error','evade','event','exact','exile','extra',
+'faint','flair','flare','fleet','flesh','float','floor','flore','flow','flair',
+'giant','given','glare','gleam','glide','glint','globe','gloom','glide','gloat',
+'grace','grade','grain','grand','grant','graze','greed','greet','grind','grint',
+'halter','harden','haste','haven','heart','hedge','heist','herald','hinge','hired',
+'ideal','ident','irate','irked','island','isolate','lair','laden','lager','lance',
+'large','laser','later','latin','learn','leant','lemon','level','light','liner',
+'linen','liner','lingo','lining','listen','liter','liver','lodge','loaner','logic',
+'moral','mined','miner','minor','mint','mirth','model','mogul','moose','mount',
+'naive','named','narrate','nature','nearer','nerve','night','nightly','noble','noise',
+'north','noted','novel','oiled','omen','onward','order','ornate','outer','owner',
+'reign','reigned','rein','relax','relied','rend','rental','retain','retina','ridge',
+'right','rigid','rind','ringleader','risen','river','road','roan','robin','rotate',
+'saint','salve','satin','scale','scene','sent','serve','shade','shale','shear',
+'shine','shrine','siren','slate','slender','slide','slime','smith','snare','snide',
+'solar','solid','solve','shard','spare','spear','spend','spire','stain','stale',
+'stand','stare','start','state','stead','steal','steam','steel','steer','stern',
+'stone','store','storm','strap','straw','stray','stripe','stride','string','strong',
+'talent','tangle','taste','tearing','tender','tense','tenth','tern','thorn','throne',
+'tidal','tiger','tinge','tired','titan','title','total','trace','trade','train',
+'trail','trained','trainer','trains','travel','trend','trial','tribe','tried','trine',
+'under','unite','untie','update','valet','valid','valor','value','valve','vegan',
+'video','vigor','viral','vital','voted','wager','warden','water','welder','wider',
+'wield','winder','wine','wired','world','woven','write','yodel','zeal','adore',
+'lore','lore','lorn','lord','old','wolf','fold','gold','gold','hold','mold','bold',
+'vole','role','hole','pole','sole','dove','cove','love','rove','wove','lone','bone',
+'hone','done','gone','tone','zone','word','wore','lore','gore','more','bore','core',
+'fore','rod','god','nod','ode','eel','gel','del','elder','elbow','evolve','evoke',
+'node','mode','code','rode','lode','bode','dole','role','vole','mole','sole','toll',
+'role','over','wren','wren','drew','dew','owed','owe','ewer','ever','red','rod','old',
+'enrol','world','lower','lower','elbow','below','below','dowel','lower','rowel',
+'rend','tend','lend','blend','trend','fend','bend','mend','rend','vend','wend',
+'oven','even','given','driven','riven','woven','roved','loved','solved','evolved',
+'rent','sent','dent','lent','bent','gent','tent','vent','went','anti','rain','rein',
+'train','grain','brain','drain','stain','sprain','gain','main','pain','vain','wain',
+'tire','hire','fire','wire','sire','ire','mire','tins','rins','gins','fins','dins',
+'ring','sing','king','ding','fling','sling','cling','bring','string','thing','sting',
+'fight','light','night','right','sight','tight','flight','bright','fright','plight',
+'hint','lint','mint','tint','glint','flint','print','stint','ghost','host','lost',
+'thin','shin','grin','grin','thin','win','tin','gin','fin','din','pin','bin','inn',
+'night','night','in','an','at','it','into','hint','thin','thing','thigh','night',
+];
+
+const VALID_WORDS=Array.from(new Set(DICTIONARY.map(w=>w.toUpperCase())));
+
+let puzzleIdx=0,currentPuzzle=null,currentInput='',foundWords=[],score=0,outerLetters=[];
+
+function loadPuzzle(idx){
+  currentPuzzle=PUZZLES[idx%PUZZLES.length];
+  outerLetters=[...currentPuzzle.outer];
+  currentInput='';foundWords=[];score=0;
+  document.getElementById('score-v').textContent=0;
+  document.getElementById('words-v').textContent=0;
+  document.getElementById('score-badge').textContent='Score: 0';
+  document.getElementById('input-box').textContent='';
+  document.getElementById('feedback').textContent='';
+  document.getElementById('feedback').className='feedback';
+  document.getElementById('words-list').innerHTML='';
+  document.getElementById('found-count').textContent='0';
+  const maxPts=computeMaxPts();
+  document.getElementById('max-v').textContent=maxPts||'?';
+  renderHive();
+}
+
+function computeMaxPts(){
+  const all=getValidWords();
+  return all.reduce((s,w)=>s+wordScore(w),0);
+}
+
+function getValidWords(){
+  const center=currentPuzzle.center;
+  const letters=new Set([center,...currentPuzzle.outer]);
+  return VALID_WORDS.filter(w=>{
+    if(w.length<4)return false;
+    if(!w.includes(center))return false;
+    for(const c of w)if(!letters.has(c))return false;
+    return true;
+  });
+}
+
+function isPangram(w){
+  const all=new Set([currentPuzzle.center,...currentPuzzle.outer]);
+  for(const c of all)if(!w.includes(c))return false;
+  return true;
+}
+
+function wordScore(w){
+  if(w.length===4)return 1;
+  let s=w.length;
+  if(isPangram(w))s+=7;
+  return s;
+}
+
+function renderHive(){
+  const hive=document.getElementById('hive');hive.innerHTML='';
+  // Layout: row of 3, then row of 1(center) + 2, then row of 3 remaining... simpler 3-row layout
+  // Row1: outer[0] outer[1] outer[2]
+  // Row2: outer[3] CENTER outer[4]
+  // Row3: outer[5]
+  const layout=[[0,1,2],[3,'C',4],[5]];
+  layout.forEach(row=>{
+    const div=document.createElement('div');div.className='hive-row';
+    row.forEach(item=>{
+      const h=document.createElement('div');
+      if(item==='C'){
+        h.className='hex center';h.textContent=currentPuzzle.center;
+        h.onclick=()=>addLetter(currentPuzzle.center);
+      } else {
+        h.className='hex';h.textContent=outerLetters[item];
+        h.onclick=()=>addLetter(outerLetters[item]);
+      }
+      div.appendChild(h);
+    });
+    hive.appendChild(div);
+  });
+}
+
+function addLetter(l){
+  currentInput+=l;
+  document.getElementById('input-box').textContent=currentInput;
+}
+function deleteLetter(){
+  currentInput=currentInput.slice(0,-1);
+  document.getElementById('input-box').textContent=currentInput||'';
+}
+function shuffleOuter(){
+  for(let i=outerLetters.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[outerLetters[i],outerLetters[j]]=[outerLetters[j],outerLetters[i]];}
+  renderHive();
+}
+function nextPuzzle(){puzzleIdx++;loadPuzzle(puzzleIdx);}
+
+function showFeedback(msg,type){
+  const f=document.getElementById('feedback');
+  f.textContent=msg;f.className='feedback '+type;
+  setTimeout(()=>{f.textContent='';f.className='feedback';},1500);
+}
+
+function submitWord(){
+  const w=currentInput.toUpperCase();
+  currentInput='';
+  document.getElementById('input-box').textContent='';
+  if(w.length<4){showFeedback('Too short!','err');return;}
+  if(!w.includes(currentPuzzle.center)){showFeedback('Missing center letter!','err');return;}
+  const allLetters=new Set([currentPuzzle.center,...currentPuzzle.outer]);
+  for(const c of w)if(!allLetters.has(c)){showFeedback('Bad letter: '+c,'err');return;}
+  if(foundWords.includes(w)){showFeedback('Already found!','err');return;}
+  if(!VALID_WORDS.includes(w)){showFeedback('Not in word list','err');return;}
+  foundWords.push(w);
+  const pts=wordScore(w);score+=pts;
+  document.getElementById('score-v').textContent=score;
+  document.getElementById('words-v').textContent=foundWords.length;
+  document.getElementById('score-badge').textContent='Score: '+score;
+  document.getElementById('found-count').textContent=foundWords.length;
+  const pg=isPangram(w);
+  if(pg)showFeedback('Pangram! +'+pts,'pangram');
+  else showFeedback('+'+pts+' points!','ok');
+  const pill=document.createElement('div');
+  pill.className='word-pill'+(pg?' pangram':'');
+  pill.textContent=w.toLowerCase();
+  document.getElementById('words-list').appendChild(pill);
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter')submitWord();
+  else if(e.key==='Backspace')deleteLetter();
+  else if(/^[a-zA-Z]$/.test(e.key)){
+    const l=e.key.toUpperCase();
+    const valid=new Set([currentPuzzle.center,...currentPuzzle.outer]);
+    if(valid.has(l))addLetter(l);
+  }
+});
+
+loadPuzzle(0);
+</script>
+</body>
+</html>

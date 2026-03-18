@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Craps – FreeWebGamesOnline</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d14;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
+#topbar{background:#1e1e30;border-bottom:1px solid #2a2a45;padding:10px 16px;display:flex;align-items:center;gap:12px}
+#topbar a{color:#6c63ff;text-decoration:none;font-size:1.3em}
+#topbar h1{font-size:1.1em;flex:1}
+.badge{background:#2a2a45;border:1px solid #6c63ff;border-radius:20px;padding:4px 14px;font-size:.9em;color:#6c63ff;font-weight:bold}
+#game{max-width:540px;margin:0 auto;padding:16px}
+canvas{display:block;margin:0 auto 12px;border-radius:12px;background:#1e1e30;border:1px solid #2a2a45}
+.panel{background:#1e1e30;border:1px solid #2a2a45;border-radius:12px;padding:14px;margin-bottom:12px}
+.panel h3{color:#6c63ff;margin-bottom:10px;font-size:.95em;text-transform:uppercase;letter-spacing:.05em}
+.bet-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.bet-btn{background:#2a2a45;border:1px solid #3a3a55;color:#e8e8f0;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:.9em;transition:all .2s}
+.bet-btn:hover,.bet-btn.active{background:#6c63ff;border-color:#6c63ff;color:#fff}
+.type-btn{flex:1;padding:10px;border-radius:8px;border:1px solid #3a3a55;background:#2a2a45;color:#e8e8f0;cursor:pointer;font-weight:bold;font-size:.9em;transition:all .2s}
+.type-btn.active{background:#6c63ff;border-color:#6c63ff}
+.type-btn:hover{background:#5a53ee}
+#rollBtn{width:100%;padding:14px;background:#6c63ff;border:none;border-radius:10px;color:#fff;font-size:1.1em;font-weight:bold;cursor:pointer;transition:background .2s}
+#rollBtn:hover{background:#5a53ee}
+#rollBtn:disabled{background:#3a3a55;cursor:not-allowed}
+#status{text-align:center;font-size:1em;padding:10px;border-radius:8px;margin-bottom:10px;background:#2a2a45;min-height:42px}
+.history-item{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #2a2a45;font-size:.85em}
+.win{color:#4caf50}.lose{color:#f44336}.push{color:#ffb300}
+.info-row{display:flex;justify-content:space-between;font-size:.9em;margin-bottom:6px}
+.info-label{color:#9898b8}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <a href="../index.html">&#8592;</a>
+  <h1>🎲 Craps</h1>
+  <span class="badge" id="credBadge">1000 credits</span>
+</div>
+<div id="game">
+  <canvas id="diceCanvas" width="320" height="140"></canvas>
+  <div id="status">Place your bet and roll!</div>
+  <div class="panel">
+    <h3>Bet Type</h3>
+    <div class="bet-row">
+      <button class="type-btn active" id="btnPass" onclick="setBetType('pass')">Pass Line</button>
+      <button class="type-btn" id="btnDontPass" onclick="setBetType('dontpass')">Don't Pass</button>
+    </div>
+    <h3>Bet Amount</h3>
+    <div class="bet-row">
+      <button class="bet-btn" onclick="setBet(10)">10</button>
+      <button class="bet-btn" onclick="setBet(25)">25</button>
+      <button class="bet-btn" onclick="setBet(50)">50</button>
+      <button class="bet-btn active" onclick="setBet(100)">100</button>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Current Bet:</span><span id="curBet">100 credits</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Phase:</span><span id="phaseLabel">Come-Out Roll</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Point:</span><span id="pointLabel">—</span>
+    </div>
+  </div>
+  <button id="rollBtn" onclick="rollDice()">🎲 Roll Dice</button>
+  <div class="panel" style="margin-top:12px">
+    <h3>Last 5 Rolls</h3>
+    <div id="history"></div>
+  </div>
+</div>
+<script>
+if(!HTMLCanvasElement.prototype.roundRect){HTMLCanvasElement.prototype.roundRect=function(){}}
+
+let credits=1000,bet=100,betType='pass',phase='comeout',point=0,rolling=false;
+let history=[];
+const canvas=document.getElementById('diceCanvas');
+const ctx=canvas.getContext('2d');
+
+try{const s=localStorage.getItem('craps_credits');if(s)credits=parseInt(s)||1000;}catch(e){}
+
+function saveCredits(){try{localStorage.setItem('craps_credits',credits);}catch(e){}}
+
+function setBet(v){bet=v;document.querySelectorAll('.bet-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');document.getElementById('curBet').textContent=v+' credits';}
+function setBetType(t){betType=t;
+  document.getElementById('btnPass').classList.toggle('active',t==='pass');
+  document.getElementById('btnDontPass').classList.toggle('active',t==='dontpass');}
+
+function updateUI(){
+  document.getElementById('credBadge').textContent=credits+' credits';
+  document.getElementById('phaseLabel').textContent=phase==='comeout'?'Come-Out Roll':'Point Phase';
+  document.getElementById('pointLabel').textContent=point||'—';
+}
+
+function drawDie(x,y,size,val){
+  ctx.fillStyle='#fff';
+  ctx.beginPath();ctx.roundRect(x,y,size,size,8);ctx.fill();
+  ctx.fillStyle='#1e1e30';
+  const pip=(px,py)=>{ctx.beginPath();ctx.arc(x+px*size,y+py*size,size*0.08,0,Math.PI*2);ctx.fill();};
+  const pats={1:[[.5,.5]],2:[[.3,.3],[.7,.7]],3:[[.3,.3],[.5,.5],[.7,.7]],
+    4:[[.3,.3],[.7,.3],[.3,.7],[.7,.7]],5:[[.3,.3],[.7,.3],[.5,.5],[.3,.7],[.7,.7]],
+    6:[[.3,.25],[.7,.25],[.3,.5],[.7,.5],[.3,.75],[.7,.75]]};
+  (pats[val]||[]).forEach(([px,py])=>pip(px,py));
+}
+
+function drawDice(d1,d2){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const s=100,y=20;
+  const cx=canvas.width/2;
+  drawDie(cx-s-10,y,s,d1);
+  drawDie(cx+10,y,s,d2);
+  ctx.fillStyle='#9898b8';ctx.font='14px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Total: '+(d1+d2),cx,y+s+18);
+}
+
+function animateDice(finalD1,finalD2,cb){
+  let frames=0,total=18;
+  function frame(){
+    const r1=Math.ceil(Math.random()*6),r2=Math.ceil(Math.random()*6);
+    drawDice(r1,r2);frames++;
+    if(frames<total)requestAnimationFrame(frame);
+    else{drawDice(finalD1,finalD2);cb();}
+  }
+  frame();
+}
+
+function setStatus(msg,cls){
+  const el=document.getElementById('status');
+  el.textContent=msg;el.style.color=cls==='win'?'#4caf50':cls==='lose'?'#f44336':'#e8e8f0';
+}
+
+function addHistory(roll,result){
+  history.unshift({roll,result});if(history.length>5)history.pop();
+  const el=document.getElementById('history');
+  el.innerHTML=history.map(h=>`<div class="history-item"><span>Roll: ${h.roll}</span><span class="${h.result==='Win'?'win':h.result==='Lose'?'lose':'push'}">${h.result}</span></div>`).join('');
+}
+
+function rollDice(){
+  if(rolling)return;
+  if(credits<bet){setStatus('Not enough credits!');return;}
+  rolling=true;
+  document.getElementById('rollBtn').disabled=true;
+  const d1=Math.ceil(Math.random()*6),d2=Math.ceil(Math.random()*6),total=d1+d2;
+  animateDice(d1,d2,()=>{
+    if(phase==='comeout'){
+      if(total===7||total===11){
+        const win=betType==='pass';
+        credits+=win?bet:-bet;
+        setStatus(win?`🎉 Natural ${total}! You win ${bet} credits!`:`😞 ${total} — Don't Pass wins. You lose.`,win?'win':'lose');
+        addHistory(total,win?'Win':'Lose');
+      } else if(total===2||total===3||total===12){
+        const lose=betType==='pass';
+        credits+=lose?-bet:bet;
+        setStatus(lose?`😞 Craps ${total}! You lose.`:`🎉 Craps ${total}! Don't Pass wins!`,lose?'lose':'win');
+        addHistory(total,lose?'Lose':'Win');
+      } else {
+        point=total;phase='point';
+        setStatus(`📍 Point is ${point}. Roll again to match or avoid 7!`);
+        addHistory(total,'Point: '+total);
+      }
+    } else {
+      if(total===point){
+        const win=betType==='pass';
+        credits+=win?bet:-bet;
+        phase='comeout';point=0;
+        setStatus(win?`🎉 Hit the point ${total}! Win ${bet} credits!`:`😞 Point hit — Don't Pass loses.`,win?'win':'lose');
+        addHistory(total,win?'Win':'Lose');
+      } else if(total===7){
+        const lose=betType==='pass';
+        credits+=lose?-bet:bet;
+        phase='comeout';point=0;
+        setStatus(lose?`😞 Seven out! You lose.`:`🎉 Seven out! Don't Pass wins!`,lose?'lose':'win');
+        addHistory(total,lose?'Lose':'Win');
+      } else {
+        setStatus(`Rolled ${total}. Point is still ${point}. Keep rolling!`);
+        addHistory(total,'No result');
+      }
+    }
+    saveCredits();updateUI();
+    rolling=false;
+    document.getElementById('rollBtn').disabled=false;
+    if(credits<=0){credits=1000;saveCredits();setStatus('Out of credits! Refilled to 1000.');updateUI();}
+  });
+}
+
+drawDice(1,1);updateUI();
+</script>
+</body>
+</html>
