@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Shape Match – FreeWebGamesOnline</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<style>
+:root{--bg:#0d0d14;--bg2:#13131f;--card:#1e1e30;--border:#2a2a45;--accent:#6c63ff;--text:#e8e8f0;--text2:#9898b8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:12px}
+.back{color:var(--text2);text-decoration:none;font-size:1.3rem}
+.title{font-weight:800;font-size:1.1rem;flex:1}
+.score-badge{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:4px 14px;font-size:0.85rem;font-weight:700;color:var(--accent)}
+main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px 16px;gap:16px}
+#info{display:flex;gap:20px;font-size:0.9rem;color:var(--text2)}
+#info span{font-weight:700;color:var(--text)}
+#game-area{width:100%;max-width:480px}
+#question-label{text-align:center;font-size:1rem;color:var(--text2);margin-bottom:12px}
+#target-wrap{display:flex;justify-content:center;margin-bottom:20px}
+canvas#target-canvas{border:2px solid var(--accent);border-radius:12px;background:var(--card)}
+#choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choice-wrap{border:2px solid var(--border);border-radius:12px;background:var(--card);cursor:pointer;overflow:hidden;transition:border-color 0.2s,transform 0.1s;display:flex;align-items:center;justify-content:center;padding:8px}
+.choice-wrap:hover{border-color:var(--accent);transform:scale(1.03)}
+.choice-wrap.correct{border-color:#22c55e;background:#162a1e}
+.choice-wrap.wrong{border-color:#ef4444;background:#2a1616}
+canvas.choice-canvas{display:block}
+#feedback{text-align:center;font-size:1.1rem;font-weight:700;height:28px}
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:50;align-items:center;justify-content:center}
+#overlay.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:32px;text-align:center;max-width:320px;width:90%}
+.modal h2{font-size:1.6rem;margin-bottom:8px}
+.modal p{color:var(--text2);margin-bottom:20px}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:12px 28px;font-size:1rem;font-weight:700;cursor:pointer}
+.btn:hover{background:#8b7cf6}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="../index.html">←</a>
+  <span class="title">🔷 Shape Match</span>
+  <span class="score-badge" id="score-disp">Score: 0</span>
+</header>
+<main>
+  <div id="info">
+    <div>Level: <span id="level-disp">1</span></div>
+    <div>Q: <span id="q-disp">1</span>/10</div>
+    <div>⏱ <span id="timer-disp">10</span>s</div>
+  </div>
+  <div id="game-area">
+    <div id="question-label">Which choice matches the target?</div>
+    <div id="target-wrap"><canvas id="target-canvas" width="120" height="120"></canvas></div>
+    <div id="choices"></div>
+    <div id="feedback"></div>
+  </div>
+</main>
+<div id="overlay">
+  <div class="modal">
+    <h2 id="modal-title">Game Over</h2>
+    <p id="modal-body"></p>
+    <button class="btn" onclick="startGame()">Play Again</button>
+  </div>
+</div>
+<script>
+// Shape drawing functions
+const SHAPES=['circle','square','triangle','star','diamond','hexagon','cross','arrow'];
+const COLORS=['#6c63ff','#f59e0b','#22c55e','#ef4444','#3b82f6','#ec4899','#14b8a6','#f97316'];
+
+function drawShape(ctx,shape,color,x,y,size,rotation=0){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate(rotation);
+  ctx.fillStyle=color;
+  ctx.strokeStyle=color;
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  const s=size/2;
+  switch(shape){
+    case 'circle': ctx.arc(0,0,s,0,Math.PI*2); break;
+    case 'square': ctx.rect(-s,-s,size,size); break;
+    case 'triangle':
+      ctx.moveTo(0,-s); ctx.lineTo(s,s); ctx.lineTo(-s,s); ctx.closePath(); break;
+    case 'star': {
+      const outer=s, inner=s*0.45;
+      for(let i=0;i<10;i++){
+        const r=i%2===0?outer:inner;
+        const a=i*Math.PI/5 - Math.PI/2;
+        i===0?ctx.moveTo(Math.cos(a)*r,Math.sin(a)*r):ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);
+      }
+      ctx.closePath(); break;
+    }
+    case 'diamond': ctx.moveTo(0,-s);ctx.lineTo(s,0);ctx.lineTo(0,s);ctx.lineTo(-s,0);ctx.closePath(); break;
+    case 'hexagon': {
+      for(let i=0;i<6;i++){const a=i*Math.PI/3-Math.PI/6;
+        i===0?ctx.moveTo(Math.cos(a)*s,Math.sin(a)*s):ctx.lineTo(Math.cos(a)*s,Math.sin(a)*s);}
+      ctx.closePath(); break;
+    }
+    case 'cross': {
+      const t=s*0.35;
+      ctx.rect(-t,-s,t*2,size); ctx.fill(); ctx.beginPath();
+      ctx.rect(-s,-t,size,t*2); break;
+    }
+    case 'arrow': {
+      const hw=s*0.4;
+      ctx.moveTo(-s,hw);ctx.lineTo(-s,-hw);ctx.lineTo(0,-hw);ctx.lineTo(0,-s);
+      ctx.lineTo(s,0);ctx.lineTo(0,s);ctx.lineTo(0,hw);ctx.closePath(); break;
+    }
+  }
+  ctx.fill();
+  ctx.restore();
+}
+
+function randomPick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function rand(min,max){return min+Math.random()*(max-min);}
+
+let score=0,level=1,question=0,timer=10,timerHandle=null,answered=false;
+let targetDef=null, choiceDefs=[], correctIdx=0;
+
+function makeShapeDef(complex=false){
+  const def={shape:randomPick(SHAPES),color:randomPick(COLORS),rotation:0,scale:1};
+  if(complex){
+    def.rotation=rand(-Math.PI,Math.PI);
+    def.scale=rand(0.7,1.2);
+  }
+  return def;
+}
+
+function renderDef(canvas,def){
+  const ctx=canvas.getContext('2d');
+  const size=Math.min(canvas.width,canvas.height);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const drawSize=size*0.55*def.scale;
+  drawShape(ctx,def.shape,def.color,size/2,size/2,drawSize,def.rotation);
+}
+
+function nextQuestion(){
+  answered=false;
+  document.getElementById('feedback').textContent='';
+  clearInterval(timerHandle);
+  // Create target
+  const complex=level>=3;
+  targetDef={shape:randomPick(SHAPES),color:randomPick(COLORS),rotation:complex?rand(-Math.PI,Math.PI):0,scale:1};
+  renderDef(document.getElementById('target-canvas'),targetDef);
+  // Create choices (4): 1 correct + 3 wrong
+  correctIdx=Math.floor(Math.random()*4);
+  choiceDefs=[];
+  for(let i=0;i<4;i++){
+    if(i===correctIdx){
+      // Same shape, same color, maybe slightly diff rotation (distractor)
+      const cd={...targetDef};
+      if(level>=2) cd.rotation=targetDef.rotation+(rand(-0.1,0.1));
+      choiceDefs.push(cd);
+    } else {
+      // Different: change shape or color or both
+      const r=Math.random();
+      let cd={...targetDef};
+      if(r<0.33) cd.shape=randomPick(SHAPES.filter(s=>s!==targetDef.shape));
+      else if(r<0.66) cd.color=randomPick(COLORS.filter(c=>c!==targetDef.color));
+      else{cd.shape=randomPick(SHAPES.filter(s=>s!==targetDef.shape));cd.color=randomPick(COLORS.filter(c=>c!==targetDef.color));}
+      if(complex) cd.rotation=rand(-Math.PI,Math.PI);
+      choiceDefs.push(cd);
+    }
+  }
+  // Render choices
+  const wrap=document.getElementById('choices');
+  wrap.innerHTML='';
+  for(let i=0;i<4;i++){
+    const div=document.createElement('div');
+    div.className='choice-wrap';
+    const cv=document.createElement('canvas');
+    cv.className='choice-canvas';
+    cv.width=100;cv.height=100;
+    div.appendChild(cv);
+    renderDef(cv,choiceDefs[i]);
+    const idx=i;
+    div.onclick=()=>pick(idx,div);
+    wrap.appendChild(div);
+  }
+  // Timer
+  timer=Math.max(5,11-level);
+  document.getElementById('timer-disp').textContent=timer;
+  timerHandle=setInterval(()=>{
+    timer--;
+    document.getElementById('timer-disp').textContent=timer;
+    if(timer<=0){clearInterval(timerHandle);if(!answered){timeUp();}}
+  },1000);
+  document.getElementById('q-disp').textContent=question+1;
+}
+
+function pick(idx,div){
+  if(answered)return;
+  answered=true;
+  clearInterval(timerHandle);
+  const choices=document.querySelectorAll('.choice-wrap');
+  if(idx===correctIdx){
+    div.classList.add('correct');
+    const pts=10+timer*2+(level-1)*5;
+    score+=pts;
+    document.getElementById('feedback').textContent=`✅ Correct! +${pts}`;
+    document.getElementById('score-disp').textContent='Score: '+score;
+  } else {
+    div.classList.add('wrong');
+    choices[correctIdx].classList.add('correct');
+    document.getElementById('feedback').textContent='❌ Wrong!';
+  }
+  question++;
+  if(question>=10) setTimeout(levelEnd,1200);
+  else setTimeout(nextQuestion,1200);
+}
+
+function timeUp(){
+  answered=true;
+  const choices=document.querySelectorAll('.choice-wrap');
+  choices[correctIdx].classList.add('correct');
+  document.getElementById('feedback').textContent='⏰ Time\'s up!';
+  question++;
+  if(question>=10) setTimeout(levelEnd,1200);
+  else setTimeout(nextQuestion,1200);
+}
+
+function levelEnd(){
+  level++;
+  question=0;
+  document.getElementById('level-disp').textContent=level;
+  nextQuestion();
+}
+
+function startGame(){
+  score=0;level=1;question=0;
+  document.getElementById('score-disp').textContent='Score: 0';
+  document.getElementById('level-disp').textContent='1';
+  document.getElementById('overlay').classList.remove('show');
+  nextQuestion();
+}
+
+// Try to load high score
+let hi=0;
+try{hi=parseInt(localStorage.getItem('hi_shape-match')||'0');}catch(e){}
+
+startGame();
+</script>
+</body>
+</html>

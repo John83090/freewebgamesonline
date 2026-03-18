@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Pipe Connect – FreeWebGamesOnline</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<style>
+:root{--bg:#0d0d14;--bg2:#13131f;--card:#1e1e30;--border:#2a2a45;--accent:#6c63ff;--text:#e8e8f0;--text2:#9898b8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:12px}
+.back{color:var(--text2);text-decoration:none;font-size:1.3rem}
+.title{font-weight:800;font-size:1.1rem;flex:1}
+.score-badge{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:4px 14px;font-size:0.85rem;font-weight:700;color:var(--accent)}
+main{flex:1;display:flex;flex-direction:column;align-items:center;padding:20px 16px;gap:12px}
+#hud{display:flex;gap:20px;font-size:0.9rem;color:var(--text2)}
+#hud span{font-weight:700;color:var(--text)}
+canvas{border:2px solid var(--border);border-radius:12px;background:var(--card);cursor:pointer;touch-action:none}
+#msg{font-size:0.95rem;font-weight:600;text-align:center;min-height:22px;color:var(--text2)}
+#buttons{display:flex;gap:10px}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:0.9rem;font-weight:700;cursor:pointer}
+.btn:hover{background:#8b7cf6}
+.btn.outline{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.btn.outline:hover{border-color:var(--accent);color:var(--text)}
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:50;align-items:center;justify-content:center}
+#overlay.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:32px;text-align:center;max-width:320px;width:90%}
+.modal h2{font-size:1.6rem;margin-bottom:8px}
+.modal p{color:var(--text2);margin-bottom:20px;white-space:pre-line;line-height:1.6}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="../index.html">←</a>
+  <span class="title">🔧 Pipe Connect</span>
+  <span class="score-badge" id="score-disp">Score: 0</span>
+</header>
+<main>
+  <div id="hud">
+    <div>Level: <span id="level-disp">1</span></div>
+    <div>Moves: <span id="moves-disp">0</span></div>
+  </div>
+  <canvas id="c"></canvas>
+  <div id="msg">Connect all the pipes!</div>
+  <div id="buttons">
+    <button class="btn" onclick="nextLevel()">Next →</button>
+    <button class="btn outline" onclick="resetLevel()">Reset</button>
+  </div>
+</main>
+<div id="overlay">
+  <div class="modal">
+    <h2 id="modal-title">🎉 Solved!</h2>
+    <p id="modal-body"></p>
+    <button class="btn" onclick="nextLevel();document.getElementById('overlay').classList.remove('show')">Next Level</button>
+  </div>
+</div>
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.beginPath();this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.quadraticCurveTo(x+w,y,x+w,y+r);this.lineTo(x+w,y+h-r);this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);this.lineTo(x+r,y+h);this.quadraticCurveTo(x,y+h,x,y+h-r);this.lineTo(x,y+r);this.quadraticCurveTo(x,y,x+r,y);this.closePath();return this;};}
+
+// Pipe types (which sides are open): N=1,E=2,S=4,W=8
+// Straight: NS=5, EW=10
+// L-bends: NE=3, ES=6, SW=12, NW=9
+// T: NES=7, ESW=14, NSW=13, NEW=11
+// Cross: NESW=15
+// End caps: N=1, E=2, S=4, W=8
+
+const N=1,E=2,S=4,W=8;
+const PIPE_TYPES=[
+  {bits:N|S, name:'straight-v'},
+  {bits:E|W, name:'straight-h'},
+  {bits:N|E, name:'bend-ne'},
+  {bits:E|S, name:'bend-es'},
+  {bits:S|W, name:'bend-sw'},
+  {bits:N|W, name:'bend-nw'},
+  {bits:N|E|S, name:'tee-nes'},
+  {bits:E|S|W, name:'tee-esw'},
+  {bits:N|S|W, name:'tee-nsw'},
+  {bits:N|E|W, name:'tee-new'},
+  {bits:N|E|S|W, name:'cross'},
+];
+
+// Predefined puzzles: [rows, cols, grid of pipe bits (starting rotation = 0)]
+// We'll store levels as arrays of {r,c,bits} where bits is the SOLUTION
+const LEVELS=[
+  // Level 1 (4x4)
+  {size:4,solution:[
+    [E|S,S|W,E|S,S|W],
+    [N|E,E|W,E|W,N|W],
+    [E|S,N|S,N|S,S|W],
+    [N|E,N|E,N|E,N|W]
+  ]},
+  // Level 2 (4x4)
+  {size:4,solution:[
+    [E|S,E|S|W,N|S|W,S|W],
+    [N|E,N|E|S|W,N|E|S|W,N|W],
+    [E|S,N|E|S|W,N|E|S|W,S|W],
+    [N|E,N|E|W,N|E|W,N|W]
+  ]},
+  // Level 3 (5x5)
+  {size:5,solution:[
+    [E|S,E|W,E|S|W,E|W,S|W],
+    [N|S,E|S,N|E|W,S|W,N|S],
+    [N|E,N|E|S|W,E|S|W,N|S|W,N|S],
+    [E|S,N|E|W,N|E|W,N|E|W,N|S|W],
+    [N|E,E|W,E|W,E|W,N|W]
+  ]},
+  // Level 4 (5x5)
+  {size:5,solution:[
+    [S|E,S|W,S|E,S|W,S|W],
+    [N|E|S,N|E|S|W,N|E|S|W,N|S|W,N|S],
+    [N|E,E|S|W,N|E|S|W,N|E|W,N|S|W],
+    [E|S,N|E|S|W,N|E|W,E|S|W,N|S|W],
+    [N|E,N|E|W,E|W,N|E|W,N|W]
+  ]},
+  // Level 5 (6x6)
+  {size:6,solution:[
+    [E|S,E|W,E|S|W,E|W,E|S|W,S|W],
+    [N|E|S,E|S|W,N|E|S|W,E|S|W,N|E|S|W,N|S|W],
+    [N|S,N|E|S,N|E|S|W,N|E|S|W,N|E|W,N|S|W],
+    [N|E|S,N|E|S|W,N|E|W,N|E|S|W,E|S|W,N|S|W],
+    [N|E,N|E|S|W,E|S|W,N|E|S|W,N|E|S|W,N|S|W],
+    [E|W,N|E|W,N|E|W,N|E|W,N|E|W,N|W]
+  ]}
+];
+
+const canvas=document.getElementById('c');
+const ctx=canvas.getContext('2d');
+let levelIdx=0, grid=[], size=0, CELL=60, moves=0, score=0;
+
+function rotateBits(bits){
+  // Rotate 90° CW: N→E, E→S, S→W, W→N
+  let r=0;
+  if(bits&N)r|=E;
+  if(bits&E)r|=S;
+  if(bits&S)r|=W;
+  if(bits&W)r|=N;
+  return r;
+}
+
+function loadLevel(idx){
+  const lev=LEVELS[idx%LEVELS.length];
+  size=lev.size;
+  // Scale canvas
+  const maxW=Math.min(360,window.innerWidth-40);
+  CELL=Math.floor(maxW/size);
+  canvas.width=CELL*size;
+  canvas.height=CELL*size;
+  moves=0;
+  document.getElementById('moves-disp').textContent=0;
+  document.getElementById('level-disp').textContent=idx+1;
+  // Build grid: randomize rotations
+  grid=[];
+  for(let r=0;r<size;r++){
+    grid.push([]);
+    for(let c=0;c<size;c++){
+      let bits=lev.solution[r%lev.solution.length][c%lev.solution[r%lev.solution.length].length];
+      // Random rotation (0-3 times)
+      const rotations=Math.floor(Math.random()*4);
+      for(let k=0;k<rotations;k++) bits=rotateBits(bits);
+      grid[r].push({bits, solution:lev.solution[r%lev.solution.length][c%lev.solution[r%lev.solution.length].length]});
+    }
+  }
+  draw();
+}
+
+const COLORS={connected:'#6c63ff',disconnected:'#9898b8',bg:'#1e1e30',pipe_bg:'#252540'};
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  // Check connectivity
+  const connected=checkConnected();
+  for(let r=0;r<size;r++){
+    for(let c=0;c<size;c++){
+      const x=c*CELL, y=r*CELL;
+      const isConn=connected.has(r+','+c);
+      drawCell(x,y,grid[r][c].bits,isConn);
+    }
+  }
+}
+
+function checkConnected(){
+  // BFS from (0,0), check if all cells reachable
+  const visited=new Set();
+  const queue=[[0,0]];
+  visited.add('0,0');
+  while(queue.length){
+    const[r,c]=queue.shift();
+    const bits=grid[r][c].bits;
+    const dirs=[[-1,0,N,S],[0,1,E,W],[1,0,S,N],[0,-1,W,E]];
+    for(const[dr,dc,myBit,theirBit] of dirs){
+      const nr=r+dr,nc=c+dc;
+      if(nr<0||nr>=size||nc<0||nc>=size) continue;
+      if(visited.has(nr+','+nc)) continue;
+      if((bits&myBit)&&(grid[nr][nc].bits&theirBit)){
+        visited.add(nr+','+nc);
+        queue.push([nr,nc]);
+      }
+    }
+  }
+  return visited;
+}
+
+function drawCell(x,y,bits,connected){
+  const pad=4, p=CELL/2;
+  const color=connected?COLORS.connected:COLORS.disconnected;
+  const pipeW=CELL*0.22;
+  ctx.fillStyle=COLORS.pipe_bg;
+  ctx.roundRect(x+pad,y+pad,CELL-pad*2,CELL-pad*2,6);
+  ctx.fill();
+  ctx.fillStyle=color;
+  // Draw pipe segments
+  if(bits&N){ctx.fillRect(x+p-pipeW/2,y+pad,pipeW,p-pad);}
+  if(bits&S){ctx.fillRect(x+p-pipeW/2,y+p,pipeW,p-pad);}
+  if(bits&E){ctx.fillRect(x+p,y+p-pipeW/2,p-pad,pipeW);}
+  if(bits&W){ctx.fillRect(x+pad,y+p-pipeW/2,p-pad,pipeW);}
+  // Center circle
+  ctx.beginPath();
+  ctx.arc(x+p,y+p,pipeW*0.65,0,Math.PI*2);
+  ctx.fillStyle=color;
+  ctx.fill();
+}
+
+function isSolved(){
+  for(let r=0;r<size;r++) for(let c=0;c<size;c++) if(grid[r][c].bits!==grid[r][c].solution) return false;
+  const conn=checkConnected();
+  return conn.size===size*size;
+}
+
+canvas.addEventListener('click',e=>{
+  const rect=canvas.getBoundingClientRect();
+  const x=(e.clientX-rect.left)*(canvas.width/rect.width);
+  const y=(e.clientY-rect.top)*(canvas.height/rect.height);
+  const c=Math.floor(x/CELL), r=Math.floor(y/CELL);
+  if(r<0||r>=size||c<0||c>=size) return;
+  grid[r][c].bits=rotateBits(grid[r][c].bits);
+  moves++;
+  document.getElementById('moves-disp').textContent=moves;
+  draw();
+  if(isSolved()){
+    const pts=Math.max(10,(50-moves)*10+(5-levelIdx)*20);
+    score+=Math.max(10,pts);
+    document.getElementById('score-disp').textContent='Score: '+score;
+    setTimeout(()=>{
+      document.getElementById('modal-body').textContent=`Level ${levelIdx+1} complete!\nMoves: ${moves}\nScore: ${score}`;
+      document.getElementById('overlay').classList.add('show');
+    },300);
+  }
+});
+canvas.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  const touch=e.touches[0];
+  const rect=canvas.getBoundingClientRect();
+  const x=(touch.clientX-rect.left)*(canvas.width/rect.width);
+  const y=(touch.clientY-rect.top)*(canvas.height/rect.height);
+  const c=Math.floor(x/CELL), r=Math.floor(y/CELL);
+  if(r<0||r>=size||c<0||c>=size) return;
+  grid[r][c].bits=rotateBits(grid[r][c].bits);
+  moves++;
+  document.getElementById('moves-disp').textContent=moves;
+  draw();
+  if(isSolved()){
+    const pts=Math.max(10,(50-moves)*10);
+    score+=Math.max(10,pts);
+    document.getElementById('score-disp').textContent='Score: '+score;
+    setTimeout(()=>{
+      document.getElementById('modal-body').textContent=`Level ${levelIdx+1} complete!\nMoves: ${moves}\nScore: ${score}`;
+      document.getElementById('overlay').classList.add('show');
+    },300);
+  }
+},{passive:false});
+
+function nextLevel(){levelIdx++;loadLevel(levelIdx);}
+function resetLevel(){loadLevel(levelIdx);}
+
+loadLevel(0);
+</script>
+</body>
+</html>

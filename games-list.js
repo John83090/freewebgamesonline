@@ -103,5 +103,11 @@ const GAMES_LIST=[
 {id:"word-chain",name:"Word Chain",emoji:"🔗",cat:"educational",badge:"new",url:"/games/word-chain.html"},
 {id:"addition-race",name:"Addition Race",emoji:"🏁",cat:"educational",badge:"new",url:"/games/addition-race.html"},
 {id:"multiplication-grid",name:"Multiplication Grid",emoji:"✖️",cat:"educational",badge:"new",url:"/games/multiplication-grid.html"},
+{id:"geography-quiz",name:"Geography Quiz",emoji:"🌍",cat:"educational",badge:"new",url:"/games/geography-quiz.html"},
+{id:"math-crossword",name:"Math Crossword",emoji:"➕",cat:"educational",badge:"new",url:"/games/math-crossword.html"},
+{id:"fraction-puzzle",name:"Fraction Puzzle",emoji:"½",cat:"educational",badge:"new",url:"/games/fraction-puzzle.html"},
+{id:"shape-match",name:"Shape Match",emoji:"🔷",cat:"puzzle",badge:"new",url:"/games/shape-match.html"},
+{id:"pattern-lock",name:"Pattern Lock",emoji:"🔐",cat:"puzzle",badge:"new",url:"/games/pattern-lock.html"},
+{id:"pipe-connect",name:"Pipe Connect",emoji:"🔧",cat:"puzzle",badge:"new",url:"/games/pipe-connect.html"},
 {id:"towerdefense",name:"Tower Defense",emoji:"🏰",cat:"strategy",badge:"",url:"/games/towerdefense.html"},
 ];

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Pattern Lock – FreeWebGamesOnline</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<style>
+:root{--bg:#0d0d14;--bg2:#13131f;--card:#1e1e30;--border:#2a2a45;--accent:#6c63ff;--text:#e8e8f0;--text2:#9898b8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:12px}
+.back{color:var(--text2);text-decoration:none;font-size:1.3rem}
+.title{font-weight:800;font-size:1.1rem;flex:1}
+.score-badge{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:4px 14px;font-size:0.85rem;font-weight:700;color:var(--accent)}
+main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px 16px;gap:12px}
+#msg{font-size:1rem;color:var(--text2);text-align:center;min-height:24px}
+#phase-label{font-size:1.3rem;font-weight:700;text-align:center}
+canvas{border:2px solid var(--border);border-radius:16px;background:var(--card);touch-action:none;cursor:crosshair}
+#info{display:flex;gap:20px;font-size:0.9rem;color:var(--text2)}
+#info span{font-weight:700;color:var(--text)}
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:50;align-items:center;justify-content:center}
+#overlay.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:32px;text-align:center;max-width:320px;width:90%}
+.modal h2{font-size:1.6rem;margin-bottom:8px}
+.modal p{color:var(--text2);margin-bottom:20px}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:12px 28px;font-size:1rem;font-weight:700;cursor:pointer}
+.btn:hover{background:#8b7cf6}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="../index.html">←</a>
+  <span class="title">🔐 Pattern Lock</span>
+  <span class="score-badge" id="score-disp">Score: 0</span>
+</header>
+<main>
+  <div id="info">
+    <div>Level: <span id="level-disp">1</span></div>
+    <div>Round: <span id="round-disp">1</span></div>
+  </div>
+  <div id="phase-label" id="phase">👁 Watch the pattern</div>
+  <canvas id="c" width="300" height="300"></canvas>
+  <div id="msg">Get ready…</div>
+</main>
+<div id="overlay">
+  <div class="modal">
+    <h2 id="modal-title">Game Over!</h2>
+    <p id="modal-body"></p>
+    <button class="btn" onclick="startGame()">Play Again</button>
+  </div>
+</div>
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.beginPath();this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.quadraticCurveTo(x+w,y,x+w,y+r);this.lineTo(x+w,y+h-r);this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);this.lineTo(x+r,y+h);this.quadraticCurveTo(x,y+h,x,y+h-r);this.lineTo(x,y+r);this.quadraticCurveTo(x,y,x+r,y);this.closePath();return this;};}
+
+const canvas=document.getElementById('c');
+const ctx=canvas.getContext('2d');
+const GRID=3, DOT_R=16, LINE_W=4;
+const PAD=40;
+const STEP=(canvas.width-PAD*2)/(GRID-1);
+
+let score=0,level=1,round=0;
+let pattern=[],playerSeq=[],showPattern=true;
+let animIdx=0,animHandle=null;
+let dragging=false,lastDot=-1;
+
+function dotPos(idx){
+  const r=Math.floor(idx/GRID), c=idx%GRID;
+  return {x:PAD+c*STEP, y:PAD+r*STEP};
+}
+
+function ptToDot(x,y){
+  for(let i=0;i<GRID*GRID;i++){
+    const p=dotPos(i);
+    if(Math.hypot(x-p.x,y-p.y)<DOT_R*1.5) return i;
+  }
+  return -1;
+}
+
+function drawGrid(highlight=[], path=[], hoverDot=-1){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  // Draw connecting lines
+  if(path.length>1){
+    ctx.strokeStyle='rgba(108,99,255,0.6)';
+    ctx.lineWidth=LINE_W;
+    ctx.lineCap='round';
+    ctx.lineJoin='round';
+    ctx.beginPath();
+    const p0=dotPos(path[0]);
+    ctx.moveTo(p0.x,p0.y);
+    for(let i=1;i<path.length;i++){const p=dotPos(path[i]);ctx.lineTo(p.x,p.y);}
+    ctx.stroke();
+  }
+  // Draw dots
+  for(let i=0;i<GRID*GRID;i++){
+    const p=dotPos(i);
+    const isHighlit=highlight.includes(i);
+    const isPath=path.includes(i);
+    // Outer ring
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,DOT_R,0,Math.PI*2);
+    ctx.fillStyle=isHighlit?'rgba(108,99,255,0.3)':isPath?'rgba(108,99,255,0.15)':'rgba(255,255,255,0.06)';
+    ctx.fill();
+    // Inner dot
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,DOT_R*0.45,0,Math.PI*2);
+    ctx.fillStyle=isHighlit?'#6c63ff':isPath?'#a78bfa':'#9898b8';
+    ctx.fill();
+    if(isPath||isHighlit){
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,DOT_R,0,Math.PI*2);
+      ctx.strokeStyle='#6c63ff';
+      ctx.lineWidth=2;
+      ctx.stroke();
+    }
+  }
+}
+
+function showPatternAnim(){
+  document.getElementById('phase-label').textContent='👁 Watch the pattern';
+  document.getElementById('msg').textContent='Memorize the pattern…';
+  animIdx=-1;
+  function step(){
+    animIdx++;
+    if(animIdx>=pattern.length){
+      setTimeout(startInput,400);
+      return;
+    }
+    const showing=pattern.slice(0,animIdx+1);
+    drawGrid(showing, showing);
+    const delay=Math.max(300,700-level*60);
+    animHandle=setTimeout(step,delay);
+  }
+  drawGrid([],[]);
+  animHandle=setTimeout(step,600);
+}
+
+function startInput(){
+  showPattern=false;
+  playerSeq=[];
+  lastDot=-1;
+  document.getElementById('phase-label').textContent='✏️ Draw the pattern';
+  document.getElementById('msg').textContent='Reproduce the pattern';
+  drawGrid([],[]);
+}
+
+function genPattern(len){
+  const used=new Set();
+  const p=[];
+  while(p.length<len){
+    const d=Math.floor(Math.random()*GRID*GRID);
+    if(!used.has(d)){used.add(d);p.push(d);}
+  }
+  return p;
+}
+
+function nextRound(){
+  round++;
+  document.getElementById('round-disp').textContent=round;
+  const len=Math.min(3+Math.floor((level-1)*1.5)+Math.floor((round-1)*0.5), GRID*GRID);
+  pattern=genPattern(len);
+  showPatternAnim();
+}
+
+function checkAnswer(){
+  let correct=true;
+  if(playerSeq.length!==pattern.length) correct=false;
+  else for(let i=0;i<pattern.length;i++) if(playerSeq[i]!==pattern[i]){correct=false;break;}
+  if(correct){
+    const pts=10*pattern.length*(1+Math.floor(level/3));
+    score+=pts;
+    document.getElementById('score-disp').textContent='Score: '+score;
+    document.getElementById('msg').textContent=`✅ Correct! +${pts} pts`;
+    drawGrid(playerSeq,playerSeq);
+    if(round>=5){
+      level++;
+      round=0;
+      document.getElementById('level-disp').textContent=level;
+      document.getElementById('msg').textContent=`✅ Level ${level}! +${pts} pts`;
+    }
+    setTimeout(nextRound,1000);
+  } else {
+    document.getElementById('msg').textContent='❌ Wrong pattern!';
+    drawGrid(pattern,pattern);
+    setTimeout(()=>{
+      try{const hi=parseInt(localStorage.getItem('hi_pattern-lock')||'0');
+        if(score>hi)localStorage.setItem('hi_pattern-lock',score);}catch(e){}
+      document.getElementById('modal-title').textContent='Game Over!';
+      document.getElementById('modal-body').textContent=`Score: ${score} | Level: ${level}\nHigh Score: ${Math.max(score, parseInt(localStorage.getItem('hi_pattern-lock')||'0'))}`;
+      document.getElementById('overlay').classList.add('show');
+    },1200);
+  }
+}
+
+// Input handlers
+function getCanvasPos(e){
+  const r=canvas.getBoundingClientRect();
+  const src=e.touches?e.touches[0]:e;
+  return {x:(src.clientX-r.left)*(canvas.width/r.width), y:(src.clientY-r.top)*(canvas.height/r.height)};
+}
+
+canvas.addEventListener('mousedown',e=>{if(showPattern)return;dragging=true;playerSeq=[];lastDot=-1;const pos=getCanvasPos(e);const d=ptToDot(pos.x,pos.y);if(d>=0){playerSeq=[d];lastDot=d;drawGrid([],playerSeq);}});
+canvas.addEventListener('mousemove',e=>{if(!dragging||showPattern)return;const pos=getCanvasPos(e);const d=ptToDot(pos.x,pos.y);if(d>=0&&!playerSeq.includes(d)){playerSeq.push(d);lastDot=d;drawGrid([],playerSeq);}});
+canvas.addEventListener('mouseup',e=>{if(!dragging||showPattern)return;dragging=false;if(playerSeq.length>0)checkAnswer();});
+canvas.addEventListener('touchstart',e=>{e.preventDefault();if(showPattern)return;dragging=true;playerSeq=[];lastDot=-1;const pos=getCanvasPos(e);const d=ptToDot(pos.x,pos.y);if(d>=0){playerSeq=[d];lastDot=d;drawGrid([],playerSeq);}},{passive:false});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!dragging||showPattern)return;const pos=getCanvasPos(e);const d=ptToDot(pos.x,pos.y);if(d>=0&&!playerSeq.includes(d)){playerSeq.push(d);lastDot=d;drawGrid([],playerSeq);}},{passive:false});
+canvas.addEventListener('touchend',e=>{e.preventDefault();if(!dragging||showPattern)return;dragging=false;if(playerSeq.length>0)checkAnswer();},{passive:false});
+
+function startGame(){
+  clearTimeout(animHandle);
+  score=0;level=1;round=0;showPattern=true;
+  document.getElementById('score-disp').textContent='Score: 0';
+  document.getElementById('level-disp').textContent='1';
+  document.getElementById('round-disp').textContent='1';
+  document.getElementById('overlay').classList.remove('show');
+  nextRound();
+}
+
+startGame();
+</script>
+</body>
+</html>

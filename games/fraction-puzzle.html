@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Fraction Puzzle – FreeWebGamesOnline</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<style>
+:root{--bg:#0d0d14;--bg2:#13131f;--card:#1e1e30;--border:#2a2a45;--accent:#6c63ff;--text:#e8e8f0;--text2:#9898b8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:12px}
+.back{color:var(--text2);text-decoration:none;font-size:1.3rem}
+.title{font-weight:800;font-size:1.1rem;flex:1}
+.score-badge{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:4px 14px;font-size:0.85rem;font-weight:700;color:var(--accent)}
+main{flex:1;display:flex;flex-direction:column;align-items:center;padding:20px 16px;gap:16px}
+#hud{display:flex;gap:20px;font-size:0.9rem;color:var(--text2)}
+#hud span{font-weight:700;color:var(--text)}
+#question-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;text-align:center;width:100%;max-width:460px}
+#diff-label{font-size:0.8rem;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+#problem{font-size:1.4rem;font-weight:700;margin-bottom:16px;line-height:1.8}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;font-size:1.3rem;font-weight:700;line-height:1;margin:0 2px}
+.frac .num{border-bottom:2px solid var(--text);padding-bottom:2px;padding-top:0;min-width:24px;text-align:center}
+.frac .den{padding-top:2px;min-width:24px;text-align:center}
+#visual{width:100%;max-width:300px;margin:0 auto 16px;display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
+.frac-bar{border-radius:4px;height:28px;flex:1;min-width:8px}
+#choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:460px}
+.choice-btn{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:14px 8px;font-size:1.1rem;font-weight:700;cursor:pointer;text-align:center;line-height:1.8;transition:border-color 0.15s,transform 0.1s}
+.choice-btn:hover:not(:disabled){border-color:var(--accent);transform:scale(1.03)}
+.choice-btn.correct{border-color:#22c55e!important;background:#162a1e!important}
+.choice-btn.wrong{border-color:#ef4444!important;background:#2a1616!important}
+.choice-btn:disabled{cursor:default}
+#feedback{text-align:center;font-size:0.95rem;font-weight:600;min-height:22px;color:var(--text2)}
+#timer-bar-wrap{width:100%;max-width:460px;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+#timer-bar{height:100%;background:var(--accent);width:100%;transition:width 0.1s linear}
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:50;align-items:center;justify-content:center}
+#overlay.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:32px;text-align:center;max-width:320px;width:90%}
+.modal h2{font-size:1.6rem;margin-bottom:8px}
+.modal p{color:var(--text2);margin-bottom:20px;white-space:pre-line;line-height:1.6}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:12px 28px;font-size:1rem;font-weight:700;cursor:pointer}
+.btn:hover{background:#8b7cf6}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="../index.html">←</a>
+  <span class="title">½ Fraction Puzzle</span>
+  <span class="score-badge" id="score-disp">Score: 0</span>
+</header>
+<main>
+  <div id="hud">
+    <div>Q: <span id="q-num">1</span>/12</div>
+    <div>Streak: <span id="streak">0</span>🔥</div>
+    <div>⏱ <span id="t-disp">15</span>s</div>
+  </div>
+  <div id="timer-bar-wrap"><div id="timer-bar"></div></div>
+  <div id="question-card">
+    <div id="diff-label">Level 1</div>
+    <div id="problem"></div>
+    <div id="visual"></div>
+  </div>
+  <div id="choices"></div>
+  <div id="feedback"></div>
+</main>
+<div id="overlay">
+  <div class="modal">
+    <h2>🎉 Complete!</h2>
+    <p id="modal-body"></p>
+    <button class="btn" onclick="startGame()">Play Again</button>
+  </div>
+</div>
+<script>
+function gcd(a,b){return b===0?a:gcd(b,a%b);}
+function simplify(n,d){const g=gcd(Math.abs(n),Math.abs(d));return[n/g,d/g];}
+function fracHTML(n,d){
+  if(d===1)return`<span>${n}</span>`;
+  const [sn,sd]=simplify(n,d);
+  return`<span class="frac"><span class="num">${sn}</span><span class="den">${sd}</span></span>`;
+}
+function fracVal(n,d){return n/d;}
+function fracStr(n,d){const [sn,sd]=simplify(n,d);return sd===1?`${sn}`:`${sn}/${sd}`;}
+
+let score=0,qIdx=0,streak=0,timer=15,timerHandle=null,answered=false;
+let questions=[];
+
+const TYPES=['compare','add','sub','missing'];
+const DENOMS=[2,3,4,5,6,8,10];
+
+function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+function randDenom(level){
+  const pool=level<=2?[2,3,4]:level<=4?[3,4,5,6]:DENOMS;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function genQuestion(level){
+  const type=TYPES[Math.floor(Math.random()*TYPES.length)];
+  if(type==='compare'){
+    const d1=randDenom(level), d2=randDenom(level);
+    const n1=randInt(1,d1-1), n2=randInt(1,d2-1);
+    const bigger=fracVal(n1,d1)>=fracVal(n2,d2)?`${n1}/${d1}`:`${n2}/${d2}`;
+    const ans=[n1,d1,n2,d2].join(',');
+    return{type:'compare',n1,d1,n2,d2,correct:bigger,
+      problemHTML:`Which fraction is bigger?<br><br>${fracHTML(n1,d1)} &nbsp;vs&nbsp; ${fracHTML(n2,d2)}`,
+      choices:generateChoicesCompare(n1,d1,n2,d2,bigger)};
+  }
+  if(type==='add'||type==='sub'){
+    let d=randDenom(level), n1=randInt(1,d-1), n2=randInt(1,d-1);
+    if(type==='sub'&&n1<n2)[n1,n2]=[n2,n1];
+    const rn=type==='add'?n1+n2:n1-n2;
+    const [sn,sd]=simplify(rn,d);
+    const op=type==='add'?'+':'−';
+    return{type,n1,d,n2,correct:fracStr(rn,d),
+      problemHTML:`${fracHTML(n1,d)} ${op} ${fracHTML(n2,d)} = ?`,
+      choices:generateChoicesCalc(sn,sd,level)};
+  }
+  if(type==='missing'){
+    const d=randDenom(level);
+    const n1=randInt(1,d-1), target=randInt(1,d-1);
+    const n2=target<n1?n1-target:target-n1;
+    const op=target>=n1?'+':'−';
+    return{type:'missing',n1,d,n2,target,correct:fracStr(n2,d),
+      problemHTML:`${fracHTML(n1,d)} ${op} ? = ${fracHTML(target,d)}`,
+      choices:generateChoicesCalc(...simplify(n2,d),level)};
+  }
+}
+
+function generateChoicesCompare(n1,d1,n2,d2,correct){
+  const opts=new Set([correct]);
+  const alt=correct===`${n1}/${d1}`?`${n2}/${d2}`:`${n1}/${d1}`;
+  opts.add(alt);
+  opts.add('Equal');
+  while(opts.size<4){const d=DENOMS[Math.floor(Math.random()*DENOMS.length)];const n=randInt(1,d-1);opts.add(fracStr(n,d));}
+  return shuffle([...opts].slice(0,4));
+}
+
+function generateChoicesCalc(sn,sd,level){
+  const opts=new Set([fracStr(sn,sd)]);
+  while(opts.size<4){
+    const d=randDenom(level);
+    const n=randInt(0,d);
+    const s=fracStr(n,d);
+    if(s!==fracStr(sn,sd))opts.add(s);
+  }
+  return shuffle([...opts].slice(0,4));
+}
+
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function drawVisual(n1,d1){
+  const wrap=document.getElementById('visual');
+  wrap.innerHTML='';
+  const colors=['#6c63ff','#f59e0b','#22c55e','#ef4444'];
+  for(let i=0;i<d1;i++){
+    const bar=document.createElement('div');
+    bar.className='frac-bar';
+    bar.style.background=i<n1?colors[0]:'rgba(255,255,255,0.08)';
+    bar.style.border='1px solid rgba(255,255,255,0.1)';
+    wrap.appendChild(bar);
+  }
+}
+
+function genQuestions(){
+  questions=[];
+  for(let i=0;i<12;i++) questions.push(genQuestion(Math.floor(i/4)+1));
+}
+
+function showQ(){
+  clearInterval(timerHandle);
+  answered=false;
+  document.getElementById('feedback').textContent='';
+  const q=questions[qIdx];
+  const level=Math.floor(qIdx/4)+1;
+  document.getElementById('diff-label').textContent=`Level ${level}`;
+  document.getElementById('q-num').textContent=qIdx+1;
+  document.getElementById('streak').textContent=streak;
+  document.getElementById('problem').innerHTML=q.problemHTML;
+  if(q.type!=='compare'&&q.n1!==undefined) drawVisual(q.n1,q.d||q.d1||2);
+  else document.getElementById('visual').innerHTML='';
+  const wrap=document.getElementById('choices');
+  wrap.innerHTML='';
+  q.choices.forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    // Render fraction HTML if it's a/b form
+    if(/^\d+\/\d+$/.test(opt)){const[n,d]=opt.split('/');btn.innerHTML=fracHTML(parseInt(n),parseInt(d));}
+    else btn.textContent=opt;
+    btn.onclick=()=>pick(btn,opt,q.correct);
+    wrap.appendChild(btn);
+  });
+  timer=Math.max(8,16-level*2);
+  document.getElementById('t-disp').textContent=timer;
+  document.getElementById('timer-bar').style.width='100%';
+  const maxT=timer;
+  timerHandle=setInterval(()=>{
+    timer--;
+    document.getElementById('t-disp').textContent=timer;
+    document.getElementById('timer-bar').style.width=(timer/maxT*100)+'%';
+    if(timer<=2)document.getElementById('timer-bar').style.background='#ef4444';
+    else document.getElementById('timer-bar').style.background='var(--accent)';
+    if(timer<=0){clearInterval(timerHandle);if(!answered)timeUp();}
+  },1000);
+}
+
+function pick(btn,chosen,correct){
+  if(answered)return;
+  answered=true;
+  clearInterval(timerHandle);
+  document.querySelectorAll('.choice-btn').forEach(b=>b.disabled=true);
+  if(chosen===correct){
+    btn.classList.add('correct');
+    const pts=10+streak*2+timer;
+    score+=pts;
+    streak++;
+    document.getElementById('score-disp').textContent='Score: '+score;
+    document.getElementById('feedback').textContent=`✅ Correct! +${pts}`;
+  } else {
+    btn.classList.add('wrong');
+    streak=0;
+    document.querySelectorAll('.choice-btn').forEach(b=>{if(b.textContent===correct||b.innerHTML.includes(correct.split('/')[0]))b.classList.add('correct');});
+    document.getElementById('feedback').textContent=`❌ Answer: ${correct}`;
+  }
+  document.getElementById('streak').textContent=streak;
+  qIdx++;
+  if(qIdx>=12) setTimeout(endGame,1300);
+  else setTimeout(showQ,1400);
+}
+
+function timeUp(){
+  answered=true;
+  streak=0;
+  document.getElementById('streak').textContent=0;
+  document.querySelectorAll('.choice-btn').forEach(b=>b.disabled=true);
+  document.getElementById('feedback').textContent=`⏰ Time's up! Answer: ${questions[qIdx].correct}`;
+  qIdx++;
+  if(qIdx>=12) setTimeout(endGame,1300);
+  else setTimeout(showQ,1400);
+}
+
+function endGame(){
+  let hi=0;
+  try{hi=parseInt(localStorage.getItem('hi_fraction-puzzle')||'0');if(score>hi){localStorage.setItem('hi_fraction-puzzle',score);hi=score;}}catch(e){}
+  document.getElementById('modal-body').textContent=`Score: ${score}\nHigh Score: ${hi}\n\nFractions mastered!`;
+  document.getElementById('overlay').classList.add('show');
+}
+
+function startGame(){
+  score=0;qIdx=0;streak=0;
+  document.getElementById('score-disp').textContent='Score: 0';
+  document.getElementById('overlay').classList.remove('show');
+  genQuestions();
+  showQ();
+}
+
+startGame();
+</script>
+</body>
+</html>
