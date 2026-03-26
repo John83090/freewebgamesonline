@@ -3,148 +3,791 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FreeWebGamesOnline Blog – Game Guides &amp; Tips</title>
-  <meta name="description" content="Browse game guides, strategy tips, and tutorials for browser games including chess, puzzles, arcade games, card games, and more." />
+  <title>FreeWebGamesOnline Blog – Game Guides, Tips &amp; Strategies</title>
+  <meta name="description" content="Explore game guides, strategy tips, and tutorials for free browser games. Learn chess openings, puzzle strategies, arcade techniques, card game rules, and more." />
+  <link rel="canonical" href="https://freewebgamesonline.com/blog/index.html"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9483059588332842" crossorigin="anonymous"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg: #0d0d14;
-      --bg2: #13131f;
-      --card: #1e1e30;
-      --border: #2a2a45;
-      --accent: #6c63ff;
-      --text: #e8e8f0;
-      --text2: #9898b8;
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --surface2: #1c1c26;
+      --border: rgba(255,255,255,0.08);
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --accent: #6366f1;
+      --accent-light: #818cf8;
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
     }
-    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.6; min-height: 100vh; display: flex; flex-direction: column; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
 
-    /* HEADER */
-    header { position: sticky; top: 0; z-index: 100; background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 1.5rem; }
-    .header-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 56px; }
-    .logo { font-size: 1.2rem; font-weight: 700; color: var(--text); text-decoration: none; white-space: nowrap; }
-    .logo:hover { color: var(--accent); }
-    nav { display: flex; gap: 1.5rem; }
-    nav a { color: var(--text2); text-decoration: none; font-size: 0.95rem; transition: color 0.2s; }
-    nav a:hover, nav a[aria-current] { color: var(--accent); }
+    /* ── Header ── */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background: rgba(10,10,15,0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+    .site-header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .site-logo {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+    .site-logo:hover { color: var(--accent-light); }
+    .site-nav { display: flex; gap: 4px; align-items: center; }
+    .site-nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .site-nav a:hover,
+    .site-nav a.active {
+      color: var(--text);
+      background: rgba(255,255,255,0.08);
+    }
 
-    /* HERO */
-    .hero { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 3rem 1.5rem; text-align: center; }
-    .hero h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 0.75rem; }
-    .hero p { color: var(--text2); font-size: 1.05rem; max-width: 600px; margin: 0 auto; }
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, #0a0a1f, #1a1060, #2d1b69);
+      padding: 80px 24px 100px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 80% at 50% 50%, rgba(99,102,241,0.15) 0%, transparent 70%);
+    }
+    .hero-inner {
+      max-width: 700px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .hero-eyebrow {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent-light);
+      background: rgba(99,102,241,0.15);
+      border: 1px solid rgba(99,102,241,0.3);
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #fff 0%, #c7d2fe 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 1.1rem;
+      color: rgba(255,255,255,0.65);
+      max-width: 520px;
+      margin: 0 auto 32px;
+    }
+    .search-bar {
+      display: flex;
+      max-width: 480px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 50px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .search-bar:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+    }
+    .search-bar input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 14px 20px;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-family: 'Inter', sans-serif;
+    }
+    .search-bar input::placeholder { color: rgba(255,255,255,0.35); }
+    .search-bar button {
+      background: var(--accent);
+      border: none;
+      padding: 14px 22px;
+      color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .search-bar button:hover { background: var(--accent-light); }
 
-    /* MAIN */
-    main { flex: 1; max-width: 1100px; margin: 0 auto; width: 100%; padding: 2.5rem 1.5rem; }
+    /* ── Category Pills ── */
+    .categories-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px 0;
+    }
+    .category-pills {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      padding: 8px 18px;
+      border-radius: 50px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .pill:hover {
+      border-color: var(--accent);
+      color: var(--accent-light);
+      background: rgba(99,102,241,0.08);
+    }
+    .pill.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
 
-    /* GRID */
-    .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+    /* ── Articles Section ── */
+    .articles-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .article-count {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+    .articles-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .article-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
+    .article-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow);
+      border-color: rgba(99,102,241,0.3);
+    }
+    .card-thumb {
+      height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .card-thumb::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: inherit;
+      opacity: 0.7;
+    }
+    .card-thumb-emoji {
+      position: relative;
+      z-index: 1;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+    }
+    .card-body {
+      padding: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .card-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .card-read-time {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 10px;
+      letter-spacing: -0.01em;
+    }
+    .card-title a {
+      color: var(--text);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .card-title a:hover { color: var(--accent-light); }
+    .card-excerpt {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 16px;
+      flex: 1;
+    }
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .card-author {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(99,102,241,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+    }
+    .card-author-info { font-size: 0.8rem; }
+    .card-author-name { font-weight: 600; color: var(--text); }
+    .card-date { color: var(--text-muted); font-size: 0.75rem; }
+    .card-link {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent-light);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .card-link:hover { color: #fff; }
 
-    /* CARD */
-    .blog-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.75rem; display: flex; flex-direction: column; transition: border-color 0.2s, transform 0.2s; }
-    .blog-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-    .category-tag { display: inline-block; background: rgba(108,99,255,0.15); color: var(--accent); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.25rem 0.65rem; border-radius: 20px; margin-bottom: 0.9rem; }
-    .blog-card h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.6rem; line-height: 1.35; }
-    .blog-card h2 a { color: var(--text); text-decoration: none; }
-    .blog-card h2 a:hover { color: var(--accent); }
-    .blog-card p { color: var(--text2); font-size: 0.92rem; line-height: 1.55; flex: 1; margin-bottom: 1.2rem; }
-    .read-more { color: var(--accent); text-decoration: none; font-size: 0.9rem; font-weight: 600; margin-top: auto; align-self: flex-start; }
-    .read-more:hover { text-decoration: underline; }
+    /* ── Ad Zone ── */
+    .ad-zone {
+      max-width: 1200px;
+      margin: 0 auto 48px;
+      padding: 0 24px;
+    }
+    .ad-zone-inner {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      min-height: 100px;
+    }
+    .ad-zone-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
 
-    /* FOOTER */
-    footer { background: var(--bg2); border-top: 1px solid var(--border); padding: 2rem 1.5rem; text-align: center; }
-    .footer-inner { max-width: 1100px; margin: 0 auto; }
-    .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem 1.5rem; margin-bottom: 1rem; }
-    .footer-links a { color: var(--text2); text-decoration: none; font-size: 0.88rem; }
-    .footer-links a:hover { color: var(--accent); }
-    .footer-copy { color: var(--text2); font-size: 0.82rem; }
+    /* ── Newsletter ── */
+    .newsletter-section {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 64px 24px;
+      text-align: center;
+      margin-bottom: 0;
+    }
+    .newsletter-inner {
+      max-width: 520px;
+      margin: 0 auto;
+    }
+    .newsletter-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent-light);
+      margin-bottom: 14px;
+    }
+    .newsletter-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+    .newsletter-sub {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+    .newsletter-form {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .newsletter-form input {
+      flex: 1;
+      min-width: 220px;
+      padding: 13px 18px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 0.9rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .newsletter-form input::placeholder { color: var(--text-muted); }
+    .newsletter-form input:focus { border-color: var(--accent); }
+    .newsletter-form button {
+      padding: 13px 24px;
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .newsletter-form button:hover { background: var(--accent-light); }
+    .newsletter-note {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 12px;
+    }
 
+    /* ── Footer ── */
+    .site-footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 48px 24px 32px;
+    }
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+    .footer-brand { }
+    .footer-logo {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      display: block;
+      margin-bottom: 12px;
+    }
+    .footer-brand p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .footer-col-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .footer-col a {
+      display: block;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      margin-bottom: 8px;
+      transition: color 0.2s;
+    }
+    .footer-col a:hover { color: var(--text); }
+    .footer-bottom {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-bottom p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .footer-legal { display: flex; gap: 20px; }
+    .footer-legal a {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-legal a:hover { color: var(--text); }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .articles-grid { grid-template-columns: repeat(2, 1fr); }
+      .footer-inner { grid-template-columns: 1fr 1fr; }
+    }
     @media (max-width: 600px) {
-      .hero h1 { font-size: 1.6rem; }
-      nav { gap: 1rem; }
+      .articles-grid { grid-template-columns: 1fr; }
+      .footer-inner { grid-template-columns: 1fr; gap: 24px; }
+      .site-nav { gap: 0; }
+      .site-nav a { padding: 6px 8px; font-size: 0.8rem; }
+      .hero { padding: 60px 16px 80px; }
     }
   </style>
 </head>
 <body>
 
-<header>
-  <div class="header-inner">
-    <a href="/index.html" class="logo">🎮 FreeWebGamesOnline</a>
-    <nav>
-      <a href="/index.html">Games</a>
-      <a href="/blog/index.html" aria-current="page">Blog</a>
-      <a href="/about.html">About</a>
-    </nav>
-  </div>
-</header>
-
-<div class="hero">
-  <h1>Game Guides &amp; Tips</h1>
-  <p>Strategy breakdowns, beginner tutorials, and curated picks to help you discover and enjoy the best free browser games.</p>
-</div>
-
-<main>
-  <div class="blog-grid">
-
-    <article class="blog-card">
-      <span class="category-tag">Guides</span>
-      <h2><a href="/blog/best-free-browser-games.html">Best Free Browser Games to Play Right Now</a></h2>
-      <p>Looking for something fun to play without downloading anything? We've rounded up the best free browser games across every genre — puzzles, arcade, board games, and more. Fire up any of them instantly, right in your browser.</p>
-      <a href="/blog/best-free-browser-games.html" class="read-more">Read more →</a>
-    </article>
-
-    <article class="blog-card">
-      <span class="category-tag">Puzzle</span>
-      <h2><a href="/blog/puzzle-games-guide.html">The Ultimate Puzzle Games Guide for Beginners</a></h2>
-      <p>Puzzle games are more than just fun — they sharpen your thinking, build patience, and offer a genuine sense of accomplishment. This guide walks you through Sudoku, Wordle, 2048, Minesweeper, and more with practical tips to level up fast.</p>
-      <a href="/blog/puzzle-games-guide.html" class="read-more">Read more →</a>
-    </article>
-
-    <article class="blog-card">
-      <span class="category-tag">Strategy</span>
-      <h2><a href="/blog/chess-tips-for-beginners.html">How to Get Better at Chess: 10 Tips for Beginners</a></h2>
-      <p>Chess rewards patience, planning, and practice — but knowing where to start can be overwhelming. These 10 actionable tips cover everything from controlling the center to studying endgames, and they'll make you a noticeably stronger player.</p>
-      <a href="/blog/chess-tips-for-beginners.html" class="read-more">Read more →</a>
-    </article>
-
-    <article class="blog-card">
-      <span class="category-tag">Educational</span>
-      <h2><a href="/blog/educational-games-that-are-fun.html">Educational Games That Are Actually Fun to Play</a></h2>
-      <p>The best educational games don't feel like homework — they disguise learning inside gameplay that's genuinely engaging. Discover browser games that build real knowledge in math, geography, spelling, and general trivia without the classroom feel.</p>
-      <a href="/blog/educational-games-that-are-fun.html" class="read-more">Read more →</a>
-    </article>
-
-    <article class="blog-card">
-      <span class="category-tag">Card Games</span>
-      <h2><a href="/blog/card-games-explained.html">Card Games Explained: From Solitaire to Poker</a></h2>
-      <p>Card games have been entertaining people for centuries, and they translate beautifully to the browser. Whether you're a Solitaire regular or want to learn Blackjack and Poker from scratch, this guide breaks down the rules and strategies you need.</p>
-      <a href="/blog/card-games-explained.html" class="read-more">Read more →</a>
-    </article>
-
-    <article class="blog-card">
-      <span class="category-tag">Arcade</span>
-      <h2><a href="/blog/arcade-games-guide.html">Arcade Games Guide: Master Pac-Man, Frogger &amp; More</a></h2>
-      <p>Classic arcade games look simple but hide surprising depth once you understand the patterns and scoring systems. This guide gives you real strategies for Pac-Man, Frogger, Snake, Breakout, and Tetris so you can stop dying on level one.</p>
-      <a href="/blog/arcade-games-guide.html" class="read-more">Read more →</a>
-    </article>
-
-  </div>
-</main>
-
-<footer>
-  <div class="footer-inner">
-    <div class="footer-links">
-      <a href="/index.html">Games</a>
-      <a href="/blog/index.html">Blog</a>
-      <a href="/about.html">About</a>
-      <a href="/privacy-policy.html">Privacy Policy</a>
-      <a href="/terms.html">Terms</a>
-      <a href="/contact.html">Contact</a>
-      <a href="/blog/best-free-browser-games.html">Browser Games Guide</a>
-      <a href="/blog/puzzle-games-guide.html">Puzzle Guide</a>
-      <a href="/blog/chess-tips-for-beginners.html">Chess Tips</a>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a href="/index.html" class="site-logo">🎮 FreeWebGamesOnline</a>
+      <nav class="site-nav">
+        <a href="/index.html">Home</a>
+        <a href="/games.html">Games</a>
+        <a href="/blog/index.html" class="active">Blog</a>
+        <a href="/about.html">About</a>
+        <a href="/contact.html">Contact</a>
+      </nav>
     </div>
-    <p class="footer-copy">© 2026 FreeWebGamesOnline · All rights reserved.</p>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <span class="hero-eyebrow">🗞️ The FreeWebGamesOnline Blog</span>
+      <h1>Game Guides, Tips &amp; Strategies</h1>
+      <p>Learn how to play better with in-depth guides covering chess openings, puzzle tactics, arcade mastery, card game strategies, and more.</p>
+      <div class="search-bar">
+        <input type="text" placeholder="Search articles…" aria-label="Search articles"/>
+        <button type="button" aria-label="Search">🔍</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Category Pills -->
+  <section class="categories-section">
+    <div class="category-pills">
+      <a href="#" class="pill active">All</a>
+      <a href="#" class="pill">Strategy</a>
+      <a href="#" class="pill">Puzzle</a>
+      <a href="#" class="pill">Arcade</a>
+      <a href="#" class="pill">Card Games</a>
+      <a href="#" class="pill">Educational</a>
+      <a href="#" class="pill">Top Picks</a>
+    </div>
+  </section>
+
+  <!-- Articles Grid -->
+  <section class="articles-section">
+    <div class="section-header">
+      <h2 class="section-title">Latest Articles</h2>
+      <span class="article-count">6 articles</span>
+    </div>
+    <div class="articles-grid">
+
+      <!-- Chess Tips -->
+      <article class="article-card">
+        <div class="card-thumb" style="background: linear-gradient(135deg, #0d1117 0%, #1a3a2a 50%, #0d4f2a 100%);">
+          <span class="card-thumb-emoji">♟️</span>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-badge" style="background: rgba(34,197,94,0.2); color: #86efac;">Strategy</span>
+            <span class="card-read-time">8 min read</span>
+          </div>
+          <h3 class="card-title"><a href="/blog/chess-tips-for-beginners.html">Chess Tips for Beginners: 10 Essential Strategies to Win More Games</a></h3>
+          <p class="card-excerpt">Master the fundamentals of chess with these 10 proven strategies. From controlling the center to avoiding common beginner mistakes, learn how to improve your game today.</p>
+          <div class="card-footer">
+            <div class="card-author">
+              <div class="card-avatar">AR</div>
+              <div class="card-author-info">
+                <div class="card-author-name">Alex Rivera</div>
+                <div class="card-date">Mar 15, 2026</div>
+              </div>
+            </div>
+            <a href="/blog/chess-tips-for-beginners.html" class="card-link">Read More →</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Puzzle Games Guide -->
+      <article class="article-card">
+        <div class="card-thumb" style="background: linear-gradient(135deg, #0a0f1a 0%, #1a2a4a 50%, #1e3a8a 100%);">
+          <span class="card-thumb-emoji">🧩</span>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-badge" style="background: rgba(99,102,241,0.2); color: #c7d2fe;">Puzzle</span>
+            <span class="card-read-time">6 min read</span>
+          </div>
+          <h3 class="card-title"><a href="/blog/puzzle-games-guide.html">The Ultimate Guide to Free Online Puzzle Games</a></h3>
+          <p class="card-excerpt">From Wordle to Sudoku and 2048, discover the best free puzzle games online, plus expert tips to sharpen your logic and solve harder challenges.</p>
+          <div class="card-footer">
+            <div class="card-author">
+              <div class="card-avatar">SC</div>
+              <div class="card-author-info">
+                <div class="card-author-name">Sam Chen</div>
+                <div class="card-date">Mar 10, 2026</div>
+              </div>
+            </div>
+            <a href="/blog/puzzle-games-guide.html" class="card-link">Read More →</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Arcade Games Guide -->
+      <article class="article-card">
+        <div class="card-thumb" style="background: linear-gradient(135deg, #1a0505 0%, #3b0a0a 50%, #7f1d1d 100%);">
+          <span class="card-thumb-emoji">👾</span>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-badge" style="background: rgba(239,68,68,0.2); color: #fca5a5;">Arcade</span>
+            <span class="card-read-time">7 min read</span>
+          </div>
+          <h3 class="card-title"><a href="/blog/arcade-games-guide.html">Free Arcade Games Online: A Beginner's Guide to Classic Browser Games</a></h3>
+          <p class="card-excerpt">Dive into the world of free arcade games. Learn the history, master movement patterns in Pac-Man, survive in Frogger, and clear lines in Tetris like a pro.</p>
+          <div class="card-footer">
+            <div class="card-author">
+              <div class="card-avatar">JL</div>
+              <div class="card-author-info">
+                <div class="card-author-name">Jordan Lee</div>
+                <div class="card-date">Mar 5, 2026</div>
+              </div>
+            </div>
+            <a href="/blog/arcade-games-guide.html" class="card-link">Read More →</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card Games Explained -->
+      <article class="article-card">
+        <div class="card-thumb" style="background: linear-gradient(135deg, #0a0a1f 0%, #0c1445 50%, #1e3a8a 100%);">
+          <span class="card-thumb-emoji">🃏</span>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-badge" style="background: rgba(99,102,241,0.2); color: #c7d2fe;">Card Games</span>
+            <span class="card-read-time">5 min read</span>
+          </div>
+          <h3 class="card-title"><a href="/blog/card-games-explained.html">Card Games Explained: How to Play Solitaire, Blackjack &amp; Video Poker Online</a></h3>
+          <p class="card-excerpt">A complete guide to free online card games. Learn the rules, objectives, and winning strategies for Solitaire, Blackjack, and Video Poker in the browser.</p>
+          <div class="card-footer">
+            <div class="card-author">
+              <div class="card-avatar">MT</div>
+              <div class="card-author-info">
+                <div class="card-author-name">Morgan Taylor</div>
+                <div class="card-date">Feb 28, 2026</div>
+              </div>
+            </div>
+            <a href="/blog/card-games-explained.html" class="card-link">Read More →</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Educational Games -->
+      <article class="article-card">
+        <div class="card-thumb" style="background: linear-gradient(135deg, #1a0f00 0%, #451a03 50%, #92400e 100%);">
+          <span class="card-thumb-emoji">📚</span>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-badge" style="background: rgba(245,158,11,0.2); color: #fde68a;">Educational</span>
+            <span class="card-read-time">5 min read</span>
+          </div>
+          <h3 class="card-title"><a href="/blog/educational-games-that-are-fun.html">Educational Games That Are Actually Fun to Play</a></h3>
+          <p class="card-excerpt">Think learning can't be entertaining? These free browser-based educational games prove otherwise — covering math, vocabulary, geography, science, and logic.</p>
+          <div class="card-footer">
+            <div class="card-author">
+              <div class="card-avatar">AR</div>
+              <div class="card-author-info">
+                <div class="card-author-name">Alex Rivera</div>
+                <div class="card-date">Feb 20, 2026</div>
+              </div>
+            </div>
+            <a href="/blog/educational-games-that-are-fun.html" class="card-link">Read More →</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Best Free Browser Games -->
+      <article class="article-card">
+        <div class="card-thumb" style="background: linear-gradient(135deg, #0a1a0a 0%, #0d2818 50%, #14532d 100%);">
+          <span class="card-thumb-emoji">🏆</span>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-badge" style="background: rgba(34,197,94,0.2); color: #86efac;">Top Picks</span>
+            <span class="card-read-time">4 min read</span>
+          </div>
+          <h3 class="card-title"><a href="/blog/best-free-browser-games.html">Best Free Browser Games to Play Right Now</a></h3>
+          <p class="card-excerpt">Our curated list of the absolute best free games you can play in your browser today — no download, no signup required. Puzzles, arcade, board games, and more.</p>
+          <div class="card-footer">
+            <div class="card-author">
+              <div class="card-avatar">SC</div>
+              <div class="card-author-info">
+                <div class="card-author-name">Sam Chen</div>
+                <div class="card-date">Feb 15, 2026</div>
+              </div>
+            </div>
+            <a href="/blog/best-free-browser-games.html" class="card-link">Read More →</a>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- AdSense -->
+  <div class="ad-zone">
+    <div class="ad-zone-inner">
+      <div class="ad-zone-label">Advertisement</div>
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-9483059588332842"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+    </div>
   </div>
-</footer>
+
+  <!-- Newsletter -->
+  <section class="newsletter-section">
+    <div class="newsletter-inner">
+      <p class="newsletter-eyebrow">📬 Stay in the loop</p>
+      <h2 class="newsletter-title">Get New Guides in Your Inbox</h2>
+      <p class="newsletter-sub">Join thousands of players who get our latest game guides and tips delivered weekly. No spam, ever.</p>
+      <form class="newsletter-form" onsubmit="return false;">
+        <input type="email" placeholder="Enter your email address" aria-label="Email address"/>
+        <button type="submit">Subscribe Free</button>
+      </form>
+      <p class="newsletter-note">Unsubscribe anytime. We respect your privacy.</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a href="/index.html" class="footer-logo">🎮 FreeWebGamesOnline</a>
+        <p>Play 100+ free browser games — no download, no signup required. Puzzle, arcade, board, card, sports, casino, and educational games all in one place.</p>
+      </div>
+      <div class="footer-col">
+        <p class="footer-col-title">Games</p>
+        <a href="/games.html?category=puzzle">Puzzle Games</a>
+        <a href="/games.html?category=arcade">Arcade Games</a>
+        <a href="/games.html?category=board">Board Games</a>
+        <a href="/games.html?category=card">Card Games</a>
+        <a href="/games.html?category=educational">Educational</a>
+        <a href="/games.html">All Games</a>
+      </div>
+      <div class="footer-col">
+        <p class="footer-col-title">Blog</p>
+        <a href="/blog/chess-tips-for-beginners.html">Chess Tips</a>
+        <a href="/blog/puzzle-games-guide.html">Puzzle Guide</a>
+        <a href="/blog/arcade-games-guide.html">Arcade Guide</a>
+        <a href="/blog/card-games-explained.html">Card Games</a>
+        <a href="/blog/educational-games-that-are-fun.html">Educational</a>
+        <a href="/blog/best-free-browser-games.html">Top Picks</a>
+      </div>
+      <div class="footer-col">
+        <p class="footer-col-title">Site</p>
+        <a href="/index.html">Home</a>
+        <a href="/about.html">About</a>
+        <a href="/contact.html">Contact</a>
+        <a href="/leaderboard.html">Leaderboard</a>
+        <a href="/sitemap.xml">Sitemap</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 FreeWebGamesOnline. All rights reserved.</p>
+      <div class="footer-legal">
+        <a href="/privacy.html">Privacy Policy</a>
+        <a href="/terms.html">Terms of Use</a>
+      </div>
+    </div>
+  </footer>
 
 </body>
 </html>

@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Play 100+ Free Browser Games – FreeWebGamesOnline</title>
+<meta name="description" content="Browse and play 100+ original free HTML5 games. Puzzle, arcade, board, card, sports, casino, educational — no download, no signup."/>
+<meta name="keywords" content="free browser games, online games, HTML5 games, puzzle games, arcade games, board games, card games, educational games"/>
+<meta property="og:title" content="FreeWebGamesOnline – Free Browser Games"/>
+<meta property="og:description" content="100 original HTML5 games playable instantly in your browser. No downloads, no signup."/>
+<meta property="og:type" content="website"/>
+<link rel="canonical" href="https://freewebgamesonline.com/games.html"/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="shortcut icon" href="/favicon.svg"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
+<script>
+// Force-reload if browser has old cached version
+(function(){
+  var V='fwgo_v10';
+  if(localStorage.getItem('fwgo_ver')!==V){
+    localStorage.setItem('fwgo_ver',V);
+    if(navigator.serviceWorker){navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(w){w.unregister()})}).catch(function(){});}
+    if(window.caches){caches.keys().then(function(k){k.forEach(function(n){caches.delete(n)})}).catch(function(){});}
+    location.reload(true);
+  }
+})();
+</script>
+<!-- Google AdSense -->
+<link rel="preconnect" href="https://pagead2.googlesyndication.com"/>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9483059588332842" crossorigin="anonymous"></script>
+<style>
+:root{
+  --bg:#1a1b2e;--bg2:#13142a;--bg3:#232544;--card:#1e2040;
+  --border:#2d2f52;--accent:#7c3aed;--accent-h:#9d5cff;
+  --text:#e8e8f5;--text2:#8080aa;--gold:#fbbf24;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;min-height:100vh}
+
+
+/* ── LAYOUT ── */
+.layout{display:flex;flex:1;min-height:0}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:56px;background:var(--bg2);border-right:1px solid var(--border);
+  position:fixed;top:0;left:0;bottom:0;z-index:300;
+  display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:2px;
+  overflow-y:auto;scrollbar-width:none
+}
+.sidebar::-webkit-scrollbar{display:none}
+.sb-logo{font-size:1.5rem;padding:6px;margin-bottom:6px;cursor:pointer;text-decoration:none}
+.sb-divider{width:32px;height:1px;background:var(--border);margin:4px 0;flex-shrink:0}
+.sb-item{
+  width:46px;height:46px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;border-radius:10px;cursor:pointer;border:none;background:none;
+  color:var(--text2);transition:all .18s;gap:1px;padding:0;text-decoration:none;flex-shrink:0
+}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--accent);color:#fff}
+.sb-item .si{font-size:1.25rem;line-height:1;display:block}
+.sb-item .sl{font-size:.47rem;font-weight:700;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;display:block}
+
+/* ── MAIN AREA ── */
+.main-area{margin-left:56px;flex:1;display:flex;flex-direction:column;min-width:0}
+
+/* ── HEADER ── */
+header{
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  height:52px;padding:0 20px;position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;gap:14px;flex-shrink:0
+}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);flex-shrink:0}
+.logo-icon{font-size:1.4rem}
+.logo-text{font-size:1.1rem;font-weight:900;background:linear-gradient(135deg,#a78bfa,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.search-wrap{flex:1;max-width:440px;position:relative}
+.search-wrap input{
+  width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:24px;
+  padding:7px 16px 7px 38px;color:var(--text);font-size:.875rem;outline:none;transition:border-color .2s
+}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-wrap input::placeholder{color:var(--text2)}
+.search-wrap .si-search{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text2);font-size:.95rem;pointer-events:none}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+nav{display:flex;gap:2px}
+nav a{color:var(--text2);text-decoration:none;padding:5px 10px;border-radius:8px;font-size:.82rem;font-weight:600;transition:all .18s;white-space:nowrap}
+nav a:hover{color:var(--text);background:var(--bg3)}
+.stats-badge{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:5px 13px;font-size:.82rem;font-weight:700;color:var(--text);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px;transition:border-color .18s}
+.stats-badge:hover{border-color:var(--accent);color:var(--accent)}
+.stats-badge .sb-count{color:var(--accent);font-size:.88rem}
+
+/* ── PROGRESS MODAL ── */
+.prog-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:900;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.prog-overlay.open{display:flex}
+.prog-modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:100%;max-width:480px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.7)}
+.prog-header{padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.prog-header h2{margin:0;font-size:1.05rem;font-weight:800;flex:1}
+.prog-close{background:none;border:none;color:var(--text2);font-size:1.3rem;cursor:pointer;padding:2px 8px;border-radius:6px;line-height:1}
+.prog-close:hover{color:var(--text);background:var(--bg3)}
+.prog-body{overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:18px}
+.prog-stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.prog-stat{background:var(--bg3);border-radius:10px;padding:12px;text-align:center}
+.prog-stat-num{font-size:1.5rem;font-weight:900;color:var(--accent)}
+.prog-stat-lbl{font-size:.72rem;color:var(--text2);margin-top:2px}
+.prog-section-title{font-size:.78rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.prog-game-list{display:flex;flex-direction:column;gap:6px}
+.prog-game-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg3);border-radius:8px;text-decoration:none;color:var(--text);border:1px solid transparent;transition:border-color .15s}
+.prog-game-row:hover{border-color:var(--accent)}
+.prog-game-thumb{width:40px;height:30px;border-radius:5px;object-fit:cover;flex-shrink:0;background:var(--bg)}
+.prog-game-info{flex:1;min-width:0}
+.prog-game-name{font-size:.84rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prog-game-meta{font-size:.72rem;color:var(--text2);margin-top:1px}
+.prog-game-count{font-size:.75rem;color:var(--accent);font-weight:700;white-space:nowrap}
+.prog-empty{text-align:center;padding:28px 16px;color:var(--text2);font-size:.88rem;line-height:1.8}
+.prog-clear{background:none;border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:7px 14px;font-size:.78rem;cursor:pointer;width:100%;margin-top:4px;transition:all .18s}
+.prog-clear:hover{border-color:#ef4444;color:#ef4444}
+
+/* ── RECENTLY PLAYED SECTION ── */
+.sec-recent{display:none}
+.recent-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.recent-scroll::-webkit-scrollbar{display:none}
+.recent-card{flex:0 0 auto;width:100px;text-decoration:none;color:var(--text);position:relative}
+.recent-card img{width:100px;height:70px;border-radius:8px;object-fit:cover;display:block;background:var(--bg3)}
+.recent-card-name{font-size:.72rem;font-weight:600;margin-top:4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recent-badge{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);color:#fff;font-size:.65rem;border-radius:4px;padding:1px 4px}
+/* Badge on game cards for played indicator */
+.card-played-dot{position:absolute;bottom:34px;left:6px;background:var(--accent);width:8px;height:8px;border-radius:50%;border:2px solid var(--bg2);z-index:5}
+
+/* ── HERO ── */
+.hero{
+  background:linear-gradient(135deg,#0e0f20 0%,#1a0d38 55%,#0d1830 100%);
+  padding:28px 24px;border-bottom:1px solid var(--border);position:relative;overflow:hidden;flex-shrink:0
+}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 25% 60%,rgba(124,58,237,.18) 0%,transparent 55%),radial-gradient(ellipse at 75% 40%,rgba(59,130,246,.10) 0%,transparent 55%)}
+.hero-inner{position:relative;max-width:680px}
+.hero h1{font-size:2rem;font-weight:900;line-height:1.2;margin-bottom:8px}
+.hero h1 span{background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:.88rem;line-height:1.6;margin-bottom:14px}
+.hero-badges{display:flex;gap:7px;flex-wrap:wrap}
+.hero-badge{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:4px 12px;font-size:.77rem;font-weight:600;color:var(--text2)}
+.hero-badge b{color:#a78bfa}
+
+/* ── CONTENT ── */
+.content{padding:20px;max-width:1700px;width:100%}
+
+/* ── SECTION ── */
+.section{margin-bottom:32px}
+.section-title{font-size:1rem;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px;color:var(--text)}
+.section-title .cnt{color:var(--text2);font-size:.78rem;font-weight:600}
+
+/* ── GAME GRID ── */
+.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px}
+
+/* ── GAME CARD ── */
+.game-card{
+  position:relative;border-radius:12px;overflow:hidden;cursor:pointer;
+  text-decoration:none;color:var(--text);display:block;aspect-ratio:1/1;
+  background:var(--card);border:1px solid var(--border);
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s
+}
+.game-card:hover{transform:scale(1.06);box-shadow:0 10px 36px rgba(0,0,0,.65);z-index:3}
+.game-card.hidden{display:none}
+
+/* ── THUMBNAIL ── */
+.card-img{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;display:block;
+  transition:transform .35s ease;
+  z-index:1;
+}
+.game-card:hover .card-img{transform:scale(1.1)}
+
+/* Gradient fallback bg (shows when image loads / tinted) */
+.card-bg-grad{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.8rem;z-index:0;
+}
+
+/* ── ALWAYS-VISIBLE NAME BAR ── */
+.card-name-bar{
+  position:absolute;bottom:0;left:0;right:0;z-index:3;
+  background:linear-gradient(to top,rgba(0,0,0,.82) 0%,rgba(0,0,0,.3) 55%,transparent 100%);
+  padding:28px 9px 7px;
+}
+.card-name{
+  font-size:.74rem;font-weight:700;color:#fff;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;
+  text-shadow:0 1px 4px rgba(0,0,0,.7);
+}
+
+/* ── HOVER SLIDE-UP OVERLAY ── */
+.card-overlay{
+  position:absolute;bottom:0;left:0;right:0;z-index:4;
+  background:linear-gradient(to top,rgba(20,10,50,.95) 0%,rgba(20,10,50,.5) 70%,transparent 100%);
+  padding:36px 9px 9px;
+  transform:translateY(101%);
+  transition:transform .28s cubic-bezier(.25,.46,.45,.94);
+}
+.game-card:hover .card-overlay{transform:translateY(0)}
+.card-overlay .card-name{font-size:.8rem;margin-bottom:3px}
+.card-cat{font-size:.64rem;color:#c4b5fd;font-weight:600;text-transform:capitalize;display:block;margin-bottom:5px}
+.card-play-hint{font-size:.62rem;color:#a78bfa;display:block}
+
+/* ── BADGE ── */
+.game-badge{
+  position:absolute;top:7px;left:7px;z-index:5;
+  font-size:.58rem;font-weight:800;padding:2px 7px;border-radius:6px;text-transform:uppercase;letter-spacing:.03em
+}
+.badge-hot{background:#ef4444;color:#fff}
+.badge-new{background:#22c55e;color:#fff}
+.badge-popular{background:var(--accent);color:#fff}
+.badge-trending{background:#f97316;color:#fff}
+.badge-desktop{background:#374151;color:#9ca3af;border:1px solid #4b5563}
+
+/* ── CRAZYGAMES POPUP ── */
+#game-popup{
+  position:fixed;z-index:9999;width:268px;
+  background:#1a1c3a;border:1px solid #3a3d6a;border-radius:16px;
+  overflow:hidden;
+  box-shadow:0 24px 70px rgba(0,0,0,.95),0 0 0 1px rgba(124,58,237,.15);
+  pointer-events:none;opacity:0;
+  transform:scale(.88) translateY(10px);
+  transition:opacity .2s ease,transform .22s cubic-bezier(.34,1.56,.64,1);
+  will-change:transform,opacity;
+}
+#game-popup.show{opacity:1;transform:scale(1) translateY(0);pointer-events:auto}
+
+/* GIF/Video preview */
+.pp-preview{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;background:#0d0d1a}
+.pp-img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .3s}
+/* Ken Burns only fires when GIF fails to load (fallback) */
+.pp-img.kb{animation:kenBurns 6s ease-in-out infinite alternate}
+@keyframes kenBurns{
+  0%  {transform:scale(1)    translate(0%,0%)}
+  25% {transform:scale(1.08) translate(-2%,-1.5%)}
+  50% {transform:scale(1.12) translate(2%,1%)}
+  75% {transform:scale(1.07) translate(-1%,2%)}
+  100%{transform:scale(1.1)  translate(1.5%,-1%)}
+}
+.pp-gif-label{
+  position:absolute;top:7px;right:7px;
+  background:rgba(0,0,0,.65);color:#fff;
+  font-size:.6rem;font-weight:800;padding:2px 6px;border-radius:4px;
+  letter-spacing:.05em;pointer-events:none;
+}
+.pp-play-overlay{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.18);opacity:0;transition:opacity .18s
+}
+#game-popup:hover .pp-play-overlay{opacity:1}
+.pp-play-btn{
+  width:52px;height:52px;border-radius:50%;
+  background:rgba(124,58,237,.92);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;
+  box-shadow:0 4px 20px rgba(124,58,237,.6);
+  transition:transform .15s;
+}
+#game-popup:hover .pp-play-btn{transform:scale(1.1)}
+
+/* Popup body */
+.pp-body{padding:12px 14px 14px}
+.pp-name{font-size:1rem;font-weight:900;color:#e8e8f5;margin-bottom:6px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pp-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.pp-rating{
+  display:flex;align-items:center;gap:4px;
+  background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.25);
+  border-radius:6px;padding:2px 8px;font-size:.78rem;font-weight:700;color:#fbbf24
+}
+.pp-cat-tag{
+  background:rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.35);
+  border-radius:6px;padding:2px 8px;font-size:.72rem;font-weight:700;
+  color:#c4b5fd;text-transform:capitalize
+}
+.pp-players{
+  font-size:.76rem;color:#86efac;font-weight:600;margin-bottom:10px;
+  display:flex;align-items:center;gap:5px
+}
+.pp-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;
+  display:inline-block;animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.pp-action-btn{
+  display:block;width:100%;
+  background:linear-gradient(135deg,#7c3aed,#6d28d9);
+  color:#fff;text-align:center;border:none;border-radius:10px;
+  padding:10px;font-size:.9rem;font-weight:800;cursor:pointer;
+  text-decoration:none;transition:all .18s;
+  box-shadow:0 4px 14px rgba(124,58,237,.4)
+}
+.pp-action-btn:hover{background:linear-gradient(135deg,#9d5cff,#7c3aed);
+  box-shadow:0 6px 20px rgba(124,58,237,.6);transform:translateY(-1px)}
+
+/* ── NO RESULTS ── */
+.no-results{text-align:center;padding:50px 20px;color:var(--text2);display:none}
+.no-results.show{display:block}
+
+/* ── AD ── */
+.ad-wrap{text-align:center;margin:8px 0 18px;min-height:90px}
+
+/* ── FOOTER ── */
+footer{background:var(--bg2);border-top:1px solid var(--border);padding:16px 20px 16px 76px;text-align:center;color:var(--text2);font-size:.74rem}
+footer a{color:var(--text2);text-decoration:none;margin:0 8px}
+footer a:hover{color:var(--text)}
+
+/* ── MOBILE HEADER (≤640px) ── */
+.mob-header{display:none}
+.mob-cats{display:none}
+
+/* ── MOBILE SEARCH OVERLAY ── */
+.mob-search-bar{
+  display:none;background:var(--bg2);padding:8px 12px;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:52px;z-index:98;
+  height:52px;align-items:center;
+}
+.mob-search-bar.open{display:flex;gap:8px;align-items:center}
+.mob-search-bar input{
+  flex:1;background:var(--bg3);border:1.5px solid var(--border);border-radius:22px;
+  padding:8px 16px;color:var(--text);font-size:.9rem;outline:none;
+}
+.mob-search-bar input:focus{border-color:var(--accent)}
+.mob-search-clear{background:none;border:none;color:var(--text2);font-size:1.2rem;cursor:pointer;padding:4px 6px;line-height:1}
+.mob-search-clear:hover{color:var(--text)}
+
+/* ── BLOG CARDS ── */
+.blog-card{display:block;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-decoration:none;color:var(--text);transition:border-color .15s,transform .1s}
+.blog-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.blog-card-cat{font-size:.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.blog-card-title{font-size:.92rem;font-weight:700;line-height:1.4;margin-bottom:8px}
+.blog-card-meta{font-size:.78rem;color:var(--text2)}
+
+@media(max-width:640px){
+  /* Hide desktop elements */
+  .sidebar{display:none !important}
+  header{display:none}
+  .hero{display:none}
+  .main-area{margin-left:0;overflow-x:hidden}
+
+  /* Mobile header */
+  .mob-header{
+    display:flex;align-items:center;gap:10px;
+    background:var(--bg2);border-bottom:1px solid var(--border);
+    padding:0 14px;height:52px;position:sticky;top:0;z-index:200;
+    flex-shrink:0;
+  }
+  .mob-logo{display:flex;align-items:center;gap:7px;text-decoration:none;color:var(--text);flex:1}
+  .mob-logo-icon{font-size:1.4rem}
+  .mob-logo-text{font-size:.95rem;font-weight:900;background:linear-gradient(135deg,#a78bfa,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .mob-icon-btn{
+    background:var(--bg3);border:1px solid var(--border);color:var(--text2);
+    border-radius:9px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-size:1.1rem;transition:background .15s,color .15s;
+    flex-shrink:0;
+  }
+  .mob-icon-btn:hover,.mob-icon-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .mob-search-bar{top:52px}
+
+  /* Horizontal category chips */
+  .mob-cats{
+    display:flex;gap:7px;overflow-x:auto;padding:8px 10px;
+    background:var(--bg2);border-bottom:1px solid var(--border);
+    position:sticky;top:52px;z-index:199;scrollbar-width:none;
+    flex-shrink:0;-webkit-overflow-scrolling:touch;
+  }
+  .mob-cats.search-open{top:104px}
+  html{scroll-padding-top:105px}
+  .mob-cats::-webkit-scrollbar{display:none}
+  .mob-cat-chip{
+    flex-shrink:0;display:flex;align-items:center;gap:5px;
+    background:var(--bg3);border:1.5px solid var(--border);border-radius:22px;
+    padding:6px 13px;font-size:.78rem;font-weight:700;color:var(--text2);
+    cursor:pointer;white-space:nowrap;transition:all .15s;
+  }
+  .mob-cat-chip:hover{border-color:var(--accent);color:var(--text)}
+  .mob-cat-chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  /* Content */
+  .content{padding:10px 10px 80px 10px}
+  .ad-wrap{min-height:0 !important;margin:0 !important}
+  .game-grid{grid-template-columns:repeat(3,1fr);gap:6px;padding:0}
+  .section-title{font-size:.88rem;margin-bottom:10px;padding-top:4px}
+  .section{margin-bottom:16px}
+
+  /* Popup disabled on mobile */
+  #game-popup{display:none !important}
+
+  /* Footer compact */
+  footer{margin-bottom:0}
+}
+
+@media(max-width:360px){
+  .game-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+@media(min-width:641px) and (max-width:900px){
+  .sidebar{width:48px}
+  .main-area{margin-left:48px}
+  .hero h1{font-size:1.5rem}
+  .game-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+  nav,.hero-badges{display:none}
+  .content{padding:14px}
+}
+</style>
+</head>
+<body>
+
+<!-- MOBILE HEADER (visible ≤640px) -->
+<div class="mob-header">
+  <a class="mob-logo" href="index.html">
+    <span class="mob-logo-icon">🎮</span>
+    <span class="mob-logo-text">FreeWebGamesOnline</span>
+  </a>
+  <button class="mob-icon-btn" id="mob-search-toggle" onclick="toggleMobSearch()" title="Search">🔍</button>
+</div>
+
+<!-- MOBILE SEARCH BAR (toggleable) -->
+<div class="mob-search-bar" id="mob-search-bar">
+  <input type="text" id="mob-search-input" placeholder="Search 270+ games…" oninput="filterGames()" autocomplete="off"/>
+  <button class="mob-search-clear" onclick="clearMobSearch()" title="Clear">✕</button>
+</div>
+
+<!-- MOBILE CATEGORY CHIPS -->
+<div class="mob-cats" id="mob-cats">
+  <button class="mob-cat-chip active" onclick="setFilter('all',this)" data-cat="all">🎮 All</button>
+  <button class="mob-cat-chip" onclick="setFilter('action',this)" data-cat="action">⚡ Action</button>
+  <button class="mob-cat-chip" onclick="setFilter('shooting',this)" data-cat="shooting">🔫 Shooting</button>
+  <button class="mob-cat-chip" onclick="setFilter('io',this)" data-cat="io">🌐 .io</button>
+  <button class="mob-cat-chip" onclick="setFilter('racing',this)" data-cat="racing">🏎️ Racing</button>
+  <button class="mob-cat-chip" onclick="setFilter('sports',this)" data-cat="sports">🏈 Sports</button>
+  <button class="mob-cat-chip" onclick="setFilter('puzzle',this)" data-cat="puzzle">🧩 Puzzle</button>
+  <button class="mob-cat-chip" onclick="setFilter('adventure',this)" data-cat="adventure">🗺️ Adventure</button>
+  <button class="mob-cat-chip" onclick="setFilter('idle',this)" data-cat="idle">🍪 Idle</button>
+  <button class="mob-cat-chip" onclick="setFilter('horror',this)" data-cat="horror">👻 Horror</button>
+  <button class="mob-cat-chip" onclick="setFilter('minecraft',this)" data-cat="minecraft">⛏️ Minecraft</button>
+  <button class="mob-cat-chip" onclick="setFilter('pokemon',this)" data-cat="pokemon">⚡ Pokémon</button>
+  <button class="mob-cat-chip" onclick="setFilter('math',this)" data-cat="math">🔢 Math</button>
+  <button class="mob-cat-chip" onclick="setFilter('creative',this)" data-cat="creative">🎨 Creative</button>
+</div>
+
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <a class="sb-logo" href="index.html" title="FreeWebGamesOnline">🎮</a>
+  <div class="sb-divider"></div>
+  <button class="sb-item active" onclick="setFilter('all',this)" title="All Games"><span class="si">🎮</span><span class="sl">All</span></button>
+  <button class="sb-item" onclick="setFilter('action',this)" title="Action"><span class="si">⚡</span><span class="sl">Action</span></button>
+  <button class="sb-item" onclick="setFilter('shooting',this)" title="Shooting"><span class="si">🔫</span><span class="sl">Shoot</span></button>
+  <button class="sb-item" onclick="setFilter('multiplayer',this)" title="Multiplayer"><span class="si">👥</span><span class="sl">Multi</span></button>
+  <button class="sb-item" onclick="setFilter('sports',this)" title="Sports"><span class="si">🏈</span><span class="sl">Sports</span></button>
+  <button class="sb-item" onclick="setFilter('racing',this)" title="Racing"><span class="si">🏎️</span><span class="sl">Racing</span></button>
+  <button class="sb-item" onclick="setFilter('puzzle',this)" title="Puzzle"><span class="si">🧩</span><span class="sl">Puzzle</span></button>
+  <button class="sb-item" onclick="setFilter('idle',this)" title="Idle"><span class="si">🍪</span><span class="sl">Idle</span></button>
+  <button class="sb-item" onclick="setFilter('retro',this)" title="Retro"><span class="si">👾</span><span class="sl">Retro</span></button>
+  <button class="sb-item" onclick="setFilter('io',this)" title=".io Games"><span class="si">🌐</span><span class="sl">.io</span></button>
+  <button class="sb-item" onclick="setFilter('adventure',this)" title="Adventure"><span class="si">🗺️</span><span class="sl">Adv.</span></button>
+  <button class="sb-item" onclick="setFilter('strategy',this)" title="Strategy"><span class="si">♟️</span><span class="sl">Strat</span></button>
+  <div class="sb-divider"></div>
+  <a class="sb-item" href="leaderboard.html" title="Leaderboard"><span class="si">🏆</span><span class="sl">Board</span></a>
+</div>
+
+<!-- MAIN AREA -->
+<div class="main-area">
+  <!-- HEADER -->
+  <header>
+    <a class="logo" href="index.html">
+      <span class="logo-icon">🎮</span>
+      <span class="logo-text">FreeWebGames<span style="-webkit-text-fill-color:var(--accent-h)">Online</span></span>
+    </a>
+    <div class="search-wrap">
+      <span class="si-search">🔍</span>
+      <input type="text" id="search-input" placeholder="Search 100+ free games…" oninput="filterGames()" autocomplete="off"/>
+    </div>
+    <div class="header-right">
+      <nav>
+        <a href="/index.html">🏠 Home</a>
+        <a href="/blog/index.html">📝 Blog</a>
+        <a href="leaderboard.html">🏆 Leaderboard</a>
+        <a href="about.html">About</a>
+      </nav>
+      <button class="stats-badge" onclick="openProgressModal()" id="stats-badge" title="Your Progress">
+        🎮 <span id="stats-badge-text">My Progress</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-inner">
+      <h1>Free Browser Games<br><span>Play Instantly Online</span></h1>
+      <p>100 original HTML5 games — puzzle, arcade, board, card, sports, casino &amp; educational. No downloads, no signup, no cost. Just click and play.</p>
+      <div class="hero-badges">
+        <div class="hero-badge">🎮 <b>100</b> Games</div>
+        <div class="hero-badge">⚡ <b>No</b> Downloads</div>
+        <div class="hero-badge">🆓 <b>Always</b> Free</div>
+        <div class="hero-badge">📱 <b>Mobile</b> Friendly</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- AD: Top Banner -->
+    <div class="ad-wrap">
+      <ins class="adsbygoogle" style="display:block"
+           data-ad-client="ca-pub-9483059588332842"
+           data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+    <!-- RECENTLY PLAYED -->
+    <div class="section sec-recent" id="sec-recent">
+      <div class="section-title">🕐 Recently Played</div>
+      <div class="recent-scroll" id="recent-scroll"></div>
+    </div>
+
+    <!-- HOT GAMES -->
+    <div class="section" id="sec-hot">
+      <div class="section-title">🔥 Hot Right Now</div>
+      <div class="game-grid" id="hot-grid"></div>
+    </div>
+
+    <!-- ALL GAMES -->
+    <div class="section" id="sec-all">
+      <div class="section-title">🎮 All Games <span class="cnt" id="all-cnt"></span></div>
+      <div class="game-grid" id="all-grid"></div>
+    </div>
+
+    <div class="no-results" id="no-results">😕 No games found. Try a different search!</div>
+
+    <!-- AD: Bottom -->
+    <div class="ad-wrap" style="margin-top:16px">
+      <ins class="adsbygoogle" style="display:block"
+           data-ad-client="ca-pub-9483059588332842"
+           data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+    <!-- BLOG PREVIEW SECTION -->
+    <div class="section" id="sec-blog" style="margin-top:8px">
+      <div class="section-title">📝 From the Blog</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:4px">
+        <a href="blog/best-free-browser-games.html" class="blog-card">
+          <div class="blog-card-cat">Guides</div>
+          <div class="blog-card-title">Best Free Browser Games to Play Right Now</div>
+          <div class="blog-card-meta">5 min read · Puzzle, Arcade, Board</div>
+        </a>
+        <a href="blog/puzzle-games-guide.html" class="blog-card">
+          <div class="blog-card-cat">Puzzle</div>
+          <div class="blog-card-title">The Ultimate Puzzle Games Guide for Beginners</div>
+          <div class="blog-card-meta">4 min read · Sudoku, Wordle, 2048</div>
+        </a>
+        <a href="blog/chess-tips-for-beginners.html" class="blog-card">
+          <div class="blog-card-cat">Strategy</div>
+          <div class="blog-card-title">How to Get Better at Chess: 10 Tips for Beginners</div>
+          <div class="blog-card-meta">6 min read · Chess Strategy</div>
+        </a>
+        <a href="blog/educational-games-that-are-fun.html" class="blog-card">
+          <div class="blog-card-cat">Educational</div>
+          <div class="blog-card-title">Educational Games That Are Actually Fun to Play</div>
+          <div class="blog-card-meta">4 min read · Math, Geography, Spelling</div>
+        </a>
+      </div>
+      <div style="text-align:center;margin-top:14px">
+        <a href="blog/index.html" style="color:var(--accent);font-size:.88rem;font-weight:600;text-decoration:none">View all articles →</a>
+      </div>
+    </div>
+
+    <!-- ABOUT SITE SECTION -->
+    <div class="section" id="sec-about-site" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px 20px;margin-top:8px">
+      <h2 style="font-size:1.1rem;font-weight:800;margin-bottom:12px">About FreeWebGamesOnline</h2>
+      <p style="color:var(--text2);font-size:.88rem;line-height:1.7;margin-bottom:12px">FreeWebGamesOnline is a collection of 100 original HTML5 games built specifically for this site. Every game — from classic Sudoku and Chess to Pac-Man, Solitaire, and Math Quiz — is playable directly in your browser with no downloads, no sign-up, and no cost.</p>
+      <p style="color:var(--text2);font-size:.88rem;line-height:1.7;margin-bottom:12px">We cover 9 game categories: <strong style="color:var(--text)">Puzzle</strong>, <strong style="color:var(--text)">Arcade</strong>, <strong style="color:var(--text)">Board</strong>, <strong style="color:var(--text)">Card</strong>, <strong style="color:var(--text)">Sports</strong>, <strong style="color:var(--text)">Casino</strong>, <strong style="color:var(--text)">Casual</strong>, <strong style="color:var(--text)">Educational</strong>, and <strong style="color:var(--text)">Strategy</strong>. Whether you have 2 minutes or 2 hours, there is something here for you.</p>
+      <p style="color:var(--text2);font-size:.88rem;line-height:1.7">All games work on desktop and mobile. Scores are saved locally so you can always track your personal bests.</p>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main-area -->
+
+<!-- CRAZYGAMES-STYLE HOVER POPUP -->
+<div id="game-popup">
+  <div class="pp-preview">
+    <img class="pp-img" id="pp-img" src="" alt=""/>
+    <span class="pp-gif-label" id="pp-gif-label">▶ PREVIEW</span>
+    <div class="pp-play-overlay">
+      <div class="pp-play-btn">▶</div>
+    </div>
+  </div>
+  <div class="pp-body">
+    <div class="pp-name" id="pp-name"></div>
+    <div class="pp-row">
+      <div class="pp-rating" id="pp-rating">⭐ 8.5</div>
+      <div class="pp-cat-tag" id="pp-cat"></div>
+    </div>
+    <div class="pp-players"><span class="pp-dot"></span><span id="pp-players"></span></div>
+    <a class="pp-action-btn" id="pp-action-btn" href="#">▶ Play Now — Free</a>
+  </div>
+</div>
+
+<!-- PROGRESS MODAL -->
+<div class="prog-overlay" id="prog-overlay" onclick="if(event.target===this)closeProgressModal()">
+  <div class="prog-modal">
+    <div class="prog-header">
+      <span style="font-size:1.3rem">🎮</span>
+      <h2>My Progress</h2>
+      <button class="prog-close" onclick="closeProgressModal()">✕</button>
+    </div>
+    <div class="prog-body" id="prog-body">
+      <div class="prog-empty">Loading…</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <a href="/about.html">About</a>
+  <a href="/blog/index.html">Blog</a>
+  <a href="/leaderboard.html">Leaderboard</a>
+  <a href="/privacy-policy.html">Privacy Policy</a>
+  <a href="/terms.html">Terms</a>
+  <a href="/contact.html">Contact</a>
+  &nbsp;|&nbsp; © 2026 FreeWebGamesOnline
+</footer>
+
+<script>
+/* ── PROGRESS TRACKING ── */
+const PROG_KEY = 'fwgo_progress';
+
+function getProgress(){
+  try{ return JSON.parse(localStorage.getItem(PROG_KEY)||'{"history":[],"totalPlays":0}'); }
+  catch{ return {history:[],totalPlays:0}; }
+}
+
+function timeAgo(ts){
+  const s = Math.floor((Date.now()-ts)/1000);
+  if(s < 60) return 'just now';
+  if(s < 3600) return Math.floor(s/60)+'m ago';
+  if(s < 86400) return Math.floor(s/3600)+'h ago';
+  if(s < 604800) return Math.floor(s/86400)+'d ago';
+  return new Date(ts).toLocaleDateString();
+}
+
+function renderRecentSection(){
+  const prog = getProgress();
+  const recent = prog.history || [];
+  const sec = document.getElementById('sec-recent');
+  const scroll = document.getElementById('recent-scroll');
+  if(!sec || !scroll) return;
+  if(recent.length === 0){ sec.style.display='none'; return; }
+  sec.style.display='';
+  scroll.innerHTML='';
+  recent.slice(0,12).forEach(g=>{
+    const gameData = GAMES.find(x=>x.id===g.id);
+    if(!gameData) return;
+    const a = document.createElement('a');
+    a.className='recent-card';
+    const playUrl = `play.html?id=${encodeURIComponent(g.id)}&name=${encodeURIComponent(g.name)}&url=${encodeURIComponent(gameData.url)}&ext=${encodeURIComponent(gameData.ext||gameData.url)}&cat=${encodeURIComponent(g.cat||gameData.cat)}`;
+    a.href=playUrl;
+    a.innerHTML=`<img src="/img/covers/${g.id}.jpg" alt="${g.name}" onerror="this.style.display='none'"/>
+      <div class="recent-badge">${g.playCount>1?'×'+g.playCount:timeAgo(g.lastPlayed)}</div>
+      <div class="recent-card-name">${g.name}</div>`;
+    scroll.appendChild(a);
+  });
+}
+
+function updateStatsBadge(){
+  const prog = getProgress();
+  const count = (prog.history||[]).length;
+  const el = document.getElementById('stats-badge-text');
+  if(el) el.textContent = count > 0 ? count+' Played' : 'My Progress';
+}
+
+function openProgressModal(){
+  document.getElementById('prog-overlay').classList.add('open');
+  renderProgressModal();
+}
+function closeProgressModal(){
+  document.getElementById('prog-overlay').classList.remove('open');
+}
+
+function renderProgressModal(){
+  const prog = getProgress();
+  const history = prog.history || [];
+  const body = document.getElementById('prog-body');
+  if(!body) return;
+
+  if(history.length === 0){
+    body.innerHTML=`<div class="prog-empty">🎮 You haven't played any games yet!<br><br>Click on any game below to get started.<br>Your progress is saved automatically.</div>`;
+    return;
+  }
+
+  const totalPlays = prog.totalPlays || history.length;
+  const uniqueGames = history.length;
+  const topGame = history.slice().sort((a,b)=>(b.playCount||1)-(a.playCount||1))[0];
+
+  body.innerHTML=`
+    <div>
+      <div class="prog-stats-row">
+        <div class="prog-stat">
+          <div class="prog-stat-num">${totalPlays}</div>
+          <div class="prog-stat-lbl">Total Plays</div>
+        </div>
+        <div class="prog-stat">
+          <div class="prog-stat-num">${uniqueGames}</div>
+          <div class="prog-stat-lbl">Games Tried</div>
+        </div>
+        <div class="prog-stat">
+          <div class="prog-stat-num">${topGame?(topGame.playCount||1):0}</div>
+          <div class="prog-stat-lbl">Most Replayed</div>
+        </div>
+      </div>
+    </div>
+    ${topGame?`<div>
+      <div class="prog-section-title">⭐ Favorite Game</div>
+      <a class="prog-game-row" href="${buildPlayUrl(topGame)}">
+        <img class="prog-game-thumb" src="/img/covers/${topGame.id}.jpg" alt="${topGame.name}" onerror="this.style.display='none'"/>
+        <div class="prog-game-info">
+          <div class="prog-game-name">${topGame.emoji||'🎮'} ${topGame.name}</div>
+          <div class="prog-game-meta">Last played ${timeAgo(topGame.lastPlayed)}</div>
+        </div>
+        <div class="prog-game-count">×${topGame.playCount||1}</div>
+      </a>
+    </div>`:''}
+    <div>
+      <div class="prog-section-title">🕐 Recently Played</div>
+      <div class="prog-game-list">
+        ${history.slice(0,10).map(g=>`
+          <a class="prog-game-row" href="${buildPlayUrl(g)}">
+            <img class="prog-game-thumb" src="/img/covers/${g.id}.jpg" alt="${g.name}" onerror="this.style.display='none'"/>
+            <div class="prog-game-info">
+              <div class="prog-game-name">${g.emoji||'🎮'} ${g.name}</div>
+              <div class="prog-game-meta">${timeAgo(g.lastPlayed)}${g.playCount>1?' · played '+g.playCount+'×':''}</div>
+            </div>
+          </a>`).join('')}
+      </div>
+    </div>
+    <button class="prog-clear" onclick="clearProgress()">🗑️ Clear my progress</button>
+  `;
+}
+
+function buildPlayUrl(g){
+  const gd = GAMES.find(x=>x.id===g.id);
+  if(!gd) return '#';
+  return `play.html?id=${encodeURIComponent(g.id)}&name=${encodeURIComponent(g.name)}&url=${encodeURIComponent(gd.url)}&ext=${encodeURIComponent(gd.ext||gd.url)}&cat=${encodeURIComponent(gd.cat)}`;
+}
+
+function clearProgress(){
+  if(!confirm('Clear all your game progress?')) return;
+  try{ localStorage.removeItem(PROG_KEY); }catch{}
+  closeProgressModal();
+  updateStatsBadge();
+  renderRecentSection();
+}
+
+// Keyboard shortcut
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape') closeProgressModal();
+});
+
+/* ── GRADIENT FALLBACKS ── */
+const GRAD={
+  action:    ['#2d0a4e','#7c3aed'],
+  shooting:  ['#3b0a0a','#dc2626'],
+  multiplayer:['#0a1a3b','#1d4ed8'],
+  sports:    ['#052e16','#16a34a'],
+  racing:    ['#431407','#ea580c'],
+  puzzle:    ['#0c0a3e','#4f46e5'],
+  idle:      ['#1c1003','#ca8a04'],
+  retro:     ['#0a0a1e','#6d28d9'],
+  io:        ['#042f2e','#0d9488'],
+  adventure: ['#052e16','#15803d'],
+  strategy:  ['#1c1a03','#a16207'],
+};
+function gradStyle(cat){
+  const c=GRAD[cat]||['#1e2040','#7c3aed'];
+  return `background:linear-gradient(135deg,${c[0]} 0%,${c[1]} 100%)`;
+}
+
+/* ── GAMES DATA ── */
+/* All 100 games are original self-hosted games in /games/ */
+const GAMES=[
+
+/* ── PUZZLE ── */
+{id:'sudoku',name:'Sudoku',emoji:'🔢',cat:'puzzle',badge:'',url:'/games/sudoku.html',ext:'/games/sudoku.html'},
+{id:'minesweeper',name:'Minesweeper',emoji:'💣',cat:'puzzle',badge:'',url:'/games/minesweeper.html',ext:'/games/minesweeper.html'},
+{id:'2048',name:'2048',emoji:'🔢',cat:'puzzle',badge:'hot',url:'/games/2048.html',ext:'/games/2048.html'},
+{id:'wordle',name:'Wordle',emoji:'🟩',cat:'puzzle',badge:'hot',url:'/games/wordle.html',ext:'/games/wordle.html'},
+{id:'freeflow',name:'Flow Free',emoji:'🌊',cat:'puzzle',badge:'',url:'/games/freeflow.html',ext:'/games/freeflow.html'},
+{id:'pipemania',name:'Pipe Mania',emoji:'🔧',cat:'puzzle',badge:'',url:'/games/pipemania.html',ext:'/games/pipemania.html'},
+{id:'hangman',name:'Hangman',emoji:'🪢',cat:'puzzle',badge:'new',url:'/games/hangman.html',ext:'/games/hangman.html'},
+{id:'sliding-puzzle',name:'Sliding Puzzle',emoji:'🧩',cat:'puzzle',badge:'new',url:'/games/sliding-puzzle.html',ext:'/games/sliding-puzzle.html'},
+{id:'word-search',name:'Word Search',emoji:'🔍',cat:'puzzle',badge:'new',url:'/games/word-search.html',ext:'/games/word-search.html'},
+{id:'towers-of-hanoi',name:'Towers of Hanoi',emoji:'🗼',cat:'puzzle',badge:'new',url:'/games/towers-of-hanoi.html',ext:'/games/towers-of-hanoi.html'},
+{id:'sokoban',name:'Sokoban',emoji:'📦',cat:'puzzle',badge:'new',url:'/games/sokoban.html',ext:'/games/sokoban.html'},
+{id:'lights-out',name:'Lights Out',emoji:'💡',cat:'puzzle',badge:'new',url:'/games/lights-out.html',ext:'/games/lights-out.html'},
+{id:'mastermind',name:'Mastermind',emoji:'🔐',cat:'puzzle',badge:'new',url:'/games/mastermind.html',ext:'/games/mastermind.html'},
+{id:'anagram',name:'Anagram',emoji:'🔤',cat:'puzzle',badge:'new',url:'/games/anagram.html',ext:'/games/anagram.html'},
+{id:'word-scramble',name:'Word Scramble',emoji:'📝',cat:'puzzle',badge:'new',url:'/games/word-scramble.html',ext:'/games/word-scramble.html'},
+{id:'nim',name:'Nim',emoji:'🏮',cat:'puzzle',badge:'new',url:'/games/nim.html',ext:'/games/nim.html'},
+{id:'crossword-mini',name:'Mini Crossword',emoji:'✏️',cat:'puzzle',badge:'new',url:'/games/crossword-mini.html',ext:'/games/crossword-mini.html'},
+{id:'number-sequence',name:'Number Sequence',emoji:'🔢',cat:'puzzle',badge:'new',url:'/games/number-sequence.html',ext:'/games/number-sequence.html'},
+{id:'maze',name:'Maze',emoji:'🌀',cat:'puzzle',badge:'new',url:'/games/maze.html',ext:'/games/maze.html'},
+{id:'pipe-puzzle',name:'Pipe Puzzle',emoji:'🔧',cat:'puzzle',badge:'new',url:'/games/pipe-puzzle.html',ext:'/games/pipe-puzzle.html'},
+/* ── ARCADE ── */
+{id:'snake',name:'Snake',emoji:'🐍',cat:'arcade',badge:'hot',url:'/games/snake.html',ext:'/games/snake.html'},
+{id:'tetris',name:'Tetris',emoji:'🧱',cat:'arcade',badge:'hot',url:'/games/tetris.html',ext:'/games/tetris.html'},
+{id:'breakout',name:'Breakout',emoji:'🧱',cat:'arcade',badge:'',url:'/games/breakout.html',ext:'/games/breakout.html'},
+{id:'spaceinvaders',name:'Space Invaders',emoji:'👾',cat:'arcade',badge:'',url:'/games/spaceinvaders.html',ext:'/games/spaceinvaders.html'},
+{id:'asteroids',name:'Asteroids',emoji:'☄️',cat:'arcade',badge:'',url:'/games/asteroids.html',ext:'/games/asteroids.html'},
+{id:'dino',name:'Dino Run',emoji:'🦕',cat:'arcade',badge:'',url:'/games/dino.html',ext:'/games/dino.html'},
+{id:'flappy',name:'Flappy Bird',emoji:'🐦',cat:'arcade',badge:'',url:'/games/flappy.html',ext:'/games/flappy.html'},
+{id:'pong',name:'Pong',emoji:'🏓',cat:'arcade',badge:'',url:'/games/pong.html',ext:'/games/pong.html'},
+{id:'pac-man',name:'Pac-Man',emoji:'👻',cat:'arcade',badge:'new',url:'/games/pac-man.html',ext:'/games/pac-man.html'},
+{id:'frogger',name:'Frogger',emoji:'🐸',cat:'arcade',badge:'new',url:'/games/frogger.html',ext:'/games/frogger.html'},
+{id:'galaga',name:'Galaga',emoji:'🚀',cat:'arcade',badge:'new',url:'/games/galaga.html',ext:'/games/galaga.html'},
+{id:'bubble-shooter',name:'Bubble Shooter',emoji:'🫧',cat:'arcade',badge:'new',url:'/games/bubble-shooter.html',ext:'/games/bubble-shooter.html'},
+{id:'whack-a-mole',name:'Whack-a-Mole',emoji:'🦔',cat:'arcade',badge:'new',url:'/games/whack-a-mole.html',ext:'/games/whack-a-mole.html'},
+{id:'balloon-pop',name:'Balloon Pop',emoji:'🎈',cat:'arcade',badge:'new',url:'/games/balloon-pop.html',ext:'/games/balloon-pop.html'},
+{id:'platformer',name:'Platformer',emoji:'🎮',cat:'arcade',badge:'new',url:'/games/platformer.html',ext:'/games/platformer.html'},
+{id:'endless-runner',name:'Endless Runner',emoji:'🏃',cat:'arcade',badge:'new',url:'/games/endless-runner.html',ext:'/games/endless-runner.html'},
+{id:'pinball',name:'Pinball',emoji:'⚪',cat:'arcade',badge:'new',url:'/games/pinball.html',ext:'/games/pinball.html'},
+{id:'fruit-catcher',name:'Fruit Catcher',emoji:'🍎',cat:'arcade',badge:'new',url:'/games/fruit-catcher.html',ext:'/games/fruit-catcher.html'},
+{id:'stack-tower',name:'Stack Tower',emoji:'🏗️',cat:'arcade',badge:'new',url:'/games/stack-tower.html',ext:'/games/stack-tower.html'},
+{id:'shooting-gallery',name:'Shooting Gallery',emoji:'🎯',cat:'arcade',badge:'new',url:'/games/shooting-gallery.html',ext:'/games/shooting-gallery.html'},
+{id:'coin-collector',name:'Coin Collector',emoji:'🪙',cat:'arcade',badge:'new',url:'/games/coin-collector.html',ext:'/games/coin-collector.html'},
+{id:'air-hockey',name:'Air Hockey',emoji:'🏒',cat:'arcade',badge:'new',url:'/games/air-hockey.html',ext:'/games/air-hockey.html'},
+{id:'brick-breaker-2',name:'Brick Breaker Deluxe',emoji:'🧱',cat:'arcade',badge:'new',url:'/games/brick-breaker-2.html',ext:'/games/brick-breaker-2.html'},
+/* ── BOARD & CARD ── */
+{id:'chess',name:'Chess',emoji:'♟️',cat:'board',badge:'',url:'/games/chess.html',ext:'/games/chess.html'},
+{id:'connect4',name:'Connect 4',emoji:'🔴',cat:'board',badge:'',url:'/games/connect4.html',ext:'/games/connect4.html'},
+{id:'tictactoe',name:'Tic Tac Toe',emoji:'❌',cat:'board',badge:'',url:'/games/tictactoe.html',ext:'/games/tictactoe.html'},
+{id:'blackjack',name:'Blackjack',emoji:'🃏',cat:'card',badge:'',url:'/games/blackjack.html',ext:'/games/blackjack.html'},
+{id:'solitaire',name:'Solitaire',emoji:'🂡',cat:'card',badge:'new',url:'/games/solitaire.html',ext:'/games/solitaire.html'},
+{id:'checkers',name:'Checkers',emoji:'⚫',cat:'board',badge:'new',url:'/games/checkers.html',ext:'/games/checkers.html'},
+{id:'reversi',name:'Reversi',emoji:'⬛',cat:'board',badge:'new',url:'/games/reversi.html',ext:'/games/reversi.html'},
+{id:'battleship',name:'Battleship',emoji:'🚢',cat:'board',badge:'new',url:'/games/battleship.html',ext:'/games/battleship.html'},
+{id:'mancala',name:'Mancala',emoji:'🏮',cat:'board',badge:'new',url:'/games/mancala.html',ext:'/games/mancala.html'},
+{id:'card-war',name:'Card War',emoji:'🃏',cat:'card',badge:'new',url:'/games/card-war.html',ext:'/games/card-war.html'},
+{id:'video-poker',name:'Video Poker',emoji:'♠️',cat:'card',badge:'new',url:'/games/video-poker.html',ext:'/games/video-poker.html'},
+{id:'dots-and-boxes',name:'Dots & Boxes',emoji:'🔲',cat:'board',badge:'new',url:'/games/dots-and-boxes.html',ext:'/games/dots-and-boxes.html'},
+{id:'yahtzee',name:'Yahtzee',emoji:'🎲',cat:'board',badge:'new',url:'/games/yahtzee.html',ext:'/games/yahtzee.html'},
+{id:'mahjong-solitaire',name:'Mahjong Solitaire',emoji:'🀄',cat:'board',badge:'new',url:'/games/mahjong-solitaire.html',ext:'/games/mahjong-solitaire.html'},
+{id:'ludo',name:'Ludo',emoji:'🎲',cat:'board',badge:'',url:'/games/ludo.html',ext:'/games/ludo.html'},
+{id:'snake_ladder',name:'Snake & Ladder',emoji:'🐍',cat:'board',badge:'',url:'/games/snake_ladder.html',ext:'/games/snake_ladder.html'},
+/* ── SPORTS & CASINO ── */
+{id:'basketball',name:'Basketball',emoji:'🏀',cat:'sports',badge:'new',url:'/games/basketball.html',ext:'/games/basketball.html'},
+{id:'darts',name:'Darts',emoji:'🎯',cat:'sports',badge:'new',url:'/games/darts.html',ext:'/games/darts.html'},
+{id:'mini-golf',name:'Mini Golf',emoji:'⛳',cat:'sports',badge:'new',url:'/games/mini-golf.html',ext:'/games/mini-golf.html'},
+{id:'penalty-kick',name:'Penalty Kick',emoji:'⚽',cat:'sports',badge:'new',url:'/games/penalty-kick.html',ext:'/games/penalty-kick.html'},
+{id:'pool-billiards',name:'8-Ball Pool',emoji:'🎱',cat:'sports',badge:'new',url:'/games/pool-billiards.html',ext:'/games/pool-billiards.html'},
+{id:'craps',name:'Craps',emoji:'🎲',cat:'casino',badge:'new',url:'/games/craps.html',ext:'/games/craps.html'},
+{id:'roulette',name:'Roulette',emoji:'🎡',cat:'casino',badge:'new',url:'/games/roulette.html',ext:'/games/roulette.html'},
+{id:'slot-machine',name:'Slot Machine',emoji:'🎰',cat:'casino',badge:'new',url:'/games/slot-machine.html',ext:'/games/slot-machine.html'},
+{id:'blackjack-pro',name:'Blackjack Pro',emoji:'♠️',cat:'casino',badge:'new',url:'/games/blackjack-pro.html',ext:'/games/blackjack-pro.html'},
+{id:'bowling',name:'Bowling',emoji:'🎳',cat:'sports',badge:'new',url:'/games/bowling.html',ext:'/games/bowling.html'},
+/* ── CASUAL ── */
+{id:'memory',name:'Memory Match',emoji:'🧠',cat:'casual',badge:'',url:'/games/memory.html',ext:'/games/memory.html'},
+{id:'simon',name:'Simon Says',emoji:'🔴',cat:'casual',badge:'',url:'/games/simon.html',ext:'/games/simon.html'},
+{id:'cookie',name:'Cookie Clicker',emoji:'🍪',cat:'casual',badge:'hot',url:'/games/cookie.html',ext:'/games/cookie.html'},
+{id:'color-sequence',name:'Color Sequence',emoji:'🔴',cat:'casual',badge:'new',url:'/games/color-sequence.html',ext:'/games/color-sequence.html'},
+{id:'reaction-test',name:'Reaction Test',emoji:'⚡',cat:'casual',badge:'new',url:'/games/reaction-test.html',ext:'/games/reaction-test.html'},
+{id:'paint',name:'Digital Paint',emoji:'🎨',cat:'casual',badge:'new',url:'/games/paint.html',ext:'/games/paint.html'},
+{id:'gem-swap',name:'Gem Swap',emoji:'💎',cat:'casual',badge:'new',url:'/games/gem-swap.html',ext:'/games/gem-swap.html'},
+{id:'color-flood',name:'Color Flood',emoji:'🌊',cat:'casual',badge:'new',url:'/games/color-flood.html',ext:'/games/color-flood.html'},
+{id:'color-sort',name:'Color Sort',emoji:'🧪',cat:'casual',badge:'new',url:'/games/color-sort.html',ext:'/games/color-sort.html'},
+{id:'color-match',name:'Color Match',emoji:'🎨',cat:'casual',badge:'new',url:'/games/color-match.html',ext:'/games/color-match.html'},
+{id:'match-3',name:'Match 3',emoji:'⭐',cat:'casual',badge:'new',url:'/games/match-3.html',ext:'/games/match-3.html'},
+/* ── EDUCATIONAL ── */
+{id:'math-duck',name:'Math Duck',emoji:'🦆',cat:'educational',badge:'',url:'/games/math-duck.html',ext:'/games/math-duck.html'},
+{id:'mathrace',name:'Math Race',emoji:'🏎️',cat:'educational',badge:'',url:'/games/mathrace.html',ext:'/games/mathrace.html'},
+{id:'fractions',name:'Fractions',emoji:'½',cat:'educational',badge:'',url:'/games/fractions.html',ext:'/games/fractions.html'},
+{id:'multiplication',name:'Multiplication',emoji:'✖️',cat:'educational',badge:'',url:'/games/multiplication.html',ext:'/games/multiplication.html'},
+{id:'numberbomb',name:'Number Bomb',emoji:'💥',cat:'educational',badge:'',url:'/games/numberbomb.html',ext:'/games/numberbomb.html'},
+{id:'typing',name:'Typing Speed',emoji:'⌨️',cat:'educational',badge:'',url:'/games/typing.html',ext:'/games/typing.html'},
+{id:'trivia-quiz',name:'Trivia Quiz',emoji:'🧠',cat:'educational',badge:'new',url:'/games/trivia-quiz.html',ext:'/games/trivia-quiz.html'},
+{id:'math-quiz',name:'Math Quiz',emoji:'➕',cat:'educational',badge:'new',url:'/games/math-quiz.html',ext:'/games/math-quiz.html'},
+{id:'spelling-bee',name:'Spelling Bee',emoji:'🐝',cat:'educational',badge:'new',url:'/games/spelling-bee.html',ext:'/games/spelling-bee.html'},
+{id:'number-guess',name:'Number Guess',emoji:'🔢',cat:'educational',badge:'new',url:'/games/number-guess.html',ext:'/games/number-guess.html'},
+{id:'word-chain',name:'Word Chain',emoji:'🔗',cat:'educational',badge:'new',url:'/games/word-chain.html',ext:'/games/word-chain.html'},
+{id:'addition-race',name:'Addition Race',emoji:'🏁',cat:'educational',badge:'new',url:'/games/addition-race.html',ext:'/games/addition-race.html'},
+{id:'multiplication-grid',name:'Multiplication Grid',emoji:'✖️',cat:'educational',badge:'new',url:'/games/multiplication-grid.html',ext:'/games/multiplication-grid.html'},
+{id:'geography-quiz',name:'Geography Quiz',emoji:'🌍',cat:'educational',badge:'new',url:'/games/geography-quiz.html',ext:'/games/geography-quiz.html'},
+{id:'math-crossword',name:'Math Crossword',emoji:'➕',cat:'educational',badge:'new',url:'/games/math-crossword.html',ext:'/games/math-crossword.html'},
+{id:'fraction-puzzle',name:'Fraction Puzzle',emoji:'½',cat:'educational',badge:'new',url:'/games/fraction-puzzle.html',ext:'/games/fraction-puzzle.html'},
+{id:'shape-match',name:'Shape Match',emoji:'🔷',cat:'puzzle',badge:'new',url:'/games/shape-match.html',ext:'/games/shape-match.html'},
+{id:'pattern-lock',name:'Pattern Lock',emoji:'🔐',cat:'puzzle',badge:'new',url:'/games/pattern-lock.html',ext:'/games/pattern-lock.html'},
+{id:'pipe-connect',name:'Pipe Connect',emoji:'🔧',cat:'puzzle',badge:'new',url:'/games/pipe-connect.html',ext:'/games/pipe-connect.html'},
+/* ── STRATEGY ── */
+{id:'towerdefense',name:'Tower Defense',emoji:'🏰',cat:'strategy',badge:'',url:'/games/towerdefense.html',ext:'/games/towerdefense.html'},
+];
+
+/* ── HOT LIST ── */
+const HOT_IDS=['wordle','2048','snake','tetris','cookie','chess','pac-man','memory','mastermind','gem-swap','color-sequence','react-test'];
+
+/* ── SEO INDIVIDUAL PAGES (cleared — /g/ removed) ── */
+const SEO_PAGES={};
+
+/* ── BUILD CARD ── */
+function buildCard(g){
+  const a = document.createElement('a');
+  a.className='game-card';
+  a.href=SEO_PAGES[g.id]||`play.html?id=${encodeURIComponent(g.id)}&name=${encodeURIComponent(g.name)}&url=${encodeURIComponent(g.url)}&ext=${encodeURIComponent(g.ext||g.url)}&cat=${encodeURIComponent(g.cat)}`;
+  a.dataset.cat=g.cat;
+  a.dataset.id=g.id;
+
+  // Popup hover events
+  a.addEventListener('mouseenter', () => openPopup(a, g));
+  a.addEventListener('mouseleave', closePopup);
+
+  // Gradient fallback bg
+  const c=GRAD[g.cat]||['#1e2040','#7c3aed'];
+  a.style.background=`linear-gradient(135deg,${c[0]} 0%,${c[1]} 100%)`;
+
+  // Check if user has played this game
+  const prog = getProgress();
+  const played = prog.history && prog.history.find(h=>h.id===g.id);
+
+  // Badge HTML
+  const badgeHtml = g.badge==='hot'        ? '<span class="game-badge badge-hot">🔥 Hot</span>'
+                  : g.badge==='new'        ? '<span class="game-badge badge-new">✨ New</span>'
+                  : g.badge==='popular'    ? '<span class="game-badge badge-popular">⭐ Popular</span>'
+                  : g.badge==='trending'   ? '<span class="game-badge badge-trending">📈 Trending</span>'
+                  : g.badge==='desktop-hot'? '<span class="game-badge badge-hot">🔥 Hot</span><span class="game-badge badge-desktop" style="top:30px">💻 Desktop</span>'
+                  : g.badge==='desktop'    ? '<span class="game-badge badge-desktop">💻 Desktop</span>'
+                  : '';
+
+  a.innerHTML=`
+    ${badgeHtml}
+    ${played?'<span class="card-played-dot" title="You played this"></span>':''}
+    <span class="card-bg-grad">${g.emoji}</span>
+    <img class="card-img"
+         src="/img/covers/${g.id}.jpg"
+         alt="${g.name}"
+         loading="lazy"
+         decoding="async"
+         onerror="this.style.display='none'"
+    />
+    <!-- Always-visible name bar -->
+    <div class="card-name-bar">
+      <span class="card-name">${g.name}</span>
+    </div>
+    <!-- Hover slide-up overlay -->
+    <div class="card-overlay">
+      <span class="card-name">${g.name}</span>
+      <span class="card-cat">${played?'✅ Played · '+g.cat:g.cat}</span>
+      <span class="card-play-hint">▶ Click to play</span>
+    </div>
+  `;
+  return a;
+}
+
+/* ── RENDER ── */
+function renderAll(){
+  // Reset section title when showing all games
+  const titleEl = document.querySelector('#sec-all .section-title');
+  if(titleEl) titleEl.innerHTML='🎮 All Games <span class="cnt" id="all-cnt"></span>';
+  document.getElementById('sec-hot').style.display='';
+
+  // Hot section — always render all hot games immediately
+  const hotGrid = document.getElementById('hot-grid');
+  hotGrid.innerHTML='';
+  GAMES.filter(g=>g.badge==='hot').forEach(g=>hotGrid.appendChild(buildCard(g)));
+
+  // All games: render first 60 immediately, rest progressively on idle
+  const allGrid = document.getElementById('all-grid');
+  allGrid.innerHTML='';
+  const INITIAL = 60;
+  GAMES.slice(0, INITIAL).forEach(g=>allGrid.appendChild(buildCard(g)));
+  const cntEl = document.getElementById('all-cnt') || document.querySelector('#sec-all .section-title .cnt');
+  if(cntEl) cntEl.textContent=`(${GAMES.length})`;
+
+  if(GAMES.length > INITIAL){
+    const idle = window.requestIdleCallback || (cb=>setTimeout(cb,30));
+    function addBatch(start){
+      if(start >= GAMES.length) return;
+      const end = Math.min(start+50, GAMES.length);
+      const frag = document.createDocumentFragment();
+      GAMES.slice(start,end).forEach(g=>frag.appendChild(buildCard(g)));
+      allGrid.appendChild(frag);
+      idle(()=>addBatch(end));
+    }
+    idle(()=>addBatch(INITIAL));
+  }
+}
+
+/* ── FILTER by category ── */
+function setFilter(cat, btn){
+  // Sync both desktop sidebar and mobile chips active state
+  document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.mob-cat-chip').forEach(b=>b.classList.remove('active'));
+  // Activate matching items in both navs
+  document.querySelectorAll('.sb-item').forEach(b=>{
+    if(b.getAttribute('onclick') && b.getAttribute('onclick').includes("'"+cat+"'")) b.classList.add('active');
+  });
+  document.querySelectorAll('.mob-cat-chip').forEach(b=>{
+    if(b.dataset.cat===cat) b.classList.add('active');
+  });
+
+  // Clear both search inputs
+  const desk = document.getElementById('search-input');
+  const mob  = document.getElementById('mob-search-input');
+  if(desk) desk.value='';
+  if(mob)  mob.value='';
+
+  const hotSec = document.getElementById('sec-hot');
+  const allGrid = document.getElementById('all-grid');
+
+  const CAT_TITLES = {
+    action:'⚡ Action',shooting:'🔫 Shooting',multiplayer:'👥 Multiplayer',
+    sports:'🏈 Sports',racing:'🏎️ Racing',puzzle:'🧩 Puzzle',
+    idle:'🍪 Idle & Clicker',retro:'👾 Retro',io:'🌐 .io Games',
+    adventure:'🗺️ Adventure',strategy:'♟️ Strategy',horror:'👻 Horror',
+    minecraft:'⛏️ Minecraft',pokemon:'⚡ Pokémon',math:'🔢 Math',creative:'🎨 Creative',misc:'🎯 Casual'
+  };
+
+  if(cat==='all'){
+    hotSec.style.display='';
+    document.querySelector('#sec-all .section-title').textContent='🎮 All Games';
+    renderAll();
+  } else {
+    hotSec.style.display='none';
+    document.querySelector('#sec-all .section-title').textContent = CAT_TITLES[cat] || cat;
+    const filtered = GAMES.filter(g=>g.cat===cat);
+    allGrid.innerHTML='';
+    const frag = document.createDocumentFragment();
+    filtered.forEach(g=>frag.appendChild(buildCard(g)));
+    allGrid.appendChild(frag);
+    document.getElementById('all-cnt').textContent=`(${filtered.length})`;
+  }
+  document.getElementById('no-results').classList.remove('show');
+}
+
+/* ── SEARCH ── */
+function getSearchQuery(){
+  // Read from whichever input is visible/focused
+  const mob = document.getElementById('mob-search-input');
+  const desk = document.getElementById('search-input');
+  if(mob && mob.value.trim()) return mob.value.toLowerCase().trim();
+  if(desk && desk.value.trim()) return desk.value.toLowerCase().trim();
+  return '';
+}
+function filterGames(){
+  const q = getSearchQuery();
+  const hotSec  = document.getElementById('sec-hot');
+  const allGrid = document.getElementById('all-grid');
+
+  if(!q){
+    renderAll(); // renderAll() now resets title + hot section
+    document.getElementById('no-results').classList.remove('show');
+    return;
+  }
+  hotSec.style.display='none';
+  document.querySelector('#sec-all .section-title').textContent='🔍 Search Results';
+  const results=GAMES.filter(g=>g.name.toLowerCase().includes(q)||g.cat.toLowerCase().includes(q));
+  allGrid.innerHTML='';
+  const frag=document.createDocumentFragment();
+  results.forEach(g=>frag.appendChild(buildCard(g)));
+  allGrid.appendChild(frag);
+  document.getElementById('all-cnt').textContent=`(${results.length})`;
+  document.getElementById('no-results').classList.toggle('show',results.length===0);
+}
+
+/* ── MOBILE SEARCH TOGGLE ── */
+function toggleMobSearch(){
+  const bar  = document.getElementById('mob-search-bar');
+  const btn  = document.getElementById('mob-search-toggle');
+  const cats = document.getElementById('mob-cats');
+  const open = bar.classList.toggle('open');
+  btn.classList.toggle('active', open);
+  cats.classList.toggle('search-open', open);
+  if(open){
+    setTimeout(()=>{ const inp=document.getElementById('mob-search-input'); if(inp) inp.focus(); },80);
+  } else {
+    clearMobSearch();
+  }
+}
+function clearMobSearch(){
+  const inp = document.getElementById('mob-search-input');
+  if(inp){ inp.value=''; filterGames(); }
+}
+
+
+/* ── CRAZYGAMES POPUP ENGINE ── */
+const popup = document.getElementById('game-popup');
+const ppImg = document.getElementById('pp-img');
+const ppName = document.getElementById('pp-name');
+const ppRating = document.getElementById('pp-rating');
+const ppCat = document.getElementById('pp-cat');
+const ppPlayers = document.getElementById('pp-players');
+const ppBtn = document.getElementById('pp-action-btn');
+let popTimer, hideTimer;
+
+/* Deterministic rating 7.2–9.8 based on game id */
+function getPopRating(id){
+  let h=0; for(let c of id) h=((h<<5)-h)+c.charCodeAt(0);
+  return (72 + Math.abs(h)%27)/10;
+}
+/* Deterministic player count 120–12800 */
+function getPopPlayers(id){
+  let h=0; for(let c of id) h=((h<<5)-h)+c.charCodeAt(0);
+  const n = 120 + Math.abs(h)%12680;
+  return n >= 1000 ? (n/1000).toFixed(1)+'k' : n;
+}
+
+function positionPopup(cardEl){
+  const r = cardEl.getBoundingClientRect();
+  const pw=268, ph=310;
+  let left = r.right + 12;
+  let top  = r.top + (r.height/2) - (ph/2);
+  if(left + pw > window.innerWidth - 8)  left = r.left - pw - 12;
+  if(left < 8) left = r.left + (r.width/2) - (pw/2);
+  top = Math.max(8, Math.min(top, window.innerHeight - ph - 8));
+  popup.style.left = left + 'px';
+  popup.style.top  = top  + 'px';
+}
+
+function openPopup(cardEl, g){
+  clearTimeout(hideTimer);
+  clearTimeout(popTimer);
+
+  /* ── Load self-hosted GIF preview ── */
+  ppImg.classList.remove('kb');
+  const gifLabel = document.getElementById('pp-gif-label');
+
+  // Self-hosted GIF from /img/gifs/{id}.gif (downloaded from Tenor)
+  const selfGif = '/img/gifs/' + g.id + '.gif';
+  ppImg.src = '';
+  ppImg.src = selfGif;
+  gifLabel.textContent = '▶ PREVIEW';
+  ppImg.onerror = () => {
+    // Fallback to self-hosted cover or original thumb + Ken Burns
+    ppImg.src = g.thumb;
+    ppImg.classList.add('kb');
+    gifLabel.textContent = '📷 PREVIEW';
+    ppImg.onerror = null;
+  };
+
+  ppImg.alt = g.name;
+  ppName.textContent = g.name;
+  ppRating.textContent = '⭐ ' + getPopRating(g.id);
+  ppCat.textContent = g.cat;
+  ppPlayers.textContent = getPopPlayers(g.id) + ' playing now';
+  ppBtn.href = cardEl.href;
+  ppBtn.textContent = '▶ Play ' + g.name + ' Free';
+
+  positionPopup(cardEl);
+  popTimer = setTimeout(() => popup.classList.add('show'), 80);
+}
+
+function closePopup(){
+  clearTimeout(popTimer);
+  hideTimer = setTimeout(() => popup.classList.remove('show'), 120);
+}
+
+/* Keep popup open when mouse is over it */
+popup.addEventListener('mouseenter', () => clearTimeout(hideTimer));
+popup.addEventListener('mouseleave', closePopup);
+
+/* Reposition on scroll */
+window.addEventListener('scroll', () => { if(popup.classList.contains('show')) popup.classList.remove('show'); }, {passive:true});
+
+/* ── INIT ── */
+renderAll();
+updateStatsBadge();
+renderRecentSection();
+
+/* ── CLOSE MOBILE SEARCH ON OUTSIDE TAP ── */
+document.addEventListener('click', function(e){
+  const bar = document.getElementById('mob-search-bar');
+  const btn = document.getElementById('mob-search-toggle');
+  if(bar && bar.classList.contains('open') && !bar.contains(e.target) && e.target !== btn && !btn.contains(e.target)){
+    // Don't close if there's a search query active
+    const inp = document.getElementById('mob-search-input');
+    if(inp && inp.value.trim()) return;
+    toggleMobSearch();
+  }
+}, {passive:true});
+
+/* ── SYNC DESKTOP SEARCH TO MOBILE AND VICE VERSA ── */
+(function(){
+  const desk = document.getElementById('search-input');
+  if(desk){
+    desk.addEventListener('input', function(){
+      const mob = document.getElementById('mob-search-input');
+      if(mob) mob.value = desk.value;
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
