@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>About – FreeWebGamesOnline</title>
+<meta name="description" content="Learn about FreeWebGamesOnline — a collection of 100 original HTML5 browser games. Free to play, no downloads, no signup."/>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
 <style>
 :root{--bg:#0d0d14;--bg2:#13131f;--bg3:#1a1a2e;--card:#1e1e30;--border:#2a2a45;--accent:#6c63ff;--text:#e8e8f0;--text2:#9898b8}
@@ -10,24 +11,24 @@
 body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 header{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;position:sticky;top:0;z-index:100}
 .header-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:16px;height:60px}
-.logo{font-size:1.3rem;font-weight:800;text-decoration:none;color:var(--text)}
+.logo{font-size:1.2rem;font-weight:800;text-decoration:none;color:var(--text)}
 .logo span{color:var(--accent)}
 .spacer{flex:1}
 .nav-link{color:var(--text2);text-decoration:none;padding:6px 12px;border-radius:6px;font-size:0.85rem;font-weight:500;transition:all 0.2s}
 .nav-link:hover{background:var(--bg3);color:var(--text)}
 .nav-link.active{color:var(--accent)}
 main{max-width:900px;margin:0 auto;padding:40px 20px}
-.hero{text-align:center;margin-bottom:56px}
-.hero h1{font-size:clamp(1.8rem,5vw,3rem);font-weight:900;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px}
-.hero p{color:var(--text2);font-size:1.05rem;line-height:1.7;max-width:600px;margin:0 auto}
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:56px}
+.hero{text-align:center;margin-bottom:48px}
+.hero h1{font-size:clamp(1.8rem,5vw,2.6rem);font-weight:900;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:14px}
+.hero p{color:var(--text2);font-size:1rem;line-height:1.8;max-width:600px;margin:0 auto}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:48px}
 @media(max-width:600px){.stats-row{grid-template-columns:repeat(2,1fr)}}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;text-align:center}
 .stat-card .num{font-size:1.8rem;font-weight:900;color:#ffd93d;margin-bottom:4px}
 .stat-card .label{font-size:0.8rem;color:var(--text2)}
 .section{margin-bottom:48px}
-.section h2{font-size:1.3rem;font-weight:800;margin-bottom:20px;display:flex;align-items:center;gap:10px}
-.feature-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.section h2{font-size:1.2rem;font-weight:800;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
 .feature-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
 .feature-card .icon{font-size:1.8rem;margin-bottom:10px}
 .feature-card h3{font-size:0.95rem;font-weight:700;margin-bottom:6px}
@@ -38,25 +39,17 @@ main{max-width:900px;margin:0 auto;padding:40px 20px}
 .cat-card .cat-icon{font-size:1.8rem;margin-bottom:6px}
 .cat-card .cat-name{font-size:0.85rem;font-weight:700}
 .cat-card .cat-count{font-size:0.75rem;color:var(--text2)}
-.timeline{position:relative;padding-left:24px}
-.timeline::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:2px;background:var(--border)}
-.timeline-item{position:relative;margin-bottom:24px;padding-left:20px}
-.timeline-item::before{content:'';position:absolute;left:-18px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--accent)}
-.timeline-item h3{font-size:0.9rem;font-weight:700;margin-bottom:4px}
-.timeline-item p{font-size:0.82rem;color:var(--text2)}
-.timeline-item .date{font-size:0.75rem;color:var(--accent);margin-bottom:4px;font-weight:600}
-.discord-cta{background:linear-gradient(135deg,#5865F2,#7289da);border-radius:16px;padding:32px;text-align:center;margin-bottom:40px}
-.discord-cta h2{font-size:1.4rem;font-weight:900;margin-bottom:8px}
-.discord-cta p{opacity:0.85;margin-bottom:20px}
-.btn-discord{background:white;color:#5865F2;border:none;border-radius:10px;padding:12px 28px;font-size:1rem;font-weight:700;cursor:pointer}
 footer{background:var(--bg2);border-top:1px solid var(--border);padding:24px 20px;text-align:center;color:var(--text2);font-size:0.85rem}
+footer a{color:var(--accent);text-decoration:none}
+footer a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
 <header>
   <div class="header-inner">
-    <a class="logo" href="index.html">🦆 Duck<span>Math</span></a>
+    <a class="logo" href="index.html">🎮 FreeWebGames<span>Online</span></a>
     <div class="spacer"></div>
+    <a href="blog/index.html" class="nav-link">📝 Blog</a>
     <a href="index.html" class="nav-link">🎮 Games</a>
     <a href="leaderboard.html" class="nav-link">🏆 Leaderboard</a>
     <a href="about.html" class="nav-link active">ℹ️ About</a>
@@ -65,110 +58,106 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:24px 20p
 
 <main>
   <div class="hero">
-    <h1>🦆 About FreeWebGamesOnline</h1>
-    <p>The ultimate unblocked games destination for students everywhere. 250+ free browser games, no downloads, no restrictions — just pure fun that works anywhere, even at school.</p>
+    <h1>About FreeWebGamesOnline</h1>
+    <p>FreeWebGamesOnline is a curated collection of 100 original HTML5 browser games. Every game on this site was built specifically for this platform — no third-party sources, no copyright issues. Just original games you can play instantly in any browser.</p>
   </div>
 
   <!-- STATS -->
   <div class="stats-row">
-    <div class="stat-card"><div class="num">250+</div><div class="label">Games Available</div></div>
-    <div class="stat-card"><div class="num">1M+</div><div class="label">Active Players</div></div>
-    <div class="stat-card"><div class="num">50K+</div><div class="label">Discord Members</div></div>
-    <div class="stat-card"><div class="num">∞</div><div class="label">Hours of Fun</div></div>
+    <div class="stat-card"><div class="num">100</div><div class="label">Original Games</div></div>
+    <div class="stat-card"><div class="num">9</div><div class="label">Game Categories</div></div>
+    <div class="stat-card"><div class="num">0</div><div class="label">Downloads Needed</div></div>
+    <div class="stat-card"><div class="num">Free</div><div class="label">Always & Forever</div></div>
   </div>
 
-  <!-- FEATURES -->
+  <!-- WHAT WE OFFER -->
   <div class="section">
-    <h2>⚡ Key Features</h2>
+    <h2>⚡ What We Offer</h2>
     <div class="feature-grid">
       <div class="feature-card">
-        <div class="icon">🔓</div>
-        <h3>Always Unblocked</h3>
-        <p>Multiple proxy backends ensure you can play even on the most restrictive school or work networks.</p>
+        <div class="icon">🎮</div>
+        <h3>100 Original Games</h3>
+        <p>Every game was developed in-house using HTML5 and JavaScript — no licensed content, no external hosting. These games exist only here.</p>
       </div>
       <div class="feature-card">
-        <div class="icon">🥷</div>
-        <h3>Cloak Mode</h3>
-        <p>Instantly change your browser tab title and icon to look like Google Classroom or any other legitimate site.</p>
+        <div class="icon">⚡</div>
+        <h3>Instant Play</h3>
+        <p>No downloads, no app installs, no account required. Click a game and it starts immediately in your browser on desktop or mobile.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">📱</div>
+        <h3>Mobile Friendly</h3>
+        <p>All games are designed to work on touchscreen devices. Play on your phone or tablet just as comfortably as on a PC.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🆓</div>
+        <h3>Completely Free</h3>
+        <p>All 100 games are free forever. No paywalls, no premium tiers, no in-app purchases. The site is supported by non-intrusive advertising.</p>
       </div>
       <div class="feature-card">
         <div class="icon">🏆</div>
         <h3>Leaderboards</h3>
-        <p>Submit your scores, climb the global rankings, and earn bonus coins each season for top positions.</p>
+        <p>Submit your high scores and compete on the global leaderboard. Track your personal bests across all the games you play.</p>
       </div>
       <div class="feature-card">
-        <div class="icon">🪙</div>
-        <h3>Coin Economy</h3>
-        <p>Earn coins by playing, daily logins, and completing challenges. Spend them on cursors, badges, and backgrounds.</p>
-      </div>
-      <div class="feature-card">
-        <div class="icon">⚔️</div>
-        <h3>Seasonal Battlepass</h3>
-        <p>Level up your Battlepass each season to unlock exclusive cosmetic rewards and rare items.</p>
-      </div>
-      <div class="feature-card">
-        <div class="icon">💬</div>
-        <h3>Discord Community</h3>
-        <p>Join 50,000+ players in our Discord server. Chat, share scores, suggest games, and join events!</p>
+        <div class="icon">📝</div>
+        <h3>Game Guides</h3>
+        <p>Our blog covers tips, strategies, and beginner guides for the most popular game categories on the site.</p>
       </div>
     </div>
   </div>
 
-  <!-- CATEGORIES -->
+  <!-- GAME CATEGORIES -->
   <div class="section">
     <h2>🎮 Game Categories</h2>
     <div class="category-grid">
-      <a class="cat-card" href="index.html"><div class="cat-icon">🏃</div><div class="cat-name">Action</div><div class="cat-count">45+ games</div></a>
-      <a class="cat-card" href="index.html"><div class="cat-icon">🧩</div><div class="cat-name">Puzzle</div><div class="cat-count">60+ games</div></a>
-      <a class="cat-card" href="index.html"><div class="cat-icon">👥</div><div class="cat-name">Multiplayer</div><div class="cat-count">30+ games</div></a>
-      <a class="cat-card" href="index.html"><div class="cat-icon">🕹️</div><div class="cat-name">Retro</div><div class="cat-count">50+ games</div></a>
-      <a class="cat-card" href="index.html"><div class="cat-icon">⚽</div><div class="cat-name">Sports</div><div class="cat-count">20+ games</div></a>
-      <a class="cat-card" href="index.html"><div class="cat-icon">🍪</div><div class="cat-name">Idle</div><div class="cat-count">15+ games</div></a>
-      <a class="cat-card" href="index.html"><div class="cat-icon">🔢</div><div class="cat-name">Math</div><div class="cat-count">25+ games</div></a>
-      <a class="cat-card" href="index.html"><div class="cat-icon">🚗</div><div class="cat-name">Racing</div><div class="cat-count">18+ games</div></a>
+      <a class="cat-card" href="index.html#"><div class="cat-icon">🧩</div><div class="cat-name">Puzzle</div><div class="cat-count">20+ games</div></a>
+      <a class="cat-card" href="index.html#"><div class="cat-icon">👾</div><div class="cat-name">Arcade</div><div class="cat-count">15+ games</div></a>
+      <a class="cat-card" href="index.html#"><div class="cat-icon">♟️</div><div class="cat-name">Board</div><div class="cat-count">10+ games</div></a>
+      <a class="cat-card" href="index.html#"><div class="cat-icon">🃏</div><div class="cat-name">Card</div><div class="cat-count">8+ games</div></a>
+      <a class="cat-card" href="index.html#"><div class="cat-icon">⚽</div><div class="cat-name">Sports</div><div class="cat-count">8+ games</div></a>
+      <a class="cat-card" href="index.html#"><div class="cat-icon">🎰</div><div class="cat-name">Casino</div><div class="cat-count">6+ games</div></a>
+      <a class="cat-card" href="index.html#"><div class="cat-icon">🎨</div><div class="cat-name">Casual</div><div class="cat-count">12+ games</div></a>
+      <a class="cat-card" href="index.html#"><div class="cat-icon">📚</div><div class="cat-name">Educational</div><div class="cat-count">15+ games</div></a>
+      <a class="cat-card" href="index.html#"><div class="cat-icon">🏰</div><div class="cat-name">Strategy</div><div class="cat-count">4+ games</div></a>
     </div>
   </div>
 
-  <!-- TIMELINE -->
+  <!-- FAQ -->
   <div class="section">
-    <h2>📅 Site History</h2>
-    <div class="timeline">
-      <div class="timeline-item"><div class="date">2022 — Launch</div><h3>FreeWebGamesOnline Goes Live</h3><p>Started with 50 games and a small Discord community. The cloak mode became an instant hit.</p></div>
-      <div class="timeline-item"><div class="date">2023 — Growth</div><h3>Leaderboards + Coins Added</h3><p>Introduced the global leaderboard system and the coin economy. Community grew to 100K players.</p></div>
-      <div class="timeline-item"><div class="date">2024 — Season 1</div><h3>First Battlepass Season</h3><p>Seasonal content launched, bringing exclusive cosmetics and competitive events. 500K players reached.</p></div>
-      <div class="timeline-item"><div class="date">2025 — Now</div><h3>1M+ Players & 250+ Games</h3><p>Massive library expansion, mobile optimization, and new proxy backends. Season 3: Medieval Times live now!</p></div>
-    </div>
-  </div>
-
-  <!-- DISCORD CTA -->
-  <div class="discord-cta">
-    <h2>Join Our Discord! 💬</h2>
-    <p>Chat with 50,000+ players, get exclusive codes, join tournaments, and help shape the future of FreeWebGamesOnline!</p>
-    <button class="btn-discord">Join Discord Server →</button>
-  </div>
-
-  <!-- FAQ snippet -->
-  <div class="section">
-    <h2>❓ Quick FAQ</h2>
+    <h2>❓ Frequently Asked Questions</h2>
     <div style="display:flex;flex-direction:column;gap:8px">
       <details style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;cursor:pointer">
-        <summary style="font-weight:600;list-style:none;display:flex;justify-content:space-between">Is FreeWebGamesOnline free?<span style="color:var(--accent)">+</span></summary>
-        <p style="margin-top:10px;color:var(--text2);font-size:0.9rem;line-height:1.6">Yes, completely free. No account required to play. We're supported by non-intrusive advertising.</p>
+        <summary style="font-weight:600;font-size:0.95rem">Is FreeWebGamesOnline really free?</summary>
+        <p style="margin-top:10px;color:var(--text2);font-size:0.9rem;line-height:1.6">Yes, 100% free. No account, no subscription, no hidden charges. All 100 games are available to anyone with a web browser. The site is funded through standard display advertising.</p>
       </details>
       <details style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;cursor:pointer">
-        <summary style="font-weight:600;list-style:none;display:flex;justify-content:space-between">How do I suggest a game?<span style="color:var(--accent)">+</span></summary>
-        <p style="margin-top:10px;color:var(--text2);font-size:0.9rem;line-height:1.6">Join our Discord and post in #game-requests. Games with the most votes get added first!</p>
+        <summary style="font-weight:600;font-size:0.95rem">Do the games work on phones and tablets?</summary>
+        <p style="margin-top:10px;color:var(--text2);font-size:0.9rem;line-height:1.6">Yes. All games were built with touch support. Most work in any modern mobile browser without any additional setup.</p>
       </details>
       <details style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;cursor:pointer">
-        <summary style="font-weight:600;list-style:none;display:flex;justify-content:space-between">Are games safe for school?<span style="color:var(--accent)">+</span></summary>
-        <p style="margin-top:10px;color:var(--text2);font-size:0.9rem;line-height:1.6">All games are checked for age-appropriate content. Many are educational! Use Cloak Mode for extra discretion.</p>
+        <summary style="font-weight:600;font-size:0.95rem">Are the games original — not copied from elsewhere?</summary>
+        <p style="margin-top:10px;color:var(--text2);font-size:0.9rem;line-height:1.6">Yes. Every game on this site was developed in-house using HTML5 and JavaScript. Games inspired by classic formats (Tetris, Sudoku, etc.) are our own implementations, not copies of existing software.</p>
+      </details>
+      <details style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;cursor:pointer">
+        <summary style="font-weight:600;font-size:0.95rem">How do I suggest a game or report a bug?</summary>
+        <p style="margin-top:10px;color:var(--text2);font-size:0.9rem;line-height:1.6">Visit our <a href="/contact.html" style="color:var(--accent)">Contact page</a> to submit a game request or report any issues. We read every message.</p>
+      </details>
+      <details style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;cursor:pointer">
+        <summary style="font-weight:600;font-size:0.95rem">Are the games safe for all ages?</summary>
+        <p style="margin-top:10px;color:var(--text2);font-size:0.9rem;line-height:1.6">Yes. All games are family-friendly and appropriate for all age groups. Many are educational — covering math, spelling, geography, and logic skills.</p>
       </details>
     </div>
   </div>
 </main>
 
 <footer>
-  <p>© 2026 FreeWebGamesOnline · Made with ❤️ for everyone · <a href="/privacy-policy.html" style="color:var(--accent);text-decoration:none">Privacy Policy</a> · <a href="/terms.html" style="color:var(--accent);text-decoration:none">Terms of Service</a> · <a href="/contact.html" style="color:var(--accent);text-decoration:none">Contact</a></p>
+  <p>© 2026 FreeWebGamesOnline &nbsp;·&nbsp;
+    <a href="/privacy-policy.html">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="/terms.html">Terms of Service</a> &nbsp;·&nbsp;
+    <a href="/contact.html">Contact</a> &nbsp;·&nbsp;
+    <a href="/blog/index.html">Blog</a>
+  </p>
 </footer>
 </body>
 </html>

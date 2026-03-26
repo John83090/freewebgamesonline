@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Card Games Explained: From Solitaire to Poker | FreeWebGamesOnline</title>
+  <meta name="description" content="A beginner's guide to the best online card games — Solitaire, Blackjack, Video Poker, Card War and more. Rules, tips and strategies explained." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d14;
+      --bg2: #13131f;
+      --card: #1e1e30;
+      --border: #2a2a45;
+      --accent: #6c63ff;
+      --text: #e8e8f0;
+      --text2: #9898b8;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 1.05rem;
+      line-height: 1.8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+    }
+
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 58px;
+      gap: 1rem;
+    }
+
+    .logo {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
+    }
+
+    .logo:hover { color: var(--accent); }
+
+    nav { display: flex; gap: 0.25rem; }
+
+    nav a {
+      color: var(--text2);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    nav a:hover {
+      color: var(--text);
+      background: var(--card);
+    }
+
+    /* ── Main layout ── */
+    main {
+      flex: 1;
+      padding: 3rem 1.5rem 4rem;
+    }
+
+    /* ── Article ── */
+    article {
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    .article-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .category-tag {
+      background: #c0392b;
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.25rem 0.65rem;
+      border-radius: 4px;
+    }
+
+    .meta-info {
+      color: var(--text2);
+      font-size: 0.85rem;
+    }
+
+    h1 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.25rem;
+      color: var(--text);
+    }
+
+    .article-intro {
+      font-size: 1.15rem;
+      color: var(--text2);
+      line-height: 1.75;
+      margin-bottom: 2.5rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 2.5rem 0 1rem;
+      padding-left: 0.75rem;
+      border-left: 3px solid var(--accent);
+      letter-spacing: -0.01em;
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 1.5rem 0 0.4rem;
+    }
+
+    p {
+      margin-bottom: 1.1rem;
+      color: var(--text);
+    }
+
+    .section-block {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .section-block h3 {
+      margin-top: 0;
+      font-size: 1.2rem;
+    }
+
+    .strategy-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.25rem 0;
+      font-size: 0.9rem;
+    }
+
+    .strategy-table th {
+      background: rgba(108, 99, 255, 0.2);
+      color: var(--accent);
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .strategy-table td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .strategy-table tr:last-child td { border-bottom: none; }
+
+    .strategy-table tr:nth-child(even) td {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .hand-rankings {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.6rem;
+      margin: 1rem 0;
+    }
+
+    .hand-item {
+      background: rgba(108, 99, 255, 0.08);
+      border: 1px solid rgba(108, 99, 255, 0.2);
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.85rem;
+    }
+
+    .hand-rank {
+      color: var(--text2);
+      font-size: 0.72rem;
+      display: block;
+      margin-bottom: 0.1rem;
+    }
+
+    .hand-name {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .tip-box {
+      background: rgba(108, 99, 255, 0.1);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+      color: var(--text2);
+      font-size: 0.95rem;
+    }
+
+    .tip-box strong { color: var(--accent); }
+
+    ul {
+      padding-left: 1.4rem;
+      margin-bottom: 1.1rem;
+    }
+
+    ul li { margin-bottom: 0.45rem; color: var(--text); }
+
+    .cta-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      margin-top: 3rem;
+    }
+
+    .cta-box p { color: var(--text2); margin-bottom: 1rem; }
+
+    .btn {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 0.7rem 1.75rem;
+      border-radius: 8px;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+
+    .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      padding: 1.5rem;
+      text-align: center;
+      color: var(--text2);
+      font-size: 0.85rem;
+    }
+
+    footer a {
+      color: var(--text2);
+      text-decoration: none;
+      margin: 0 0.5rem;
+    }
+
+    footer a:hover { color: var(--accent); }
+
+    @media (max-width: 600px) {
+      nav a { padding: 0.4rem 0.5rem; font-size: 0.82rem; }
+      .logo { font-size: 1rem; }
+      h2 { font-size: 1.3rem; }
+      .hand-rankings { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a href="/index.html" class="logo">🎮 FreeWebGamesOnline</a>
+    <nav>
+      <a href="/index.html">Games</a>
+      <a href="/blog/index.html">Blog</a>
+      <a href="/about.html">About</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <article>
+    <div class="article-meta">
+      <span class="category-tag">Card Games</span>
+      <span class="meta-info">March 26, 2026 &middot; 7 min read</span>
+    </div>
+
+    <h1>Card Games Explained: From Solitaire to Poker</h1>
+
+    <p class="article-intro">
+      Playing cards have been around for over a thousand years, surviving the rise and fall of empires, the invention of radio and television, and the entire history of video games. That longevity isn't an accident. Card games occupy a unique space in human entertainment: they're simple enough to learn in minutes but complex enough to reward a lifetime of study. The best ones blend probability, memory, decision-making, and psychology into something that feels effortless to play but endlessly deep to master.
+    </p>
+
+    <p>
+      Online card games have made the whole canon accessible in a browser — no deck required, no table needed, and you can play at whatever pace suits you. Whether you're a complete beginner trying to understand the difference between a flush and a straight, or a returning player looking to sharpen your strategy, this guide covers the essential card games you'll find on the web and explains how each one actually works.
+    </p>
+
+    <h2>Solitaire (Klondike)</h2>
+
+    <div class="section-block">
+      <p>
+        Klondike Solitaire is almost certainly the most-played card game in history — largely thanks to its inclusion in early versions of Windows, which introduced it to hundreds of millions of people who had never touched a physical deck. But its dominance isn't just a marketing accident. Klondike is genuinely well-designed: it has a clear goal, manageable rules, a satisfying physical rhythm (even when the cards are digital), and just enough randomness to keep every game feeling fresh.
+      </p>
+
+      <h3>How It Works</h3>
+      <p>
+        The goal is to move all 52 cards to four foundation piles, one per suit, built up from Ace to King. You work from the tableau — seven columns of face-down cards with a single face-up card on top of each — by building descending sequences of alternating colors (red Queen on black King, black Jack on red Queen, and so on). The stockpile provides additional cards when you run out of moves in the tableau.
+      </p>
+      <p>
+        The three zones interact in a constant flow: you expose face-down tableau cards by moving face-up sequences around, you draw from the stockpile when stuck, and you ship cards to the foundations whenever a suit is building in the right direction.
+      </p>
+
+      <h3>Beginner Tips</h3>
+      <ul>
+        <li><strong>Expose face-down cards first.</strong> Every face-down card in the tableau is a potential blocker. Prioritize moves that flip new cards over, even if it means delaying an obvious foundation play.</li>
+        <li><strong>Don't rush to the foundations.</strong> Moving a low card to the foundation early can leave you short of that rank when you need it to continue a tableau sequence. Keep cards available until you're sure you won't need them.</li>
+        <li><strong>Empty columns are valuable.</strong> A free column can hold a King and start a new sequence. Don't fill it with just anything — save it for a King that has a useful sequence attached.</li>
+        <li><strong>Favor moves that expose the most cards.</strong> When you have two valid moves, choose the one that uncovers more face-down cards.</li>
+      </ul>
+      <p>
+        Not every Klondike deal is winnable — estimates suggest around 80% of games are theoretically solvable, but a human player making reasonable decisions wins roughly a third of games. Don't take a loss personally. The game has genuine randomness baked in, and that's part of what makes each attempt feel worthwhile.
+      </p>
+    </div>
+
+    <h2>Blackjack</h2>
+
+    <div class="section-block">
+      <p>
+        Blackjack is the card game where skill matters most among traditional casino games. The house has a built-in mathematical advantage, but that edge is smaller in blackjack than almost anywhere else — and with good strategy, you can reduce it to less than half a percent. Understanding how blackjack works doesn't just make you a better player; it's a genuinely interesting exercise in probability and decision-making under uncertainty.
+      </p>
+
+      <h3>The Objective</h3>
+      <p>
+        Beat the dealer's hand without going over 21. You're not competing against other players — only against the dealer. Number cards are worth face value, face cards (Jack, Queen, King) are worth 10, and Aces are worth either 1 or 11, whichever helps your hand more. If your total exceeds 21, you "bust" and lose immediately, regardless of what the dealer holds.
+      </p>
+
+      <h3>Basic Strategy at a Glance</h3>
+      <p>
+        Basic strategy — the mathematically optimal set of decisions based on your hand and the dealer's up-card — was calculated decades ago and hasn't changed. It won't make you profitable long-term (the house always has some edge), but it gives you the best possible chance on every individual hand.
+      </p>
+
+      <table class="strategy-table">
+        <thead>
+          <tr>
+            <th>Your Hand Total</th>
+            <th>Action</th>
+            <th>Reasoning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>8 or less</td>
+            <td>Always Hit</td>
+            <td>No risk of busting; any card helps</td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td>Double if dealer shows 3–6</td>
+            <td>Dealer likely to bust; maximize payout</td>
+          </tr>
+          <tr>
+            <td>10 or 11</td>
+            <td>Double down</td>
+            <td>High probability of landing near 20–21</td>
+          </tr>
+          <tr>
+            <td>12–16</td>
+            <td>Hit if dealer shows 7+; Stand if dealer shows 2–6</td>
+            <td>When dealer might bust, don't risk busting yourself</td>
+          </tr>
+          <tr>
+            <td>17 or higher</td>
+            <td>Always Stand</td>
+            <td>High bust risk; dealer must play to 17</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>When to Split Pairs</h3>
+      <p>
+        When dealt two cards of the same value, you can split them into two separate hands (each requiring an additional bet). Always split Aces — two separate chances to hit 21. Always split 8s — a total of 16 is one of the worst hands in the game, and two separate 8s give you a much better starting position. Never split 10s — a total of 20 is excellent; don't break it up. Never split 5s — a total of 10 is a great doubling opportunity; treat it as a single hand.
+      </p>
+    </div>
+
+    <h2>Video Poker</h2>
+
+    <div class="section-block">
+      <p>
+        Video Poker bridges the solo, mechanical satisfaction of slot machines with the genuine decision-making of poker. Unlike table poker, you're playing against a pay table, not other people — there's no bluffing, no reading opponents, just you and the mathematics of which five cards to hold. That makes it both more approachable for beginners and surprisingly deep for anyone who wants to optimize.
+      </p>
+
+      <h3>How It Differs from Table Poker</h3>
+      <p>
+        In table poker, you're trying to win the pot by having the best hand or making everyone else fold. In video poker, you're dealt five cards, choose which to hold and which to discard, receive replacements for the discarded cards, and then get paid based on the final hand according to a fixed payout schedule. There's no pot, no opponents, and no psychology — just hand evaluation and hold decisions.
+      </p>
+
+      <h3>Hand Rankings</h3>
+      <div class="hand-rankings">
+        <div class="hand-item">
+          <span class="hand-rank">Lowest</span>
+          <span class="hand-name">Jacks or Better (pair)</span>
+        </div>
+        <div class="hand-item">
+          <span class="hand-rank">&nbsp;</span>
+          <span class="hand-name">Two Pair</span>
+        </div>
+        <div class="hand-item">
+          <span class="hand-rank">&nbsp;</span>
+          <span class="hand-name">Three of a Kind</span>
+        </div>
+        <div class="hand-item">
+          <span class="hand-rank">&nbsp;</span>
+          <span class="hand-name">Straight</span>
+        </div>
+        <div class="hand-item">
+          <span class="hand-rank">&nbsp;</span>
+          <span class="hand-name">Flush</span>
+        </div>
+        <div class="hand-item">
+          <span class="hand-rank">&nbsp;</span>
+          <span class="hand-name">Full House</span>
+        </div>
+        <div class="hand-item">
+          <span class="hand-rank">&nbsp;</span>
+          <span class="hand-name">Four of a Kind</span>
+        </div>
+        <div class="hand-item">
+          <span class="hand-rank">&nbsp;</span>
+          <span class="hand-name">Straight Flush</span>
+        </div>
+        <div class="hand-item">
+          <span class="hand-rank">Highest</span>
+          <span class="hand-name">Royal Flush</span>
+        </div>
+      </div>
+
+      <h3>Jacks or Better Strategy</h3>
+      <p>
+        The most common video poker variant is Jacks or Better, where you need at least a pair of Jacks to win anything. The core strategic insight is to always hold a paying hand unless you're one card away from a significantly better hand. For example: hold a low pair rather than drawing to a four-card flush — a pair is guaranteed money, while the flush requires hitting one specific card in 47 remaining possibilities. However, hold a four-card royal flush draw over almost anything, because the royal flush payout is so disproportionately large that the expected value of drawing to it outweighs even some paying hands.
+      </p>
+    </div>
+
+    <h2>Card War</h2>
+
+    <div class="section-block">
+      <p>
+        If Blackjack is a strategic chess match, Card War is its opposite: the simplest card game ever devised. The deck is split between two players. Each round, both players flip their top card. The higher card wins both cards, which go to the bottom of the winner's deck. In the event of a tie — a "war" — each player plays three cards face-down and one face-up, with the higher face-up card winning all the cards in play.
+      </p>
+      <p>
+        There is no strategy. You cannot influence the outcome in any way. Every game of War is entirely determined by the initial shuffle.
+      </p>
+      <p>
+        So why play it? Because War is a perfect introduction to probability and the concept of sample size. Watching the back-and-forth swings of fortune — one player pulling ahead dramatically, only to lose it all over a series of wars — makes the law of large numbers intuitive in a way that a textbook never quite manages. It's also genuinely tense in the moment, which is remarkable given that no skill is involved. The suspense comes entirely from uncertainty, which is a lesson in itself: you don't need complexity to generate excitement. Probability alone is enough.
+      </p>
+    </div>
+
+    <h2>Mahjong Solitaire</h2>
+
+    <div class="section-block">
+      <p>
+        It's worth being clear about what Mahjong Solitaire is and isn't. Traditional Mahjong is a four-player tile game involving drawing, discarding, and building sets — more comparable to Gin Rummy than to Solitaire. Mahjong Solitaire is a separate, solo tile-matching game that uses the same beautiful set of tiles but has entirely different rules. It was popularized in the West largely by the same wave of computer gaming that spread Klondike, and it has its own distinct strategic depth.
+      </p>
+
+      <h3>How It Works</h3>
+      <p>
+        Tiles are stacked in an elaborate pattern, typically shaped like a pyramid or butterfly. A tile is "free" if nothing is sitting on top of it and it has at least one open side (left or right). You can only match and remove free tiles. The goal is to clear the entire board by matching all pairs.
+      </p>
+
+      <h3>Strategy Tips</h3>
+      <ul>
+        <li><strong>Work from the top down.</strong> Tiles buried under other tiles can't be freed until the layers above are cleared. Always prioritize removing tiles from the highest layers to open up the board.</li>
+        <li><strong>Free the corners first.</strong> Corner tiles are often trapped with only one side open. Freeing them early gives you more matching options later.</li>
+        <li><strong>Don't match tiles just because you can.</strong> If you have three of the same tile showing and one still buried, removing two of the visible ones might strand the third with no match. Look ahead before you click.</li>
+        <li><strong>Track rare tiles.</strong> Some tile types have only one pair (the season tiles, the flower tiles). These need to be matched precisely — you can't match a summer tile with an autumn tile. Keep track of where unique tiles are sitting.</li>
+      </ul>
+      <p>
+        Not every Mahjong Solitaire layout is solvable from any given shuffle, so don't be discouraged when you hit a dead end. The visual beauty of the tiles, the satisfying clack of a successful match, and the gradual revelation of the pattern underneath make it one of the most aesthetically pleasing card-adjacent games available in a browser.
+      </p>
+    </div>
+
+    <div class="tip-box">
+      <strong>Building Skill Across Card Games:</strong> The skills you develop playing card games transfer more than you'd expect. Blackjack builds comfort with probability under pressure. Video Poker sharpens hand evaluation and expected value thinking. Solitaire trains spatial planning and sequential reasoning. Even the humble Card War makes variance and luck feel tangible and real. Play them all, and you'll find that each one makes you a little sharper at the others.
+    </div>
+
+    <p>
+      Card games have endured for a thousand years because they hit a sweet spot that very few other game formats can match: enough randomness to stay interesting, enough skill to reward investment, and enough simplicity to be immediately accessible. The online versions preserve everything that makes them great while removing every barrier — no deck to shuffle, no table to find, no one to wait for. Just you, the cards, and however long you want to play.
+    </p>
+
+    <div class="cta-box">
+      <p>All these card games are available free in your browser. No downloads, no sign-up — just click and play.</p>
+      <a href="/index.html" class="btn">Explore All Card Games</a>
+    </div>
+  </article>
+</main>
+
+<footer>
+  <p>© 2026 FreeWebGamesOnline &middot;
+    <a href="/privacy-policy.html">Privacy Policy</a> &middot;
+    <a href="/terms.html">Terms</a> &middot;
+    <a href="/contact.html">Contact</a> &middot;
+    <a href="/blog/index.html">Blog</a>
+  </p>
+</footer>
+
+</body>
+</html>

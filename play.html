@@ -23,10 +23,7 @@
   }
 })();
 </script>
-<!-- Performance: preconnect to common game hosts -->
-<link rel="preconnect" href="https://classroomlesson.github.io"/>
-<link rel="preconnect" href="https://maddox05.github.io"/>
-<link rel="dns-prefetch" href="https://db2.duckmath.org"/>
+<link rel="preconnect" href="https://pagead2.googlesyndication.com"/>
 <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com"/>
 <!-- Google AdSense -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9483059588332842" crossorigin="anonymous"></script>
@@ -419,6 +416,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
           data-full-width-responsive="true"></ins>
       </div>
 
+      <!-- GAME DESCRIPTION SECTION -->
+      <div id="game-desc-section" style="margin:14px 0 10px;background:#13131f;border:1px solid #2a2a45;border-radius:12px;padding:18px 20px">
+        <h2 id="game-desc-title" style="font-size:1rem;font-weight:800;margin-bottom:8px;color:#e8e8f0"></h2>
+        <div id="game-desc-text" style="font-size:.87rem;color:#9898b8;line-height:1.7"></div>
+        <div id="game-howto" style="margin-top:12px;font-size:.87rem;color:#9898b8;line-height:1.7"></div>
+      </div>
+
     </div><!-- /game-col -->
 
     <!-- SIDEBAR -->
@@ -571,11 +575,64 @@ const rotateEl  = document.getElementById('rotate-prompt');
 // ─────────────────────────────────────────────────────────────────────────────
 // POPULATE PAGE META
 // ─────────────────────────────────────────────────────────────────────────────
-document.title = GAME_NAME + ' – FreeWebGamesOnline';
+document.title = GAME_NAME + ' – Free Online Game | FreeWebGamesOnline';
 document.getElementById('nav-title').textContent  = GAME_NAME;
 document.getElementById('info-title').textContent = GAME_NAME;
 document.getElementById('cat-badge').textContent  = CAT_LABEL[GAME_CAT] || 'Game';
 document.getElementById('info-desc').textContent  = CAT_DESC[GAME_CAT]  || 'Enjoy this free browser game — no download needed!';
+
+// Populate game description panel
+(function(){
+  const GAME_DESCS = {
+    'chess':       ['Chess is the classic two-player strategy board game played on an 8×8 grid. Move your pieces to checkmate your opponent\'s king.','<strong>How to Play:</strong> Click a piece to select it, then click a highlighted square to move. Our AI plays at three difficulty levels. Master openings like e4, d4, and the Sicilian Defense to improve your game.'],
+    'sudoku':      ['Sudoku is a number placement puzzle. Fill the 9×9 grid so every row, column, and 3×3 box contains the digits 1–9 exactly once.','<strong>How to Play:</strong> Click a blank cell and type a number. Use pencil mode to note candidates. Start with rows, columns, or boxes that are nearly complete.'],
+    'snake':       ['Guide your snake to eat food and grow longer — but don\'t run into the walls or your own tail!','<strong>How to Play:</strong> Use arrow keys or WASD to change direction. The snake speeds up as it grows. Plan ahead so you don\'t trap yourself.'],
+    'tetris':      ['Tetris is the legendary tile-matching puzzle. Rotate and place falling tetrominoes to complete horizontal lines and clear them from the board.','<strong>How to Play:</strong> Arrow keys to move and rotate. Down arrow for soft drop, Space for hard drop. Build flat stacks and keep your field low.'],
+    'minesweeper': ['Minesweeper is a single-player puzzle game. Uncover all safe cells without triggering any of the hidden mines.','<strong>How to Play:</strong> Left-click to reveal a cell. Right-click to flag a suspected mine. Numbers show how many mines are adjacent — use logic to deduce safe cells.'],
+    'pac-man':     ['Pac-Man is the iconic arcade classic. Navigate the maze eating dots while avoiding four ghosts — Blinky, Pinky, Inky, and Clyde.','<strong>How to Play:</strong> Arrow keys or WASD to move. Eat a power pellet to temporarily turn ghosts blue and eat them for bonus points. Clear all dots to advance.'],
+    'wordle':      ['Wordle is the viral word puzzle. Guess the hidden 5-letter word in 6 attempts using color-coded feedback.','<strong>How to Play:</strong> Type a 5-letter word and press Enter. Green = correct letter in right position. Yellow = correct letter, wrong position. Gray = letter not in the word.'],
+    'solitaire':   ['Klondike Solitaire is the most popular single-player card game. Build four foundation piles from Ace to King in each suit.','<strong>How to Play:</strong> Click or drag cards to move them. Build tableau columns in alternating colors and descending rank. Move all cards to the foundations to win.'],
+    'battleship':  ['Battleship is the classic guessing game. Sink all of your opponent\'s hidden ships before they sink yours.','<strong>How to Play:</strong> Click cells on the enemy grid to fire. Hits are marked red, misses blue. The AI hunts around hits — be strategic with your placement.'],
+    '2048':        ['2048 is an addictive sliding number puzzle. Combine matching numbered tiles to reach the 2048 tile.','<strong>How to Play:</strong> Use arrow keys to slide all tiles in one direction. Matching tiles merge and their values add together. Keep your highest tile in a corner.'],
+    'breakout':    ['Breakout is the classic brick-busting arcade game. Bounce the ball to destroy all the bricks before losing all your lives.','<strong>How to Play:</strong> Move the paddle left and right to keep the ball in play. Aim for clusters of bricks and use the wall angles to reach tricky spots.'],
+    'checkers':    ['Checkers (Draughts) is a classic board game for two players. Capture all of your opponent\'s pieces to win.','<strong>How to Play:</strong> Click a piece then click where to move it. Diagonal moves only. Jump over opponent pieces to capture them. Reach the far row to become a King.'],
+    'mahjong-solitaire':['Mahjong Solitaire is a tile-matching puzzle based on the classic Chinese game. Match and remove pairs of free tiles to clear the board.','<strong>How to Play:</strong> Click two identical tiles that are both free (not covered and not blocked on both sides) to remove them. Plan ahead — some tiles may become unreachable if removed in the wrong order.'],
+    'reversi':     ['Reversi (Othello) is a strategy board game. Flip your opponent\'s discs by trapping them between yours to have the most discs when the board is full.','<strong>How to Play:</strong> Click a valid square (highlighted) to place your disc. All opponent discs between your new disc and existing discs are flipped. Control the corners for a winning advantage.'],
+    'frogger':     ['Frogger is the beloved arcade classic. Guide your frog safely across a busy road and treacherous river to reach home.','<strong>How to Play:</strong> Arrow keys to hop in any direction. Time your moves between cars on the road and hop onto logs and turtles on the river. Don\'t fall in the water!'],
+    'pong':        ['Pong is one of the earliest video games. Two paddles, one ball — a timeless test of reflexes.','<strong>How to Play:</strong> Move your paddle up and down to return the ball. First to 7 points wins. Watch the ball\'s angle off your paddle to control where it goes.'],
+    'flappy':      ['Flappy Bird is the notoriously difficult tap-to-fly game. Keep your bird airborne and navigate through endless pipes.','<strong>How to Play:</strong> Press Space or tap to flap upward. Release to fall. Time each flap to thread through pipe gaps. Every point counts — this game is hard!'],
+    'memory':      ['Memory (Concentration) is the classic card-matching game. Flip cards to find all matching pairs in as few turns as possible.','<strong>How to Play:</strong> Click any face-down card to flip it. Then click a second card. If they match, they stay face up. If not, both flip back. Remember positions to match faster.'],
+    'hangman':     ['Hangman is the classic word-guessing game. Figure out the hidden word one letter at a time before the hangman is complete.','<strong>How to Play:</strong> Click letters to guess. Each wrong guess adds a body part to the hangman. Use vowels first, then common consonants like R, S, T, L, N.'],
+    'blackjack':   ['Blackjack (21) is the world\'s most popular casino card game. Beat the dealer by getting closer to 21 without going over.','<strong>How to Play:</strong> Click Hit to take a card, Stand to hold, or Double Down to double your bet and take one more card. Dealer stands on 17. Ace counts as 1 or 11.'],
+    'trivia-quiz': ['Test your general knowledge across history, science, geography, pop culture and more in this timed multiple-choice quiz.','<strong>How to Play:</strong> Read each question and click your answer before the timer runs out. Build a streak for bonus points. 15 questions per round.'],
+    'geography-quiz':['How well do you know the world? Test your knowledge of capitals, countries, landmarks, and geography facts.','<strong>How to Play:</strong> Four answer choices per question. Faster correct answers earn more points. Build a streak for multipliers. 15 questions per round.'],
+    'math-quiz':   ['Speed mathematics! Solve arithmetic problems as quickly as possible before the clock runs out.','<strong>How to Play:</strong> Four multiple-choice answers appear for each math problem. Click the correct answer fast — time bonuses reward quick thinking. Problems get harder as you progress.'],
+    'spelling-bee':['Can you spell? Find words using 7 letters in a honeycomb layout. Every word must include the center letter.','<strong>How to Play:</strong> Click letters to build a word, then press Enter. Words must be at least 4 letters and include the center letter. Find a pangram (using all 7 letters) for a big bonus.'],
+    'fraction-puzzle':['Master fractions! Compare, add, subtract, and find missing values in fraction problems with visual aids.','<strong>How to Play:</strong> Select the correct answer for each fraction problem. Use the visual bar as a guide. Problems increase in difficulty across 12 rounds.'],
+    'addition-race':['Race the clock to solve addition problems as fast as possible. A perfect warm-up for mental math skills.','<strong>How to Play:</strong> A number appears on screen — type the missing addend and press Enter or click Submit. How many can you solve in 60 seconds?'],
+    'pipe-connect': ['A satisfying logic puzzle. Rotate pipe segments to create a fully connected water network across the grid.','<strong>How to Play:</strong> Click any pipe tile to rotate it 90°. Keep rotating until all connections align and every cell is linked. No pipe should be a dead end.'],
+    'sliding-puzzle':['The classic 15-puzzle. Slide tiles into order with just one empty space.','<strong>How to Play:</strong> Click a tile adjacent to the empty space to slide it. Arrange numbers 1–15 in order from left-to-right, top-to-bottom. Fewer moves = higher score.'],
+    'mancala':     ['Mancala is one of the oldest strategy games. Distribute seeds around the board to capture more than your opponent.','<strong>How to Play:</strong> Click one of your pits to distribute its seeds counter-clockwise. Landing in your store earns a bonus turn. Capture opponent seeds when you land in an empty pit on your side.'],
+    'yahtzee':     ['Yahtzee is the classic dice game of strategy and luck. Roll five dice up to three times and score combinations in 13 categories.','<strong>How to Play:</strong> Click Roll Dice. After each roll, click dice to keep them and roll again (up to 3 times total). Then click a scoring category. Plan your categories to maximize your total score.'],
+    'dino':        ['The endless dino runner! Jump over cacti and duck under pterodactyls in this desert sprint.','<strong>How to Play:</strong> Press Space or Up arrow to jump. Press Down arrow to duck. The game speeds up over time — time your jumps carefully for each obstacle type.'],
+  };
+  const descSection = document.getElementById('game-desc-section');
+  const descTitle   = document.getElementById('game-desc-title');
+  const descText    = document.getElementById('game-desc-text');
+  const howTo       = document.getElementById('game-howto');
+  if(!descSection) return;
+  const d = GAME_DESCS[GAME_ID];
+  if(d){
+    descTitle.textContent = GAME_NAME + ' — How to Play';
+    descText.textContent  = d[0];
+    howTo.innerHTML       = d[1] || '';
+  } else {
+    // Generic fallback based on category
+    descTitle.textContent = GAME_NAME;
+    descText.textContent  = 'Enjoy ' + GAME_NAME + ' — a free original HTML5 ' + (CAT_LABEL[GAME_CAT]||'browser') + ' game. No download or signup required. Play directly in your browser on desktop or mobile.';
+    howTo.innerHTML       = '<strong>How to Play:</strong> Use the on-screen controls or keyboard to interact. See the in-game instructions for full details.';
+  }
+})();
 
 const extUrl = GAME_EXT || GAME_URL || '#';
 // Detect mobile early — needed for link setup and game loading

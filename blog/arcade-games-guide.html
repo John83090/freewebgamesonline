@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arcade Games Guide: Master Pac-Man, Frogger and More | FreeWebGamesOnline</title>
+  <meta name="description" content="Tips and strategies for the best online arcade games. Master Pac-Man ghost AI, survive in Snake, score big in Galaga and more." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d14;
+      --bg2: #13131f;
+      --card: #1e1e30;
+      --border: #2a2a45;
+      --accent: #6c63ff;
+      --text: #e8e8f0;
+      --text2: #9898b8;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 1.05rem;
+      line-height: 1.8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+    }
+
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 58px;
+      gap: 1rem;
+    }
+
+    .logo {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
+    }
+
+    .logo:hover { color: var(--accent); }
+
+    nav { display: flex; gap: 0.25rem; }
+
+    nav a {
+      color: var(--text2);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    nav a:hover {
+      color: var(--text);
+      background: var(--card);
+    }
+
+    /* ── Main layout ── */
+    main {
+      flex: 1;
+      padding: 3rem 1.5rem 4rem;
+    }
+
+    /* ── Article ── */
+    article {
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    .article-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .category-tag {
+      background: #e67e22;
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.25rem 0.65rem;
+      border-radius: 4px;
+    }
+
+    .meta-info {
+      color: var(--text2);
+      font-size: 0.85rem;
+    }
+
+    h1 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.25rem;
+      color: var(--text);
+    }
+
+    .article-intro {
+      font-size: 1.15rem;
+      color: var(--text2);
+      line-height: 1.75;
+      margin-bottom: 2.5rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 2.5rem 0 1rem;
+      padding-left: 0.75rem;
+      border-left: 3px solid var(--accent);
+      letter-spacing: -0.01em;
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 1.5rem 0 0.4rem;
+    }
+
+    p {
+      margin-bottom: 1.1rem;
+      color: var(--text);
+    }
+
+    .game-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .game-section h2 {
+      margin-top: 0;
+      padding-left: 0;
+      border-left: none;
+      font-size: 1.4rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .game-section h3 {
+      margin-top: 1.25rem;
+    }
+
+    .ghost-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      margin: 1rem 0 1.25rem;
+    }
+
+    .ghost-card {
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.88rem;
+    }
+
+    .ghost-card.blinky { background: rgba(231, 76, 60, 0.15); border: 1px solid rgba(231, 76, 60, 0.3); }
+    .ghost-card.pinky  { background: rgba(255, 105, 180, 0.12); border: 1px solid rgba(255, 105, 180, 0.3); }
+    .ghost-card.inky   { background: rgba(52, 152, 219, 0.12); border: 1px solid rgba(52, 152, 219, 0.3); }
+    .ghost-card.clyde  { background: rgba(230, 126, 34, 0.12); border: 1px solid rgba(230, 126, 34, 0.3); }
+
+    .ghost-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    .ghost-card.blinky .ghost-name { color: #e74c3c; }
+    .ghost-card.pinky  .ghost-name { color: #ff69b4; }
+    .ghost-card.inky   .ghost-name { color: #3498db; }
+    .ghost-card.clyde  .ghost-name { color: #e67e22; }
+
+    .ghost-behavior { color: var(--text2); line-height: 1.5; }
+
+    .tip-box {
+      background: rgba(108, 99, 255, 0.1);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 1rem 1.25rem;
+      margin: 1.25rem 0;
+      color: var(--text2);
+      font-size: 0.95rem;
+    }
+
+    .tip-box strong { color: var(--accent); }
+
+    .warning-box {
+      background: rgba(230, 126, 34, 0.1);
+      border-left: 3px solid #e67e22;
+      border-radius: 0 8px 8px 0;
+      padding: 1rem 1.25rem;
+      margin: 1.25rem 0;
+      color: var(--text2);
+      font-size: 0.95rem;
+    }
+
+    .warning-box strong { color: #e67e22; }
+
+    ul {
+      padding-left: 1.4rem;
+      margin-bottom: 1.1rem;
+    }
+
+    ul li { margin-bottom: 0.45rem; color: var(--text); }
+
+    .piece-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+
+    .piece-table th {
+      background: rgba(108, 99, 255, 0.2);
+      color: var(--accent);
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .piece-table td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .piece-table tr:last-child td { border-bottom: none; }
+    .piece-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+    .cta-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      margin-top: 3rem;
+    }
+
+    .cta-box p { color: var(--text2); margin-bottom: 1rem; }
+
+    .btn {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 0.7rem 1.75rem;
+      border-radius: 8px;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+
+    .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      padding: 1.5rem;
+      text-align: center;
+      color: var(--text2);
+      font-size: 0.85rem;
+    }
+
+    footer a {
+      color: var(--text2);
+      text-decoration: none;
+      margin: 0 0.5rem;
+    }
+
+    footer a:hover { color: var(--accent); }
+
+    @media (max-width: 600px) {
+      nav a { padding: 0.4rem 0.5rem; font-size: 0.82rem; }
+      .logo { font-size: 1rem; }
+      h2 { font-size: 1.3rem; }
+      .ghost-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a href="/index.html" class="logo">🎮 FreeWebGamesOnline</a>
+    <nav>
+      <a href="/index.html">Games</a>
+      <a href="/blog/index.html">Blog</a>
+      <a href="/about.html">About</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <article>
+    <div class="article-meta">
+      <span class="category-tag">Arcade</span>
+      <span class="meta-info">March 26, 2026 &middot; 6 min read</span>
+    </div>
+
+    <h1>Arcade Games Guide: Master Pac-Man, Frogger and More</h1>
+
+    <p class="article-intro">
+      Between roughly 1978 and 1986, a handful of games defined what interactive entertainment could be. They were loud, colorful, merciless, and wildly addictive — and they were built by small teams working with hardware so constrained that every design decision had to be ruthlessly efficient. The result was something remarkable: games with mechanics simple enough to grasp in thirty seconds but deep enough to reward months of dedicated practice.
+    </p>
+
+    <p>
+      Decades later, those games are still being played. Not out of nostalgia alone — though nostalgia certainly helps — but because the underlying design is just that good. A game built around a single tight mechanic, with a clear skill ceiling and satisfying feedback, doesn't need high-resolution graphics or a twenty-hour narrative to hold your attention. It just needs to be well-made.
+    </p>
+
+    <p>
+      This guide breaks down the games you'll find on the site, explains what's actually happening under the hood, and gives you the strategic knowledge to get past the point where you're just surviving and start genuinely playing.
+    </p>
+
+    <!-- PAC-MAN -->
+    <div class="game-section">
+      <h2>Pac-Man</h2>
+
+      <p>
+        Pac-Man looks simple: eat dots, avoid ghosts, grab power pellets, eat the blue ghosts. But underneath that cheerful exterior is one of the most carefully engineered enemy AI systems in gaming history. Understanding what the ghosts are actually doing is the difference between chaotic survival and controlled, confident play.
+      </p>
+
+      <h3>Ghost AI: What Each One Is Doing</h3>
+      <p>
+        Each of the four ghosts has a distinct targeting behavior. They're not random. They're not identical. Learning to predict them makes the maze feel manageable.
+      </p>
+
+      <div class="ghost-grid">
+        <div class="ghost-card blinky">
+          <span class="ghost-name">Blinky (Red)</span>
+          <span class="ghost-behavior">Directly chases Pac-Man's current position. Gets faster as the dot count drops. The most dangerous ghost in the late game.</span>
+        </div>
+        <div class="ghost-card pinky">
+          <span class="ghost-name">Pinky (Pink)</span>
+          <span class="ghost-behavior">Targets four tiles ahead of Pac-Man's current direction. Tries to cut you off, not follow you. Dangerous when you're moving predictably in a straight line.</span>
+        </div>
+        <div class="ghost-card inky">
+          <span class="ghost-name">Inky (Blue)</span>
+          <span class="ghost-behavior">The most unpredictable. His target is calculated using both Blinky's position and Pac-Man's direction, producing erratic paths that are hard to anticipate.</span>
+        </div>
+        <div class="ghost-card clyde">
+          <span class="ghost-name">Clyde (Orange)</span>
+          <span class="ghost-behavior">Chases Pac-Man when far away, but retreats to his corner when within eight tiles. He effectively patrols the bottom-left area and stays out of tight clusters.</span>
+        </div>
+      </div>
+
+      <h3>Strategic Implications</h3>
+      <p>
+        Because Blinky chases and Pinky ambushes, moving in straight lines is the worst thing you can do. Constant direction changes force both of them to recalculate. Use the tunnels on the sides of the maze — ghosts slow down in them, you don't.
+      </p>
+      <p>
+        Power pellets are most valuable when multiple ghosts are clustered together. Eating a pellet to chase one isolated ghost wastes the opportunity to chain multiple ghost-eating combos, which multiply in point value (200, 400, 800, 1600). If ghosts are spread out when you eat a pellet, prioritize Blinky — he's the biggest threat as the game progresses and he speeds up.
+      </p>
+      <p>
+        The corners of the maze are relatively safe gathering points. Ghosts in scatter mode (which alternates with chase mode on a timer, especially in early levels) retreat to specific corners. Knowing which corners belong to which ghosts lets you navigate without unexpected confrontations.
+      </p>
+    </div>
+
+    <!-- SNAKE -->
+    <div class="game-section">
+      <h2>Snake</h2>
+
+      <p>
+        Snake might be the purest skill-escalation game ever made. The rules are two sentences: eat food to grow longer, don't hit a wall or your own body. The mechanic never changes. The difficulty comes entirely from the fact that the more successful you are, the more dangerous the game becomes. Your achievements literally become your obstacles.
+      </p>
+
+      <h3>The Two Ways Players Die</h3>
+      <p>
+        Beginners die at the walls. They get moving fast, make a sharp turn a moment too late, and run headfirst into a border. The fix is spatial awareness — always knowing where the walls are relative to your current position, and starting to turn before you think you need to.
+      </p>
+      <p>
+        Intermediate and advanced players die from their own tail. This is the genuinely interesting problem. As the snake grows, it occupies more and more of the board, and every move you make to collect food reshapes the obstacle course you'll need to navigate afterward. A path that looks clear right now might be completely blocked by your own body in ten moves.
+      </p>
+
+      <h3>The Coiling Strategy</h3>
+      <p>
+        The most reliable technique for long-term survival is coiling: moving in large, loosely-spaced spirals that keep your tail predictably located. Rather than chasing food directly across the board in a straight line, trace the outer edge of the play area, work inward, and collect food opportunistically as you pass near it. This means you always know where your tail is going — it's following the same path you just traveled, just a few seconds behind.
+      </p>
+
+      <div class="tip-box">
+        <strong>The Golden Rule of Snake:</strong> Always plan your exit before you commit to an approach. Before moving toward food, trace the path in your head and confirm that after eating, you have a clear route out. If you can't see the exit, find a longer way in.
+      </div>
+
+      <p>
+        Avoid cutting the board into sections. If your body divides the available space into two disconnected areas, you're eventually going to be trapped in one of them. Keep your movement patterns open and expansive, especially in the early-to-middle game when your snake is growing fastest.
+      </p>
+    </div>
+
+    <!-- FROGGER -->
+    <div class="game-section">
+      <h2>Frogger</h2>
+
+      <p>
+        Frogger is a game of two completely different timing challenges separated by a median strip. The bottom half — the road — requires you to dodge traffic moving in fixed lanes. The top half — the river — requires you to hop between moving platforms. These feel similar but demand opposite mental models.
+      </p>
+
+      <h3>Road vs. River: The Key Difference</h3>
+      <p>
+        On the road, the cars are deadly and the gaps are safe. You're threading through windows of empty space between moving obstacles. Cars disappear when they reach the edge of the screen and new ones appear from the other side, so the rhythm is regular and learnable.
+      </p>
+      <p>
+        On the river, the logs and lily pads are safe and the water is lethal. You're not threading through gaps — you're riding moving platforms. This means you must continuously account for horizontal drift even while deciding when to jump forward. Standing still on a log still moves you sideways, and standing still on a diving turtle will eventually drown you.
+      </p>
+
+      <h3>Reading Traffic Patterns</h3>
+      <p>
+        The road lanes alternate direction: some move left to right, some right to left. Spend a few seconds at the start of each run observing the speed and frequency of each lane. Fast lanes require you to find a larger gap; slow lanes let you move more reactively. The lanes in the middle of the road are typically the most dangerous because cars often come from both sides near simultaneously.
+      </p>
+      <p>
+        On the river, watch out for turtles that periodically dive underwater — they're safe platforms until they submerge. The visual tell is a slight animation change before the dive. If you're already riding one, count to three after it starts showing that animation and jump before it goes under.
+      </p>
+
+      <div class="warning-box">
+        <strong>River edge danger:</strong> Even if you're safely on a log, drifting off the side of the screen is an instant death. Keep your eye on horizontal position, not just the forward path.
+      </div>
+    </div>
+
+    <!-- GALAGA -->
+    <div class="game-section">
+      <h2>Galaga</h2>
+
+      <p>
+        Galaga sits at the more mechanically sophisticated end of the classic shoot-em-up spectrum. Where Space Invaders is about steady, methodical pressure, Galaga rewards aggression, risk tolerance, and knowledge of its hidden systems — especially the capture-and-rescue mechanic that most casual players never take full advantage of.
+      </p>
+
+      <h3>The Double Ship: Galaga's Secret Weapon</h3>
+      <p>
+        Certain boss Galaga enemies (the blue ones at the top) can fire a tractor beam that captures your ship. Most players instinctively avoid this at all costs. Experienced players deliberately let it happen — then rescue their captured ship by shooting the boss Galaga that holds it. Do this successfully and you get both ships back, flying in formation and firing two shots simultaneously. Your firepower doubles. From that point, the game becomes significantly more manageable, and your score multiplies.
+      </p>
+      <p>
+        The catch: you must survive on one ship until the rescue, and you must not hit your captured ship when firing at the boss Galaga. The shot timing requires care. But the double ship is worth the risk, especially on early stages.
+      </p>
+
+      <h3>Formation Phase and Bonus Rounds</h3>
+      <p>
+        At the start of each stage, enemies enter in formation — swooping in from the top and sides in patterns that repeat every level. This formation entry is your highest-scoring window. Shooting enemies in the formation phase earns the same points as shooting them during attack dives, but they're slower and more predictable. Learn the entry patterns and fire ahead of where enemies will be.
+      </p>
+      <p>
+        Bonus challenge stages appear every few levels and send waves of enemies that don't fire back. These exist purely to accumulate points. Stay centered, fire continuously, and track the movement patterns — the same formations repeat, so you can learn them. A perfect bonus round destroys every enemy and awards a significant point bonus.
+      </p>
+    </div>
+
+    <!-- TETRIS -->
+    <div class="game-section">
+      <h2>Tetris</h2>
+
+      <p>
+        Tetris has a deceptively simple goal — clear lines by filling rows completely — but the gap between a beginner's play and an expert's play is enormous. Much of that gap comes down to understanding a handful of concepts that aren't obvious until someone points them out.
+      </p>
+
+      <h3>The S/Z Problem</h3>
+      <p>
+        The S-piece and Z-piece (the zigzag shapes) are the hardest pieces in the game to place efficiently. Unlike the square, L, or T pieces, they leave awkward gaps that are difficult to fill cleanly. The best practice is to address S and Z placements immediately — don't defer them. Place them flat against the stack, not upright, and integrate them into your current structure rather than hoping a later piece fixes the problem.
+      </p>
+
+      <h3>I-Piece Patience</h3>
+      <p>
+        The I-piece (the long bar) is the most powerful piece in standard Tetris because it's the only one that can clear four lines simultaneously — a "Tetris" — for the maximum point bonus. Many beginners use I-pieces to patch gaps anywhere they appear. Resist this. Hold a flat stack with one deliberate column left open on one side. When the I-piece comes, drop it in, clear four lines, and score the big bonus. The patience required to maintain that column under pressure is a core Tetris skill.
+      </p>
+
+      <h3>Flat Stacking for Beginners</h3>
+      <p>
+        Tall, uneven stacks are the enemy. Stacks with deep wells or steep overhangs cause pieces to land awkwardly, create buried gaps you can't reach, and accelerate into unrecoverable situations as the game speeds up. Keep your stack as flat and even as possible, address holes immediately when they appear, and prioritize clearing lines over optimizing for Tetrises when your stack is getting dangerously high.
+      </p>
+
+      <table class="piece-table">
+        <thead>
+          <tr>
+            <th>Piece</th>
+            <th>Best Use</th>
+            <th>Avoid</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>I (Bar)</td>
+            <td>Four-line Tetris clears</td>
+            <td>Wasting on single-line patches</td>
+          </tr>
+          <tr>
+            <td>O (Square)</td>
+            <td>Filling clean 2-wide gaps</td>
+            <td>Placing on top of uneven stacks</td>
+          </tr>
+          <tr>
+            <td>T</td>
+            <td>Versatile — most placements work</td>
+            <td>Leaving T-spins for advanced only</td>
+          </tr>
+          <tr>
+            <td>S / Z</td>
+            <td>Place flat, address immediately</td>
+            <td>Deferring or stacking vertically</td>
+          </tr>
+          <tr>
+            <td>L / J</td>
+            <td>Filling corners and overhangs</td>
+            <td>Creating buried gaps underneath</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ENDLESS RUNNER -->
+    <div class="game-section">
+      <h2>Endless Runner</h2>
+
+      <p>
+        The browser-based endless runner — a cousin of the famous dinosaur game that appears when Chrome loses its internet connection — distills arcade gaming to its purest possible form. One button. One obstacle type (then two). The game increases in speed until you fail. Your only job is to survive as long as possible.
+      </p>
+
+      <h3>Reading Obstacle Rhythm</h3>
+      <p>
+        Cactus clusters come in patterns that your brain can internalize faster than conscious thought if you let it. Resist the urge to think about each jump individually; instead, focus ahead of your character and react to what's coming rather than what's already arrived. The small single cactus requires a short, late jump. The tall triple cactus cluster requires a higher, earlier jump. Learning to distinguish them at speed is the core skill.
+      </p>
+
+      <h3>Jump Height Control</h3>
+      <p>
+        In most runner implementations, holding the jump button longer produces a higher jump. This matters: over-jumping is its own cause of death, particularly when pterodactyls appear in the late game. A pterodactyl flying at mid-height can be jumped over with a full jump or ducked under with a low crouch. The mistake most players make is reflexively jumping full-height, only to collide with the bird rather than clear it. Recognize the pterodactyl's altitude before committing to a response.
+      </p>
+
+      <h3>The Speed Escalation</h3>
+      <p>
+        The game gradually accelerates over time, and each increase in speed requires recalibrating your reaction window. Players who reach high scores typically describe the experience as a meditative state where conscious deliberation drops away and the responses become automatic. That isn't a metaphor — it's what happens when motor memory takes over from working memory. The way to reach that state faster is to play in longer sessions rather than short ones, giving your brain enough continuous practice time to build the relevant pathways.
+      </p>
+
+      <div class="tip-box">
+        <strong>Peripheral vision tip:</strong> Don't stare at your character. Fix your gaze a bit ahead on the ground — roughly one to two character-widths forward. This gives your brain more processing time for incoming obstacles and reduces the "too late to react" deaths that plague players who focus directly on their character.
+      </div>
+    </div>
+
+    <p>
+      Every game on this list was built around a single insight: the most compelling challenge isn't complexity, it's mastery. There's something deeply satisfying about taking a system you once found chaotic and unpredictable, and reducing it — through knowledge and practice — to something you understand and can control. That moment when the ghost patterns in Pac-Man stop looking random, when the Tetris stack stops feeling out of control, when you finally nail the Frogger river on your first attempt — that's what arcade games are actually selling.
+    </p>
+
+    <p>
+      The mechanics are simple. The skill ceilings are not. That combination is why these games are still worth playing today.
+    </p>
+
+    <div class="cta-box">
+      <p>Ready to put this knowledge to the test? All these arcade classics are free to play right in your browser.</p>
+      <a href="/index.html" class="btn">Play All Arcade Games Free</a>
+    </div>
+  </article>
+</main>
+
+<footer>
+  <p>© 2026 FreeWebGamesOnline &middot;
+    <a href="/privacy-policy.html">Privacy Policy</a> &middot;
+    <a href="/terms.html">Terms</a> &middot;
+    <a href="/contact.html">Contact</a> &middot;
+    <a href="/blog/index.html">Blog</a>
+  </p>
+</footer>
+
+</body>
+</html>

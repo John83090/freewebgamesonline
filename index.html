@@ -2,8 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>FreeWebGamesOnline – Unblocked Games Free</title>
-<meta name="description" content="Play 100 free original browser games online. No download, no signup. Puzzle, arcade, board, sports, and educational games — all free!"/>
+<title>FreeWebGamesOnline – Free Browser Games, No Download</title>
+<meta name="description" content="Play 100 free original HTML5 browser games online. No download, no signup required. Puzzle, arcade, board, card, sports, casino, and educational games — all free!"/>
+<meta name="keywords" content="free browser games, online games, HTML5 games, puzzle games, arcade games, board games, card games, educational games"/>
+<meta property="og:title" content="FreeWebGamesOnline – Free Browser Games"/>
+<meta property="og:description" content="100 original HTML5 games playable instantly in your browser. No downloads, no signup."/>
+<meta property="og:type" content="website"/>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
 <link rel="shortcut icon" href="/favicon.svg"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
@@ -34,10 +38,6 @@
 html,body{height:100%}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;min-height:100vh}
 
-/* ── CLOAK BAR ── */
-#cloak-bar{background:#0f1022;border-bottom:1px solid var(--border);padding:5px 16px 5px 72px;display:flex;align-items:center;gap:10px;font-size:.73rem;color:var(--text2);flex-shrink:0}
-#cloak-bar span{flex:1}
-#cloak-bar select{background:var(--bg3);color:var(--text2);border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-size:.72rem;cursor:pointer;outline:none}
 
 /* ── LAYOUT ── */
 .layout{display:flex;flex:1;min-height:0}
@@ -326,10 +326,16 @@ footer a:hover{color:var(--text)}
 .mob-search-clear{background:none;border:none;color:var(--text2);font-size:1.2rem;cursor:pointer;padding:4px 6px;line-height:1}
 .mob-search-clear:hover{color:var(--text)}
 
+/* ── BLOG CARDS ── */
+.blog-card{display:block;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-decoration:none;color:var(--text);transition:border-color .15s,transform .1s}
+.blog-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.blog-card-cat{font-size:.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.blog-card-title{font-size:.92rem;font-weight:700;line-height:1.4;margin-bottom:8px}
+.blog-card-meta{font-size:.78rem;color:var(--text2)}
+
 @media(max-width:640px){
   /* Hide desktop elements */
   .sidebar{display:none !important}
-  #cloak-bar{display:none}
   header{display:none}
   .hero{display:none}
   .main-area{margin-left:0;overflow-x:hidden}
@@ -435,18 +441,6 @@ footer a:hover{color:var(--text)}
   <button class="mob-cat-chip" onclick="setFilter('creative',this)" data-cat="creative">🎨 Creative</button>
 </div>
 
-<!-- CLOAK BAR -->
-<div id="cloak-bar">
-  <span>🛡️ Tab Cloaker</span>
-  <select onchange="applyCloak(this.value)">
-    <option value="">— Disguise tab —</option>
-    <option value="classroom">Google Classroom</option>
-    <option value="khan">Khan Academy</option>
-    <option value="docs">Google Docs</option>
-    <option value="zoom">Zoom</option>
-    <option value="canvas">Canvas LMS</option>
-  </select>
-</div>
 
 <!-- SIDEBAR -->
 <div class="sidebar">
@@ -478,10 +472,11 @@ footer a:hover{color:var(--text)}
     </a>
     <div class="search-wrap">
       <span class="si-search">🔍</span>
-      <input type="text" id="search-input" placeholder="Search 270+ unblocked games…" oninput="filterGames()" autocomplete="off"/>
+      <input type="text" id="search-input" placeholder="Search 100+ free games…" oninput="filterGames()" autocomplete="off"/>
     </div>
     <div class="header-right">
       <nav>
+        <a href="blog/index.html">📝 Blog</a>
         <a href="leaderboard.html">🏆 Leaderboard</a>
         <a href="about.html">About</a>
       </nav>
@@ -494,13 +489,13 @@ footer a:hover{color:var(--text)}
   <!-- HERO -->
   <div class="hero">
     <div class="hero-inner">
-      <h1>Play <span>Unblocked Games</span><br>Anywhere, Anytime</h1>
-      <p>270+ free games — all unblocked at school. Slope, 1v1.LOL, Shell Shockers, Retro Bowl &amp; more. No downloads needed!</p>
+      <h1>Free Browser Games<br><span>Play Instantly Online</span></h1>
+      <p>100 original HTML5 games — puzzle, arcade, board, card, sports, casino &amp; educational. No downloads, no signup, no cost. Just click and play.</p>
       <div class="hero-badges">
-        <div class="hero-badge">🎮 <b>270+</b> Games</div>
-        <div class="hero-badge">🔓 <b>100%</b> Unblocked</div>
+        <div class="hero-badge">🎮 <b>100</b> Games</div>
         <div class="hero-badge">⚡ <b>No</b> Downloads</div>
         <div class="hero-badge">🆓 <b>Always</b> Free</div>
+        <div class="hero-badge">📱 <b>Mobile</b> Friendly</div>
       </div>
     </div>
   </div>
@@ -544,6 +539,44 @@ footer a:hover{color:var(--text)}
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
     </div>
 
+    <!-- BLOG PREVIEW SECTION -->
+    <div class="section" id="sec-blog" style="margin-top:8px">
+      <div class="section-title">📝 From the Blog</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:4px">
+        <a href="blog/best-free-browser-games.html" class="blog-card">
+          <div class="blog-card-cat">Guides</div>
+          <div class="blog-card-title">Best Free Browser Games to Play Right Now</div>
+          <div class="blog-card-meta">5 min read · Puzzle, Arcade, Board</div>
+        </a>
+        <a href="blog/puzzle-games-guide.html" class="blog-card">
+          <div class="blog-card-cat">Puzzle</div>
+          <div class="blog-card-title">The Ultimate Puzzle Games Guide for Beginners</div>
+          <div class="blog-card-meta">4 min read · Sudoku, Wordle, 2048</div>
+        </a>
+        <a href="blog/chess-tips-for-beginners.html" class="blog-card">
+          <div class="blog-card-cat">Strategy</div>
+          <div class="blog-card-title">How to Get Better at Chess: 10 Tips for Beginners</div>
+          <div class="blog-card-meta">6 min read · Chess Strategy</div>
+        </a>
+        <a href="blog/educational-games-that-are-fun.html" class="blog-card">
+          <div class="blog-card-cat">Educational</div>
+          <div class="blog-card-title">Educational Games That Are Actually Fun to Play</div>
+          <div class="blog-card-meta">4 min read · Math, Geography, Spelling</div>
+        </a>
+      </div>
+      <div style="text-align:center;margin-top:14px">
+        <a href="blog/index.html" style="color:var(--accent);font-size:.88rem;font-weight:600;text-decoration:none">View all articles →</a>
+      </div>
+    </div>
+
+    <!-- ABOUT SITE SECTION -->
+    <div class="section" id="sec-about-site" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px 20px;margin-top:8px">
+      <h2 style="font-size:1.1rem;font-weight:800;margin-bottom:12px">About FreeWebGamesOnline</h2>
+      <p style="color:var(--text2);font-size:.88rem;line-height:1.7;margin-bottom:12px">FreeWebGamesOnline is a collection of 100 original HTML5 games built specifically for this site. Every game — from classic Sudoku and Chess to Pac-Man, Solitaire, and Math Quiz — is playable directly in your browser with no downloads, no sign-up, and no cost.</p>
+      <p style="color:var(--text2);font-size:.88rem;line-height:1.7;margin-bottom:12px">We cover 9 game categories: <strong style="color:var(--text)">Puzzle</strong>, <strong style="color:var(--text)">Arcade</strong>, <strong style="color:var(--text)">Board</strong>, <strong style="color:var(--text)">Card</strong>, <strong style="color:var(--text)">Sports</strong>, <strong style="color:var(--text)">Casino</strong>, <strong style="color:var(--text)">Casual</strong>, <strong style="color:var(--text)">Educational</strong>, and <strong style="color:var(--text)">Strategy</strong>. Whether you have 2 minutes or 2 hours, there is something here for you.</p>
+      <p style="color:var(--text2);font-size:.88rem;line-height:1.7">All games work on desktop and mobile. Scores are saved locally so you can always track your personal bests.</p>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /main-area -->
 
@@ -583,6 +616,7 @@ footer a:hover{color:var(--text)}
 
 <footer>
   <a href="/about.html">About</a>
+  <a href="/blog/index.html">Blog</a>
   <a href="/leaderboard.html">Leaderboard</a>
   <a href="/privacy-policy.html">Privacy Policy</a>
   <a href="/terms.html">Terms</a>
@@ -1047,21 +1081,6 @@ function clearMobSearch(){
   if(inp){ inp.value=''; filterGames(); }
 }
 
-/* ── TAB CLOAK ── */
-const CLOAKS={
-  classroom:{title:'Google Classroom',icon:'https://ssl.gstatic.com/classroom/favicon.png'},
-  khan:     {title:'Khan Academy',    icon:'https://cdn.kastatic.org/images/favicon.ico'},
-  docs:     {title:'Google Docs',     icon:'https://ssl.gstatic.com/docs/doclist/images/drive_2022q3_32dp.png'},
-  zoom:     {title:'Zoom',            icon:'https://st1.zoom.us/zoom.ico'},
-  canvas:   {title:'Canvas',          icon:'https://du11hjcvx0uqb.cloudfront.net/dist/images/favicon-e10d657a73.ico'},
-};
-function applyCloak(v){
-  const c=CLOAKS[v];
-  if(!c){document.title='FreeWebGamesOnline – Unblocked Games Free';return;}
-  document.title=c.title;
-  let link=document.querySelector("link[rel='icon']")||document.createElement('link');
-  link.rel='icon';link.href=c.icon;document.head.appendChild(link);
-}
 
 /* ── CRAZYGAMES POPUP ENGINE ── */
 const popup = document.getElementById('game-popup');

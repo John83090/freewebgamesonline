@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FreeWebGamesOnline Blog – Game Guides &amp; Tips</title>
+  <meta name="description" content="Browse game guides, strategy tips, and tutorials for browser games including chess, puzzles, arcade games, card games, and more." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0d14;
+      --bg2: #13131f;
+      --card: #1e1e30;
+      --border: #2a2a45;
+      --accent: #6c63ff;
+      --text: #e8e8f0;
+      --text2: #9898b8;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.6; min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* HEADER */
+    header { position: sticky; top: 0; z-index: 100; background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 1.5rem; }
+    .header-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 56px; }
+    .logo { font-size: 1.2rem; font-weight: 700; color: var(--text); text-decoration: none; white-space: nowrap; }
+    .logo:hover { color: var(--accent); }
+    nav { display: flex; gap: 1.5rem; }
+    nav a { color: var(--text2); text-decoration: none; font-size: 0.95rem; transition: color 0.2s; }
+    nav a:hover, nav a[aria-current] { color: var(--accent); }
+
+    /* HERO */
+    .hero { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 3rem 1.5rem; text-align: center; }
+    .hero h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 0.75rem; }
+    .hero p { color: var(--text2); font-size: 1.05rem; max-width: 600px; margin: 0 auto; }
+
+    /* MAIN */
+    main { flex: 1; max-width: 1100px; margin: 0 auto; width: 100%; padding: 2.5rem 1.5rem; }
+
+    /* GRID */
+    .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+
+    /* CARD */
+    .blog-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.75rem; display: flex; flex-direction: column; transition: border-color 0.2s, transform 0.2s; }
+    .blog-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .category-tag { display: inline-block; background: rgba(108,99,255,0.15); color: var(--accent); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.25rem 0.65rem; border-radius: 20px; margin-bottom: 0.9rem; }
+    .blog-card h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.6rem; line-height: 1.35; }
+    .blog-card h2 a { color: var(--text); text-decoration: none; }
+    .blog-card h2 a:hover { color: var(--accent); }
+    .blog-card p { color: var(--text2); font-size: 0.92rem; line-height: 1.55; flex: 1; margin-bottom: 1.2rem; }
+    .read-more { color: var(--accent); text-decoration: none; font-size: 0.9rem; font-weight: 600; margin-top: auto; align-self: flex-start; }
+    .read-more:hover { text-decoration: underline; }
+
+    /* FOOTER */
+    footer { background: var(--bg2); border-top: 1px solid var(--border); padding: 2rem 1.5rem; text-align: center; }
+    .footer-inner { max-width: 1100px; margin: 0 auto; }
+    .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem 1.5rem; margin-bottom: 1rem; }
+    .footer-links a { color: var(--text2); text-decoration: none; font-size: 0.88rem; }
+    .footer-links a:hover { color: var(--accent); }
+    .footer-copy { color: var(--text2); font-size: 0.82rem; }
+
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 1.6rem; }
+      nav { gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a href="/index.html" class="logo">🎮 FreeWebGamesOnline</a>
+    <nav>
+      <a href="/index.html">Games</a>
+      <a href="/blog/index.html" aria-current="page">Blog</a>
+      <a href="/about.html">About</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <h1>Game Guides &amp; Tips</h1>
+  <p>Strategy breakdowns, beginner tutorials, and curated picks to help you discover and enjoy the best free browser games.</p>
+</div>
+
+<main>
+  <div class="blog-grid">
+
+    <article class="blog-card">
+      <span class="category-tag">Guides</span>
+      <h2><a href="/blog/best-free-browser-games.html">Best Free Browser Games to Play Right Now</a></h2>
+      <p>Looking for something fun to play without downloading anything? We've rounded up the best free browser games across every genre — puzzles, arcade, board games, and more. Fire up any of them instantly, right in your browser.</p>
+      <a href="/blog/best-free-browser-games.html" class="read-more">Read more →</a>
+    </article>
+
+    <article class="blog-card">
+      <span class="category-tag">Puzzle</span>
+      <h2><a href="/blog/puzzle-games-guide.html">The Ultimate Puzzle Games Guide for Beginners</a></h2>
+      <p>Puzzle games are more than just fun — they sharpen your thinking, build patience, and offer a genuine sense of accomplishment. This guide walks you through Sudoku, Wordle, 2048, Minesweeper, and more with practical tips to level up fast.</p>
+      <a href="/blog/puzzle-games-guide.html" class="read-more">Read more →</a>
+    </article>
+
+    <article class="blog-card">
+      <span class="category-tag">Strategy</span>
+      <h2><a href="/blog/chess-tips-for-beginners.html">How to Get Better at Chess: 10 Tips for Beginners</a></h2>
+      <p>Chess rewards patience, planning, and practice — but knowing where to start can be overwhelming. These 10 actionable tips cover everything from controlling the center to studying endgames, and they'll make you a noticeably stronger player.</p>
+      <a href="/blog/chess-tips-for-beginners.html" class="read-more">Read more →</a>
+    </article>
+
+    <article class="blog-card">
+      <span class="category-tag">Educational</span>
+      <h2><a href="/blog/educational-games-that-are-fun.html">Educational Games That Are Actually Fun to Play</a></h2>
+      <p>The best educational games don't feel like homework — they disguise learning inside gameplay that's genuinely engaging. Discover browser games that build real knowledge in math, geography, spelling, and general trivia without the classroom feel.</p>
+      <a href="/blog/educational-games-that-are-fun.html" class="read-more">Read more →</a>
+    </article>
+
+    <article class="blog-card">
+      <span class="category-tag">Card Games</span>
+      <h2><a href="/blog/card-games-explained.html">Card Games Explained: From Solitaire to Poker</a></h2>
+      <p>Card games have been entertaining people for centuries, and they translate beautifully to the browser. Whether you're a Solitaire regular or want to learn Blackjack and Poker from scratch, this guide breaks down the rules and strategies you need.</p>
+      <a href="/blog/card-games-explained.html" class="read-more">Read more →</a>
+    </article>
+
+    <article class="blog-card">
+      <span class="category-tag">Arcade</span>
+      <h2><a href="/blog/arcade-games-guide.html">Arcade Games Guide: Master Pac-Man, Frogger &amp; More</a></h2>
+      <p>Classic arcade games look simple but hide surprising depth once you understand the patterns and scoring systems. This guide gives you real strategies for Pac-Man, Frogger, Snake, Breakout, and Tetris so you can stop dying on level one.</p>
+      <a href="/blog/arcade-games-guide.html" class="read-more">Read more →</a>
+    </article>
+
+  </div>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="/index.html">Games</a>
+      <a href="/blog/index.html">Blog</a>
+      <a href="/about.html">About</a>
+      <a href="/privacy-policy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/blog/best-free-browser-games.html">Browser Games Guide</a>
+      <a href="/blog/puzzle-games-guide.html">Puzzle Guide</a>
+      <a href="/blog/chess-tips-for-beginners.html">Chess Tips</a>
+    </div>
+    <p class="footer-copy">© 2026 FreeWebGamesOnline · All rights reserved.</p>
+  </div>
+</footer>
+
+</body>
+</html>
