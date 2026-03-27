@@ -240,25 +240,20 @@
       border-color: rgba(99,102,241,0.3);
     }
     .card-thumb {
-      height: 160px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 3rem;
-      position: relative;
+      width: 100%;
+      height: 200px;
       overflow: hidden;
+      border-radius: 10px 10px 0 0;
     }
-    .card-thumb::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: inherit;
-      opacity: 0.7;
+    .card-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.3s;
     }
-    .card-thumb-emoji {
-      position: relative;
-      z-index: 1;
-      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+    .card-thumb:hover img {
+      transform: scale(1.05);
     }
     .card-body {
       padding: 20px;
@@ -568,8 +563,8 @@
 
       <!-- Chess Tips -->
       <article class="article-card">
-        <div class="card-thumb" style="background: linear-gradient(135deg, #0d1117 0%, #1a3a2a 50%, #0d4f2a 100%);">
-          <span class="card-thumb-emoji">♟️</span>
+        <div class="card-thumb">
+          <img src="/img/blog/chess.jpg" alt="Chess tips for beginners" loading="lazy">
         </div>
         <div class="card-body">
           <div class="card-meta">
@@ -593,8 +588,8 @@
 
       <!-- Puzzle Games Guide -->
       <article class="article-card">
-        <div class="card-thumb" style="background: linear-gradient(135deg, #0a0f1a 0%, #1a2a4a 50%, #1e3a8a 100%);">
-          <span class="card-thumb-emoji">🧩</span>
+        <div class="card-thumb">
+          <img src="/img/blog/puzzle.jpg" alt="Puzzle games guide" loading="lazy">
         </div>
         <div class="card-body">
           <div class="card-meta">
@@ -618,8 +613,8 @@
 
       <!-- Arcade Games Guide -->
       <article class="article-card">
-        <div class="card-thumb" style="background: linear-gradient(135deg, #1a0505 0%, #3b0a0a 50%, #7f1d1d 100%);">
-          <span class="card-thumb-emoji">👾</span>
+        <div class="card-thumb">
+          <img src="/img/blog/arcade.jpg" alt="Arcade games guide" loading="lazy">
         </div>
         <div class="card-body">
           <div class="card-meta">
@@ -643,8 +638,8 @@
 
       <!-- Card Games Explained -->
       <article class="article-card">
-        <div class="card-thumb" style="background: linear-gradient(135deg, #0a0a1f 0%, #0c1445 50%, #1e3a8a 100%);">
-          <span class="card-thumb-emoji">🃏</span>
+        <div class="card-thumb">
+          <img src="/img/blog/cards.jpg" alt="Card games explained" loading="lazy">
         </div>
         <div class="card-body">
           <div class="card-meta">
@@ -668,8 +663,8 @@
 
       <!-- Educational Games -->
       <article class="article-card">
-        <div class="card-thumb" style="background: linear-gradient(135deg, #1a0f00 0%, #451a03 50%, #92400e 100%);">
-          <span class="card-thumb-emoji">📚</span>
+        <div class="card-thumb">
+          <img src="/img/blog/educational.jpg" alt="Educational games that are fun" loading="lazy">
         </div>
         <div class="card-body">
           <div class="card-meta">
@@ -693,8 +688,8 @@
 
       <!-- Best Free Browser Games -->
       <article class="article-card">
-        <div class="card-thumb" style="background: linear-gradient(135deg, #0a1a0a 0%, #0d2818 50%, #14532d 100%);">
-          <span class="card-thumb-emoji">🏆</span>
+        <div class="card-thumb">
+          <img src="/img/blog/best-games.jpg" alt="Best free browser games" loading="lazy">
         </div>
         <div class="card-body">
           <div class="card-meta">

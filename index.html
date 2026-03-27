@@ -77,7 +77,8 @@
     .hero-meta .author { color: var(--text2); font-weight: 600; }
     .btn-primary { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #fff; font-size: 15px; font-weight: 700; padding: 12px 26px; border-radius: 8px; transition: transform .15s, opacity .15s; }
     .btn-primary:hover { opacity: .9; transform: translateY(-1px); }
-    .hero-thumb { background: linear-gradient(135deg, #1a0a3a 0%, #4c1d95 100%); border-radius: 16px; aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center; font-size: 96px; border: 1px solid rgba(255,255,255,.08); box-shadow: 0 24px 64px rgba(0,0,0,.5); }
+    .hero-thumb { border-radius: 16px; aspect-ratio: 4/3; overflow: hidden; border: 1px solid rgba(255,255,255,.08); box-shadow: 0 24px 64px rgba(0,0,0,.5); }
+    .hero-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
     /* ─── Ad Zone ─── */
     .ad-zone { max-width: 1200px; margin: 0 auto; padding: 12px 24px; }
@@ -101,7 +102,9 @@
     .article-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
     .article-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: transform .2s, box-shadow .2s; display: flex; flex-direction: column; }
     .article-card:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(0,0,0,.4); }
-    .card-thumb { aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; font-size: 56px; }
+    .card-thumb { aspect-ratio: 16/9; overflow: hidden; }
+    .card-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease; }
+    .article-card:hover .card-thumb img { transform: scale(1.05); }
     .card-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
     .cat-tag { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--accent2); background: rgba(108,99,255,.12); padding: 3px 10px; border-radius: 4px; margin-bottom: 12px; }
     .card-title { font-size: 16px; font-weight: 700; line-height: 1.35; margin-bottom: 10px; color: var(--text); display: block; }
@@ -120,7 +123,8 @@
     .article-list { display: flex; flex-direction: column; gap: 20px; }
     .article-row { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; display: grid; grid-template-columns: 160px 1fr; transition: box-shadow .2s; }
     .article-row:hover { box-shadow: 0 8px 32px rgba(0,0,0,.35); }
-    .row-thumb { display: flex; align-items: center; justify-content: center; font-size: 40px; min-height: 120px; }
+    .row-thumb { min-height: 120px; overflow: hidden; }
+    .row-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .row-body { padding: 18px 20px; display: flex; flex-direction: column; justify-content: center; }
     .row-title { font-size: 15px; font-weight: 700; line-height: 1.35; margin-bottom: 8px; color: var(--text); display: block; }
     .row-title:hover { color: var(--accent2); }
@@ -158,7 +162,8 @@
     .games-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
     .mini-card { flex-shrink: 0; width: 120px; border-radius: 12px; overflow: hidden; text-align: center; text-decoration: none; border: 1px solid var(--border); transition: transform .2s, box-shadow .2s; }
     .mini-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.4); }
-    .mini-card-thumb { height: 90px; display: flex; align-items: center; justify-content: center; font-size: 40px; }
+    .mini-card-thumb { height: 90px; overflow: hidden; }
+    .mini-card-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .mini-card-name { background: var(--card); padding: 8px 4px; font-size: 11px; font-weight: 700; color: var(--text2); }
 
     /* ─── About Section ─── */
@@ -253,7 +258,9 @@
         </div>
         <a href="/blog/chess-tips-for-beginners.html" class="btn-primary">Read the Guide →</a>
       </div>
-      <div class="hero-thumb">♟️</div>
+      <div class="hero-thumb">
+        <img src="/img/blog/chess.jpg" alt="Chess strategy guide" loading="eager">
+      </div>
     </div>
   </section>
 
@@ -287,7 +294,9 @@
 
         <!-- Card 1: Puzzle Guide -->
         <article class="article-card">
-          <div class="card-thumb" style="background:linear-gradient(135deg,#1e3a5f 0%,#0d7fa5 100%);">🧩</div>
+          <div class="card-thumb">
+            <img src="/img/blog/puzzle.jpg" alt="Puzzle games guide" loading="lazy">
+          </div>
           <div class="card-body">
             <span class="cat-tag">🧩 Puzzle Guide</span>
             <a href="/blog/puzzle-games-guide.html" class="card-title">The Ultimate Puzzle Games Guide: From Sudoku to Wordle</a>
@@ -305,7 +314,9 @@
 
         <!-- Card 2: Arcade Guide -->
         <article class="article-card">
-          <div class="card-thumb" style="background:linear-gradient(135deg,#3b0a0a 0%,#b91c1c 100%);">👾</div>
+          <div class="card-thumb">
+            <img src="/img/blog/arcade.jpg" alt="Arcade games guide" loading="lazy">
+          </div>
           <div class="card-body">
             <span class="cat-tag">👾 Arcade Guide</span>
             <a href="/blog/arcade-games-guide.html" class="card-title">Master Every Arcade Game: Pac-Man, Snake, Galaga &amp; More</a>
@@ -323,7 +334,9 @@
 
         <!-- Card 3: Card Games -->
         <article class="article-card">
-          <div class="card-thumb" style="background:linear-gradient(135deg,#0c1445 0%,#1e3a8a 100%);">🃏</div>
+          <div class="card-thumb">
+            <img src="/img/blog/cards.jpg" alt="Card games guide" loading="lazy">
+          </div>
           <div class="card-body">
             <span class="cat-tag">🃏 Card Games</span>
             <a href="/blog/card-games-guide.html" class="card-title">Card Games Explained: Solitaire, Blackjack &amp; Video Poker</a>
@@ -360,7 +373,9 @@
 
         <!-- Row 1: Educational Games -->
         <article class="article-row">
-          <div class="row-thumb" style="background:linear-gradient(135deg,#2d1b00 0%,#92400e 100%);">📚</div>
+          <div class="row-thumb">
+            <img src="/img/blog/educational.jpg" alt="Educational games" loading="lazy">
+          </div>
           <div class="row-body">
             <span class="cat-tag" style="margin-bottom:8px;">📚 Educational</span>
             <a href="/blog/educational-games.html" class="row-title">10 Educational Games That Are Actually Fun</a>
@@ -375,7 +390,9 @@
 
         <!-- Row 2: Best Browser Games -->
         <article class="article-row">
-          <div class="row-thumb" style="background:linear-gradient(135deg,#0d2818 0%,#166534 100%);">🏆</div>
+          <div class="row-thumb">
+            <img src="/img/blog/best-games.jpg" alt="Best free browser games" loading="lazy">
+          </div>
           <div class="row-body">
             <span class="cat-tag" style="margin-bottom:8px;">🏅 Top Picks</span>
             <a href="/blog/best-browser-games.html" class="row-title">50 Best Free Browser Games You Can Play Right Now</a>
@@ -448,43 +465,63 @@
       <p class="games-strip-sub">Instant play — no download, no signup, no account needed</p>
       <div class="games-scroll">
         <a href="/play.html?id=snake&name=Snake&url=/games/snake.html&ext=/games/snake.html&cat=Arcade" class="mini-card">
-          <div class="mini-card-thumb" style="background:linear-gradient(135deg,#0f2027,#2c5364);">🐍</div>
+          <div class="mini-card-thumb">
+            <img src="/img/covers/snake.jpg" alt="Snake game" loading="lazy">
+          </div>
           <div class="mini-card-name">Snake</div>
         </a>
         <a href="/play.html?id=tetris&name=Tetris&url=/games/tetris.html&ext=/games/tetris.html&cat=Puzzle" class="mini-card">
-          <div class="mini-card-thumb" style="background:linear-gradient(135deg,#1a1a2e,#0f3460);">🟦</div>
+          <div class="mini-card-thumb">
+            <img src="/img/covers/tetris.jpg" alt="Tetris game" loading="lazy">
+          </div>
           <div class="mini-card-name">Tetris</div>
         </a>
         <a href="/play.html?id=chess&name=Chess&url=/games/chess.html&ext=/games/chess.html&cat=Board" class="mini-card">
-          <div class="mini-card-thumb" style="background:linear-gradient(135deg,#1a0a3a,#4c1d95);">♟️</div>
+          <div class="mini-card-thumb">
+            <img src="/img/covers/chess.jpg" alt="Chess game" loading="lazy">
+          </div>
           <div class="mini-card-name">Chess</div>
         </a>
         <a href="/play.html?id=wordle&name=Wordle&url=/games/wordle.html&ext=/games/wordle.html&cat=Puzzle" class="mini-card">
-          <div class="mini-card-thumb" style="background:linear-gradient(135deg,#064e3b,#065f46);">🟩</div>
+          <div class="mini-card-thumb">
+            <img src="/img/covers/wordle.jpg" alt="Wordle game" loading="lazy">
+          </div>
           <div class="mini-card-name">Wordle</div>
         </a>
         <a href="/play.html?id=2048&name=2048&url=/games/2048.html&ext=/games/2048.html&cat=Puzzle" class="mini-card">
-          <div class="mini-card-thumb" style="background:linear-gradient(135deg,#78350f,#b45309);">🔢</div>
+          <div class="mini-card-thumb">
+            <img src="/img/covers/2048.jpg" alt="2048 game" loading="lazy">
+          </div>
           <div class="mini-card-name">2048</div>
         </a>
         <a href="/play.html?id=pac-man&name=Pac-Man&url=/games/pac-man.html&ext=/games/pac-man.html&cat=Arcade" class="mini-card">
-          <div class="mini-card-thumb" style="background:linear-gradient(135deg,#1c1c00,#4a4a00);">👾</div>
+          <div class="mini-card-thumb">
+            <img src="/img/covers/pac-man.jpg" alt="Pac-Man game" loading="lazy">
+          </div>
           <div class="mini-card-name">Pac-Man</div>
         </a>
         <a href="/play.html?id=solitaire&name=Solitaire&url=/games/solitaire.html&ext=/games/solitaire.html&cat=Card" class="mini-card">
-          <div class="mini-card-thumb" style="background:linear-gradient(135deg,#0c1445,#1e3a8a);">🃏</div>
+          <div class="mini-card-thumb">
+            <img src="/img/covers/solitaire.jpg" alt="Solitaire game" loading="lazy">
+          </div>
           <div class="mini-card-name">Solitaire</div>
         </a>
         <a href="/play.html?id=sudoku&name=Sudoku&url=/games/sudoku.html&ext=/games/sudoku.html&cat=Puzzle" class="mini-card">
-          <div class="mini-card-thumb" style="background:linear-gradient(135deg,#1e3a5f,#0d7fa5);">🧩</div>
+          <div class="mini-card-thumb">
+            <img src="/img/covers/sudoku.jpg" alt="Sudoku game" loading="lazy">
+          </div>
           <div class="mini-card-name">Sudoku</div>
         </a>
         <a href="/play.html?id=cookie&name=Cookie+Clicker&url=/games/cookie.html&ext=/games/cookie.html&cat=Casual" class="mini-card">
-          <div class="mini-card-thumb" style="background:linear-gradient(135deg,#2d1b00,#92400e);">🍪</div>
+          <div class="mini-card-thumb">
+            <img src="/img/covers/cookie.jpg" alt="Cookie Clicker game" loading="lazy">
+          </div>
           <div class="mini-card-name">Cookie Clicker</div>
         </a>
         <a href="/play.html?id=breakout&name=Breakout&url=/games/breakout.html&ext=/games/breakout.html&cat=Arcade" class="mini-card">
-          <div class="mini-card-thumb" style="background:linear-gradient(135deg,#3b0a0a,#b91c1c);">🧱</div>
+          <div class="mini-card-thumb">
+            <img src="/img/covers/breakout.jpg" alt="Breakout game" loading="lazy">
+          </div>
           <div class="mini-card-name">Breakout</div>
         </a>
       </div><!-- /.games-scroll -->
